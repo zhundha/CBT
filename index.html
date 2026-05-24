@@ -9,21 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    }
-  </script>
-  <script>
-    window.MathJax = {
-      tex: { inlineMath: [["$","$"],["\\(","\\)"]], displayMath: [["$$","$$"],["\\[","\\]"]] },
-      svg: { fontCache: "global" }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
   <meta name="theme-color" content="#3b82f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -488,6 +473,46 @@
       margin: 0.75rem 0;
       pointer-events: none;
     }
+    .media-rich {
+      overflow-wrap: anywhere;
+    }
+    .media-rich img,
+    .media-rich video {
+      max-width: 100%;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: #f8fafc;
+    }
+    .media-rich img {
+      display: block;
+      max-height: min(58vh, 520px);
+      object-fit: contain;
+    }
+    .media-rich audio {
+      width: min(100%, 520px);
+      margin: 0.75rem 0;
+    }
+    .media-figure {
+      display: inline-block;
+      max-width: 100%;
+      margin: 0.75rem 0;
+    }
+    .media-figure a {
+      display: inline-block;
+      max-width: 100%;
+    }
+    .media-figure-compact {
+      margin: 0.35rem 0;
+    }
+    .media-figure-compact img {
+      max-height: 180px;
+    }
+    .choice-media img {
+      max-height: 220px;
+    }
+    .qbank-card .media-rich img {
+      max-height: 140px;
+    }
 
     /* ============================================
        MOBILE RESPONSIVE
@@ -658,6 +683,13 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .ambient-blob { animation: none; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+      #boot-canvas, #login-canvas { display: none !important; }
     }
 
     /* App layers sit above blobs */
@@ -1549,6 +1581,15 @@
       background: #10b981;
       box-shadow: 0 0 0 3px rgba(16,185,129,0.16), 0 0 8px rgba(16,185,129,0.38);
     }
+    .login-status-slow {
+      color: #92400e;
+      background: rgba(255,251,235,0.82);
+      border-color: rgba(245,158,11,0.24);
+    }
+    .login-status-slow::before {
+      background: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.16), 0 0 8px rgba(245,158,11,0.30);
+    }
     .login-status-checking {
       color: #1d4ed8;
       background: rgba(239,246,255,0.74);
@@ -1604,12 +1645,90 @@
     #password {
       padding-right: 3.1rem;
     }
+    .login-role-caption {
+      margin-top: 0.45rem;
+      color: #64748b;
+      font-size: 0.72rem;
+      line-height: 1.35;
+    }
+    .login-role-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .login-role-tab-dark i {
+      flex: 0 0 auto;
+    }
+    .login-role-tab-dark span {
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: nowrap;
+    }
+    .login-feedback {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 0.9rem;
+      padding: 0.75rem 0.85rem;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 1px 2px rgba(15,23,42,0.04);
+    }
+    .login-feedback[hidden] {
+      display: none;
+    }
+    .login-feedback i {
+      flex: 0 0 auto;
+      margin-top: 0.08rem;
+    }
+    .login-feedback-error {
+      color: #9f1239;
+      background: rgba(255,241,242,0.82);
+      border-color: rgba(244,63,94,0.24);
+    }
+    .login-feedback-warning {
+      color: #92400e;
+      background: rgba(255,251,235,0.84);
+      border-color: rgba(245,158,11,0.26);
+    }
+    .login-feedback-info {
+      color: #1d4ed8;
+      background: rgba(239,246,255,0.80);
+      border-color: rgba(59,130,246,0.22);
+    }
+    .login-feedback-success {
+      color: #047857;
+      background: rgba(236,253,245,0.82);
+      border-color: rgba(16,185,129,0.24);
+    }
+    .login-input-dark.login-input-error {
+      border-color: #fb7185;
+      box-shadow:
+        inset 0 1px 2px rgba(15,23,42,0.04),
+        0 0 0 4px rgba(244,63,94,0.12);
+      background: #fff;
+    }
+    .login-role-tab-dark.login-role-error {
+      border-color: rgba(244,63,94,0.38);
+      box-shadow: 0 0 0 3px rgba(244,63,94,0.10);
+    }
     .login-form-busy {
-      pointer-events: none;
+      cursor: progress;
     }
     .login-form-busy input,
     .login-form-busy button:not(#btn-login) {
       opacity: 0.68;
+    }
+    .login-btn-glow[aria-busy="true"] {
+      cursor: progress;
+      opacity: 0.94;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.32),
+        0 1px 2px rgba(59,130,246,0.30),
+        0 4px 14px rgba(99,102,241,0.28);
+    }
+    .login-btn-glow[aria-busy="true"]::before {
+      animation-duration: 1.25s;
     }
     .login-version {
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1966,7 +2085,7 @@
           </div>
         </div>
 
-        <form id="loginForm" class="p-5 sm:p-6 space-y-5" onsubmit="handleLogin(event)">
+        <form id="loginForm" class="p-5 sm:p-6 space-y-5" onsubmit="handleLogin(event)" novalidate>
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div id="login-server-status" class="login-status-pill login-status-checking">
               <span id="login-server-status-text">Memeriksa server...</span>
@@ -1977,22 +2096,38 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 rounded-xl bg-slate-100/80 p-1.5 border border-black/[0.04]" role="tablist" aria-label="Role login">
-            <button type="button" class="login-role-tab login-role-tab-dark" data-role="peserta" aria-selected="true">
-              <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Peserta
-            </button>
-            <button type="button" class="login-role-tab login-role-tab-dark" data-role="guru" aria-selected="false">
-              <i data-lucide="book-open-check" class="w-3.5 h-3.5"></i> Guru
-            </button>
-            <button type="button" class="login-role-tab login-role-tab-dark" data-role="pengawas" aria-selected="false">
-              <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i> Pengawas
-            </button>
-            <button type="button" class="login-role-tab login-role-tab-dark" data-role="proktor" aria-selected="false">
-              <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Proktor
-            </button>
-                         <button type="button" class="login-role-tab login-role-tab-dark" data-role="executive" aria-selected="false">               <i data-lucide="crown" class="w-3.5 h-3.5"></i> Eksekutif             </button> <button type="button" class="login-role-tab login-role-tab-dark" data-role="admin" aria-selected="false">
-              <i data-lucide="settings" class="w-3.5 h-3.5"></i> Admin
-            </button>
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <label id="login-role-label" class="text-sm font-semibold text-slate-600">Masuk sebagai</label>
+              <span id="login-role-current" class="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[0.68rem] font-bold text-indigo-700">Peserta</span>
+            </div>
+            <div class="login-role-grid grid gap-1.5 rounded-xl bg-slate-100/80 p-1.5 border border-black/[0.04]" role="tablist" aria-labelledby="login-role-label">
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="peserta" aria-selected="true" aria-label="Masuk sebagai Peserta">
+                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                <span>Peserta</span>
+              </button>
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="guru" aria-selected="false" aria-label="Masuk sebagai Guru">
+                <i data-lucide="book-open-check" class="w-3.5 h-3.5"></i>
+                <span>Guru</span>
+              </button>
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="pengawas" aria-selected="false" aria-label="Masuk sebagai Pengawas">
+                <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
+                <span>Pengawas</span>
+              </button>
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="proktor" aria-selected="false" aria-label="Masuk sebagai Proktor">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <span>Proktor</span>
+              </button>
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="executive" aria-selected="false" aria-label="Masuk sebagai Eksekutif">
+                <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                <span>Eksekutif</span>
+              </button>
+              <button type="button" class="login-role-tab login-role-tab-dark" data-role="admin" aria-selected="false" aria-label="Masuk sebagai Admin">
+                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                <span>Admin</span>
+              </button>
+            </div>
+            <p id="login-role-hint" class="login-role-caption">Peserta menggunakan NISN atau username yang diberikan panitia.</p>
           </div>
           <input id="login-role" type="hidden" value="peserta">
 
@@ -2012,6 +2147,14 @@
               <button id="toggle-password" type="button" class="password-toggle-btn" aria-label="Tampilkan password" aria-pressed="false">
                 <i data-lucide="eye" class="w-4 h-4"></i>
               </button>
+            </div>
+          </div>
+
+          <div id="login-feedback" class="login-feedback login-feedback-info" hidden role="status" aria-live="polite">
+            <i id="login-feedback-icon" data-lucide="info" class="w-4 h-4"></i>
+            <div>
+              <p id="login-feedback-title" class="font-bold"></p>
+              <p id="login-feedback-message" class="mt-0.5"></p>
             </div>
           </div>
 
@@ -2131,9 +2274,24 @@
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
+    const BOOTSTRAP_CACHE_PREFIX = 'cbt_bootstrap_cache_';
+    const BOOTSTRAP_CACHE_TTL_MS = 2 * 60 * 1000;
+    const FRONTEND_TELEMETRY_KEY = 'cbt_frontend_perf_v1';
+    const isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lowPowerMode = isReducedMotion || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+    const DYNAMIC_LIBS = {
+      xlsx: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+      mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js',
+      pdfjs: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+      mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js'
+    };
+    const dynamicLibraryPromises = {};
 
     let currentUserData = null;
     let appData = null;
+    let masterRowsCache = [];
+    let qbankQuestionsCache = [];
+    let essayQueueCache = [];
 
     // PWA + offline init — runs once
     window.addEventListener('DOMContentLoaded', () => {
@@ -2144,6 +2302,10 @@
       try { updateAppVersionLabels(); } catch(e) {}
       try { setupLoginServerStatus(); } catch(e) {}
       try { loadTenantCodeIntoForm(); } catch(e) {}
+      try { bindLoginInputUx(); } catch(e) {}
+      try { initFrontendTelemetry(); } catch(e) {}
+      try { setupVisibilityPerformanceMode(); } catch(e) {}
+      try { setupDelegatedDashboardEvents(); } catch(e) {}
       // Pre-warm notification permission (silent if previously granted/denied)
       if ('Notification' in window && Notification.permission === 'default') {
         // Defer until first user interaction to avoid bumping permission prompt
@@ -2187,6 +2349,12 @@
     let participantFilter = 'all';
     let participantVisibleLimit = 250;
     const PARTICIPANT_RENDER_BATCH = 250;
+    let userVisibleLimit = 350;
+    let masterVisibleLimit = 300;
+    let qbankVisibleLimit = 120;
+    let essayVisibleLimit = 80;
+    const BIG_TABLE_RENDER_BATCH = 200;
+    const QBANK_RENDER_BATCH = 120;
     let participantSort = { col: '', asc: true };
     let studentExamTab = 'aktif';
     let monitorViewMode = 'table';
@@ -2395,8 +2563,10 @@
       if (!BACKEND_URL) {
         throw new Error('BACKEND_URL belum diisi. Frontend GitHub Pages membutuhkan URL Web App Apps Script.');
       }
+      const perfStarted = performance.now();
       const tenantId = localStorage.getItem('cbt_tenant_id') || '';
       const body = JSON.stringify({ action: functionName, args, tenantId });
+      const payloadBytes = body.length;
       let lastError = null;
       for (let attempt = 0; attempt <= SERVER_CALL_MAX_RETRIES; attempt++) {
         try {
@@ -2414,7 +2584,15 @@
             }
             throw new Error('Backend tidak merespons dengan benar (HTTP ' + response.status + ').');
           }
-          return await response.json();
+          const json = await response.json();
+          recordFrontendMetric('serverCall', {
+            name: functionName,
+            duration: Math.round(performance.now() - perfStarted),
+            bytes: payloadBytes,
+            attempt: attempt + 1,
+            status: json && json.status ? json.status : 'unknown'
+          });
+          return json;
         } catch (err) {
           // TypeError dari fetch = network error / CORS / DNS → retry
           const isNetwork = (err && err.name === 'TypeError') || /network|failed to fetch|merespons 5/i.test(String(err && err.message || ''));
@@ -2423,10 +2601,146 @@
             await _delay(SERVER_CALL_BASE_DELAY_MS * Math.pow(2, attempt));
             continue;
           }
+          recordFrontendMetric('serverCallError', {
+            name: functionName,
+            duration: Math.round(performance.now() - perfStarted),
+            bytes: payloadBytes,
+            attempt: attempt + 1,
+            message: err && err.message ? err.message : String(err)
+          });
           throw err;
         }
       }
       throw lastError || new Error('Gagal menghubungi backend setelah beberapa percobaan.');
+    }
+
+    function loadScriptOnce(key, src, setup) {
+      if (setup && setup.isReady && setup.isReady()) return Promise.resolve();
+      if (dynamicLibraryPromises[key]) return dynamicLibraryPromises[key];
+      dynamicLibraryPromises[key] = new Promise((resolve, reject) => {
+        if (setup && typeof setup.before === 'function') setup.before();
+        const existing = document.querySelector(`script[data-dynamic-lib="${key}"]`);
+        if (existing) {
+          existing.addEventListener('load', () => resolve(), { once: true });
+          existing.addEventListener('error', () => reject(new Error('Library gagal dimuat: ' + key)), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.dataset.dynamicLib = key;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Library gagal dimuat: ' + key));
+        document.head.appendChild(script);
+      }).then(() => {
+        if (setup && typeof setup.after === 'function') setup.after();
+      });
+      return dynamicLibraryPromises[key];
+    }
+
+    async function ensureXlsxLoaded() {
+      await loadScriptOnce('xlsx', DYNAMIC_LIBS.xlsx, { isReady: () => !!window.XLSX });
+      if (!window.XLSX) throw new Error('SheetJS gagal dimuat.');
+    }
+
+    async function ensureMammothLoaded() {
+      await loadScriptOnce('mammoth', DYNAMIC_LIBS.mammoth, { isReady: () => !!window.mammoth });
+      if (!window.mammoth) throw new Error('Mammoth gagal dimuat.');
+    }
+
+    async function ensurePdfJsLoaded() {
+      await loadScriptOnce('pdfjs', DYNAMIC_LIBS.pdfjs, {
+        isReady: () => !!window.pdfjsLib,
+        after: () => {
+          if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          }
+        }
+      });
+      if (!window.pdfjsLib) throw new Error('PDF.js gagal dimuat.');
+    }
+
+    async function ensureMathJaxLoaded() {
+      if (window.MathJax && window.MathJax.typesetPromise) return;
+      await loadScriptOnce('mathjax', DYNAMIC_LIBS.mathjax, {
+        isReady: () => !!(window.MathJax && window.MathJax.typesetPromise),
+        before: () => {
+          window.MathJax = window.MathJax || {
+            tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+            svg: { fontCache: 'global' }
+          };
+        }
+      });
+    }
+
+    function maybeHasMath(text) {
+      return /(\$\$?[^$]+\$\$?|\\\(|\\\[)/.test(String(text || ''));
+    }
+
+    function recordFrontendMetric(type, data) {
+      try {
+        const entry = Object.assign({ type, at: Date.now(), path: activeStaffSection || '', role: currentUserData && currentUserData.role || '' }, data || {});
+        const raw = localStorage.getItem(FRONTEND_TELEMETRY_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        list.push(entry);
+        localStorage.setItem(FRONTEND_TELEMETRY_KEY, JSON.stringify(list.slice(-80)));
+        if (entry.duration && entry.duration >= 700) console.info('[perf]', entry);
+      } catch (e) {}
+    }
+
+    function measureRender(name, fn) {
+      const started = performance.now();
+      try {
+        return fn();
+      } finally {
+        recordFrontendMetric('render', { name, duration: Math.round(performance.now() - started) });
+      }
+    }
+
+    function initFrontendTelemetry() {
+      if (!('PerformanceObserver' in window)) return;
+      try {
+        const observer = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
+            recordFrontendMetric('longtask', { name: entry.name || 'task', duration: Math.round(entry.duration || 0) });
+          });
+        });
+        observer.observe({ entryTypes: ['longtask'] });
+      } catch (e) {}
+    }
+
+    function bootstrapCacheKey() {
+      const userKey = currentUserData && currentUserData.user ? currentUserData.user : 'guest';
+      const tenantId = localStorage.getItem('cbt_tenant_id') || 'default';
+      return BOOTSTRAP_CACHE_PREFIX + APP_VERSION + '_' + tenantId + '_' + userKey;
+    }
+
+    function readBootstrapCache() {
+      try {
+        const raw = localStorage.getItem(bootstrapCacheKey());
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || !cached.data || (Date.now() - Number(cached.savedAt || 0)) > BOOTSTRAP_CACHE_TTL_MS) return null;
+        return cached.data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writeBootstrapCache(data) {
+      try {
+        localStorage.setItem(bootstrapCacheKey(), JSON.stringify({ savedAt: Date.now(), data }));
+      } catch (e) {}
+    }
+
+    function setupVisibilityPerformanceMode() {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && autoRefreshEnabled && !activeExam) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+        }
+        if (!document.hidden && autoRefreshEnabled && !activeExam && !autoRefreshTimer) startAutoRefresh();
+      });
     }
 
     /* ============================================
@@ -2694,11 +3008,26 @@
         .info td { padding: 2px 6px; font-size: 11pt; vertical-align: top; }
         .info td.lbl { width: 35%; }
         .info td.sep { width: 1%; }
+        .doc-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 0.8rem; margin: 0.75rem 0; }
+        .doc-meta-item { border: 1px solid #000; padding: 5px 8px; min-height: 32px; }
+        .doc-meta-label { display: block; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; color: #333; }
+        .doc-meta-value { display: block; font-size: 10.5pt; font-weight: 700; margin-top: 2px; }
+        .doc-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; margin: 0.75rem 0; }
+        .summary-card { border: 1px solid #000; padding: 6px 8px; text-align: center; }
+        .summary-card .label { display: block; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; }
+        .summary-card .value { display: block; font-size: 16pt; font-weight: 700; line-height: 1.1; margin-top: 2px; }
+        .doc-section-title { margin: 0.85rem 0 0.35rem; font-size: 11pt; font-weight: 700; text-transform: uppercase; }
+        .doc-note { border: 1px solid #000; min-height: 54px; padding: 6px 8px; margin-top: 0.35rem; text-align: justify; }
         table.peserta { width: 100%; border-collapse: collapse; margin: 0.5rem 0 0.8rem; font-size: 10.5pt; }
         table.peserta th, table.peserta td { border: 1px solid #000; padding: 4px 6px; text-align: left; }
         table.peserta th { background: #f0f0f0; text-align: center; font-weight: 700; }
         table.peserta td.no, table.peserta td.ttd, table.peserta th.no, table.peserta th.ttd { text-align: center; }
         table.peserta td.ttd { height: 28px; }
+        table.peserta.compact { font-size: 9.4pt; }
+        table.peserta.compact th, table.peserta.compact td { padding: 3px 4px; }
+        .status-pill-doc { display: inline-block; min-width: 54px; border: 1px solid #000; border-radius: 999px; padding: 1px 6px; text-align: center; font-size: 8.5pt; font-weight: 700; }
+        .signature-cell { min-width: 70px; height: 30px; }
+        .signature-line { display: block; border-bottom: 1px dotted #000; height: 20px; }
         .narasi { text-align: justify; margin: 0.6rem 0; font-size: 11pt; line-height: 1.55; text-indent: 1.2cm; }
         .ttd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1cm; margin-top: 1.2rem; }
         .ttd-grid.three { grid-template-columns: 1fr 1fr 1fr; }
@@ -2708,6 +3037,7 @@
         .ttd-block .nip { font-size: 10.5pt; }
         .kendala-list { margin: 0.4rem 0 0.8rem 0; padding-left: 1.4rem; font-size: 11pt; line-height: 1.55; }
         .footer-tanggal { text-align: right; margin-top: 1rem; font-size: 11pt; }
+        .page-break-avoid { break-inside: avoid; page-break-inside: avoid; }
         .print-toolbar {
           position: fixed; top: 0; left: 0; right: 0; padding: 8px 12px;
           background: #1d4ed8; color: white; font-family: system-ui, sans-serif; font-size: 13px;
@@ -2758,11 +3088,50 @@
         <\/script>`;
     }
 
-    function buildDaftarHadirHTML(data) {
+    function dokSummaryHtml(data) {
+      const total = (data.peserta || []).length;
+      const hadir = Number(data.jumlahHadir || 0);
+      const tidakHadir = Number(data.jumlahTidakHadir || 0);
+      const kendala = (data.kendala || []).length;
+      return `
+        <div class="doc-summary page-break-avoid">
+          <div class="summary-card"><span class="label">Terdaftar</span><span class="value">${total}</span></div>
+          <div class="summary-card"><span class="label">Hadir</span><span class="value">${hadir}</span></div>
+          <div class="summary-card"><span class="label">Tidak Hadir</span><span class="value">${tidakHadir}</span></div>
+          <div class="summary-card"><span class="label">Kendala</span><span class="value">${kendala}</span></div>
+        </div>
+      `;
+    }
+
+    function dokMetaGridHtml(data) {
       const k = data.konfigurasi || {};
       const u = data.ujian || {};
       const ruangLabel = data.ruangFilter || u.ruang || '';
+      return `
+        <div class="doc-meta-grid page-break-avoid">
+          <div class="doc-meta-item"><span class="doc-meta-label">Mata Pelajaran</span><span class="doc-meta-value">${escapeHtml(u.mapel || '-')}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Jenis Asesmen</span><span class="doc-meta-value">${escapeHtml(u.jenis || '-')}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Kelas</span><span class="doc-meta-value">${escapeHtml(u.kelas || '-')}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Ruang</span><span class="doc-meta-value">${escapeHtml(ruangLabel || '-')}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Hari / Tanggal</span><span class="doc-meta-value">${formatTanggalIndo(u.mulai)}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Waktu</span><span class="doc-meta-value">${formatJamRange(u.mulai, u.selesai)}${u.durasiMenit ? ' (' + escapeHtml(u.durasiMenit) + ' menit)' : ''}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Guru / Pengampu</span><span class="doc-meta-value">${escapeHtml(u.guru || '-')}</span></div>
+          <div class="doc-meta-item"><span class="doc-meta-label">Tahun / Semester</span><span class="doc-meta-value">${escapeHtml(k.tahunAjaran || '-')} / ${escapeHtml(k.semester || '-')}</span></div>
+        </div>
+      `;
+    }
+
+    function dokPesertaStatusLabel(p) {
+      if (p && p.hadir) return 'Hadir';
+      const ket = String((p && p.keterangan) || '').trim();
+      return ket || 'Tidak Hadir';
+    }
+
+    function buildDaftarHadirHTML(data) {
+      const k = data.konfigurasi || {};
       const peserta = (data.peserta || []).slice().sort((a, b) => {
+        const ra = String(a.ruang || '').localeCompare(String(b.ruang || ''));
+        if (ra !== 0) return ra;
         const ka = String(a.kelas || '').localeCompare(String(b.kelas || ''));
         if (ka !== 0) return ka;
         return String(a.nama || '').localeCompare(String(b.nama || ''));
@@ -2771,14 +3140,17 @@
       const rows = peserta.map((p, i) => `
         <tr>
           <td class="no">${i + 1}</td>
+          <td>${escapeHtml(p.nomorUjian || '-')}</td>
           <td>${escapeHtml(p.nisn || '')}</td>
           <td>${escapeHtml(p.nama || '')}</td>
           <td>${escapeHtml(p.kelas || '')}</td>
-          <td>${escapeHtml(p.nomorUjian || '')}</td>
-          <td class="ttd"></td>
-          <td class="ttd"></td>
+          <td>${escapeHtml(p.ruang || '')}</td>
+          <td class="no">${escapeHtml((p.jenisKelamin || '').toUpperCase() || '-')}</td>
+          <td class="no"><span class="status-pill-doc">${escapeHtml(dokPesertaStatusLabel(p))}</span></td>
+          <td class="ttd signature-cell"><span class="signature-line"></span></td>
+          <td>${escapeHtml(p.keterangan || '')}</td>
         </tr>
-      `).join('') || `<tr><td colspan="7" style="text-align:center;font-style:italic;padding:1rem;">Tidak ada peserta untuk filter ini.</td></tr>`;
+      `).join('') || `<tr><td colspan="10" style="text-align:center;font-style:italic;padding:1rem;">Tidak ada peserta untuk filter ini.</td></tr>`;
 
       return `<!DOCTYPE html>
 <html lang="id"><head><meta charset="UTF-8"><title>Daftar Hadir</title><style>${dokBaseCss()}</style></head>
@@ -2789,29 +3161,23 @@ ${dokToolbarHtml()}
   <h1 class="judul">Daftar Hadir Peserta Ujian</h1>
   <div class="subjudul">${escapeHtml(k.tahunAjaran || '')} ${k.semester ? '— Semester ' + escapeHtml(k.semester) : ''}</div>
 
-  <div class="info">
-    <table>
-      <tr><td class="lbl">Mata Pelajaran</td><td class="sep">:</td><td>${escapeHtml(u.mapel || '-')}</td></tr>
-      <tr><td class="lbl">Jenis Asesmen</td><td class="sep">:</td><td>${escapeHtml(u.jenis || '-')}</td></tr>
-      <tr><td class="lbl">Kelas</td><td class="sep">:</td><td>${escapeHtml(u.kelas || '-')}</td></tr>
-      <tr><td class="lbl">Ruang</td><td class="sep">:</td><td>${escapeHtml(ruangLabel || '-')}</td></tr>
-      <tr><td class="lbl">Hari / Tanggal</td><td class="sep">:</td><td>${formatTanggalIndo(u.mulai)}</td></tr>
-      <tr><td class="lbl">Waktu</td><td class="sep">:</td><td>${formatJamRange(u.mulai, u.selesai)}${u.durasiMenit ? ' (' + escapeHtml(u.durasiMenit) + ' menit)' : ''}</td></tr>
-      <tr><td class="lbl">Guru Pengampu</td><td class="sep">:</td><td>${escapeHtml(u.guru || '-')}</td></tr>
-      <tr><td class="lbl">Jumlah Peserta</td><td class="sep">:</td><td>${peserta.length} orang</td></tr>
-    </table>
-  </div>
+  ${dokMetaGridHtml(data)}
+  ${dokSummaryHtml(data)}
 
-  <table class="peserta">
+  <p class="doc-section-title">Daftar Peserta</p>
+  <table class="peserta compact">
     <thead>
       <tr>
-        <th class="no" style="width:5%">No</th>
-        <th style="width:14%">NISN</th>
-        <th style="width:30%">Nama Peserta</th>
-        <th style="width:11%">Kelas</th>
+        <th class="no" style="width:4%">No</th>
         <th style="width:10%">No. Ujian</th>
-        <th class="ttd" style="width:15%">Tanda Tangan</th>
-        <th class="ttd" style="width:15%">Tanda Tangan</th>
+        <th style="width:13%">NISN</th>
+        <th style="width:25%">Nama Peserta</th>
+        <th style="width:9%">Kelas</th>
+        <th style="width:9%">Ruang</th>
+        <th style="width:5%">L/P</th>
+        <th style="width:10%">Status</th>
+        <th class="ttd" style="width:13%">Tanda Tangan</th>
+        <th>Keterangan</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -2880,25 +3246,13 @@ ${dokToolbarHtml()}
 
   <p class="narasi">Pada hari ini, <b>${formatTanggalIndo(u.mulai)}</b>, bertempat di ${escapeHtml(k.namaSekolah || '')}, telah dilaksanakan ${escapeHtml(u.jenis || 'Ujian')} mata pelajaran <b>${escapeHtml(u.mapel || '-')}</b> untuk peserta kelas <b>${escapeHtml(u.kelas || '-')}</b> pada Ruang <b>${escapeHtml(ruangLabel || '-')}</b> dengan rincian sebagai berikut:</p>
 
-  <div class="info">
-    <table>
-      <tr><td class="lbl">Mata Pelajaran</td><td class="sep">:</td><td>${escapeHtml(u.mapel || '-')}</td></tr>
-      <tr><td class="lbl">Jenis Asesmen</td><td class="sep">:</td><td>${escapeHtml(u.jenis || '-')}</td></tr>
-      <tr><td class="lbl">Tahun Pelajaran / Semester</td><td class="sep">:</td><td>${escapeHtml(k.tahunAjaran || '-')} / ${escapeHtml(k.semester || '-')}</td></tr>
-      <tr><td class="lbl">Kelas</td><td class="sep">:</td><td>${escapeHtml(u.kelas || '-')}</td></tr>
-      <tr><td class="lbl">Ruang Ujian</td><td class="sep">:</td><td>${escapeHtml(ruangLabel || '-')}</td></tr>
-      <tr><td class="lbl">Hari / Tanggal</td><td class="sep">:</td><td>${formatTanggalIndo(u.mulai)}</td></tr>
-      <tr><td class="lbl">Waktu</td><td class="sep">:</td><td>${formatJamRange(u.mulai, u.selesai)}${u.durasiMenit ? ' (' + escapeHtml(u.durasiMenit) + ' menit)' : ''}</td></tr>
-      <tr><td class="lbl">Guru Mata Pelajaran</td><td class="sep">:</td><td>${escapeHtml(u.guru || '-')}</td></tr>
-      <tr><td class="lbl">Jumlah Peserta Terdaftar</td><td class="sep">:</td><td>${peserta.length} orang</td></tr>
-      <tr><td class="lbl">Jumlah Peserta Hadir</td><td class="sep">:</td><td>${data.jumlahHadir} orang</td></tr>
-      <tr><td class="lbl">Jumlah Peserta Tidak Hadir</td><td class="sep">:</td><td>${data.jumlahTidakHadir} orang</td></tr>
-      <tr><td class="lbl">Status Pelaksanaan</td><td class="sep">:</td><td>${kendala.length ? 'Berlangsung dengan ' + kendala.length + ' kendala (lihat lampiran)' : 'Berlangsung lancar tanpa kendala'}</td></tr>
-    </table>
-  </div>
+  ${dokMetaGridHtml(data)}
+  ${dokSummaryHtml(data)}
+  <p class="doc-section-title">Status Pelaksanaan</p>
+  <div class="doc-note">${kendala.length ? 'Berlangsung dengan ' + kendala.length + ' kendala yang tercatat pada sistem dan perlu ditindaklanjuti sesuai catatan di bawah.' : 'Berlangsung lancar tanpa kendala yang tercatat pada sistem.'}</div>
 
   ${tidakHadir.length ? `
-    <p style="margin-top:0.6rem;font-weight:700;">Daftar Peserta Tidak Hadir:</p>
+    <p class="doc-section-title">Daftar Peserta Tidak Hadir</p>
     <table class="peserta">
       <thead>
         <tr>
@@ -2912,12 +3266,12 @@ ${dokToolbarHtml()}
       <tbody>${tidakHadirRows}</tbody>
     </table>` : ''}
 
-  <p style="margin-top:0.6rem;font-weight:700;">Catatan / Kendala Selama Pelaksanaan:</p>
+  <p class="doc-section-title">Catatan / Kendala Selama Pelaksanaan</p>
   ${kendalaListHtml}
 
   ${catatanTersimpan ? `
-    <p style="margin-top:0.6rem;font-weight:700;">Catatan Tambahan Pengawas:</p>
-    <p style="margin-left:1.2cm;text-align:justify;">${escapeHtml(catatanTersimpan)}</p>` : ''}
+    <p class="doc-section-title">Catatan Tambahan Pengawas</p>
+    <div class="doc-note">${escapeHtml(catatanTersimpan)}</div>` : ''}
 
   <p class="narasi" style="text-indent:1.2cm;">${narasiAkhir}</p>
 
@@ -3121,24 +3475,92 @@ ${dokToolbarHtml()}
        MathJax + Media — render LaTeX and media URLs in question text
     ============================================ */
     function renderMathInElement(selector) {
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
-        if (el) window.MathJax.typesetPromise([el]).catch(err => console.warn('[MathJax] error:', err));
+      const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+      if (!el || !maybeHasMath(el.textContent || el.innerHTML || '')) return;
+      ensureMathJaxLoaded()
+        .then(() => window.MathJax.typesetPromise([el]))
+        .catch(err => console.warn('[MathJax] error:', err));
+    }
+
+    function getDriveFileIdFromUrl(url) {
+      const text = String(url || '');
+      const pathMatch = text.match(/drive\.google\.com\/file\/d\/([^/?#]+)/i);
+      if (pathMatch) return pathMatch[1];
+      const idMatch = text.match(/[?&]id=([^&#]+)/i);
+      return idMatch ? idMatch[1] : '';
+    }
+
+    function trimMediaUrlToken(url) {
+      return String(url || '').trim().replace(/[)\].,;]+$/g, '');
+    }
+
+    function mediaInfoFromUrl(rawUrl) {
+      const url = trimMediaUrlToken(rawUrl);
+      if (!/^https?:\/\//i.test(url)) return null;
+      const driveId = getDriveFileIdFromUrl(url);
+      if (driveId) {
+        return {
+          type: 'image',
+          src: `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveId)}&sz=w1200`,
+          href: `https://drive.google.com/file/d/${encodeURIComponent(driveId)}/view`,
+          isDrive: true
+        };
       }
+      const clean = url.split(/[?#]/)[0].toLowerCase();
+      if (/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(clean)) return { type: 'image', src: url, href: url };
+      if (/\.(mp3|wav|ogg)$/i.test(clean)) return { type: 'audio', src: url, href: url };
+      if (/\.(mp4|webm)$/i.test(clean)) return { type: 'video', src: url, href: url };
+      return null;
+    }
+
+    function mediaHtmlFromUrl(url, alt = 'media soal', compact = false) {
+      const info = mediaInfoFromUrl(url);
+      if (!info) return null;
+      const src = escapeHtml(info.src);
+      const href = escapeHtml(info.href || info.src);
+      const safeAlt = escapeHtml(alt || 'media soal');
+      const compactClass = compact ? ' media-figure-compact' : '';
+      if (info.type === 'audio') {
+        return `<audio controls preload="none" src="${src}"></audio>`;
+      }
+      if (info.type === 'video') {
+        return `<figure class="media-figure${compactClass}"><video controls preload="metadata" src="${src}"></video></figure>`;
+      }
+      return `<figure class="media-figure${compactClass}"><a href="${href}" target="_blank" rel="noopener"><img src="${src}" alt="${safeAlt}" loading="lazy" decoding="async"></a></figure>`;
+    }
+
+    function renderRichContent(value, options = {}) {
+      const compact = !!options.compact;
+      let text = String(value || '');
+      const embeds = [];
+      const reserve = html => {
+        const token = `@@CBT_MEDIA_${embeds.length}@@`;
+        embeds.push({ token, html });
+        return token;
+      };
+
+      text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi, (match, alt, url) => {
+        const html = mediaHtmlFromUrl(url, alt || 'gambar soal', compact);
+        return html ? reserve(html) : match;
+      });
+      text = text.replace(/\[(?:img|image|gambar)\s*:\s*(https?:\/\/[^\]\s]+)\]/gi, (match, url) => {
+        const html = mediaHtmlFromUrl(url, 'gambar soal', compact);
+        return html ? reserve(html) : match;
+      });
+      text = text.replace(/https?:\/\/[^\s<>"']+/gi, match => {
+        const html = mediaHtmlFromUrl(match, 'media soal', compact);
+        return html ? reserve(html) : match;
+      });
+
+      let html = escapeHtml(text).replace(/\r?\n/g, '<br>');
+      embeds.forEach(item => {
+        html = html.split(item.token).join(item.html);
+      });
+      return html;
     }
 
     function enrichMedia(html) {
-      // Auto-detect img/audio/video URLs at end of pertanyaan and inject tags
-      // Match standalone URLs ending in image/audio/video extensions.
-      return String(html || '').replace(
-        /(https?:\/\/[^\s<>"']+\.(jpg|jpeg|png|gif|webp|svg|mp3|wav|ogg|mp4|webm))(\s|$)/gi,
-        (_, url, ext) => {
-          ext = ext.toLowerCase();
-          if (['mp3','wav','ogg'].includes(ext)) return `<audio controls src="${url}" style="max-width:100%;margin:0.5rem 0;"></audio>`;
-          if (['mp4','webm'].includes(ext)) return `<video controls src="${url}" style="max-width:100%;max-height:320px;margin:0.5rem 0;border-radius:0.5rem;"></video>`;
-          return `<img src="${url}" alt="media" style="max-width:100%;max-height:320px;border-radius:0.5rem;margin:0.5rem 0;">`;
-        }
-      );
+      return renderRichContent(html);
     }
 
     /* ============================================
@@ -3202,8 +3624,51 @@ ${dokToolbarHtml()}
     /* ============================================
        BULK XLSX IMPORT — convert .xlsx to TSV-like rows
     ============================================ */
+    function parseXlsxInWorker(arrayBuffer) {
+      if (!window.Worker) return null;
+      const workerCode = `
+        self.onmessage = async (event) => {
+          try {
+            importScripts('${DYNAMIC_LIBS.xlsx}');
+            const wb = XLSX.read(event.data, { type: 'array' });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            self.postMessage({ ok: true, rows });
+          } catch (error) {
+            self.postMessage({ ok: false, message: error && error.message ? error.message : String(error) });
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      const workerUrl = URL.createObjectURL(blob);
+      const worker = new Worker(workerUrl);
+      return new Promise((resolve, reject) => {
+        worker.onmessage = event => {
+          worker.terminate();
+          URL.revokeObjectURL(workerUrl);
+          if (event.data && event.data.ok) resolve(event.data.rows || []);
+          else reject(new Error(event.data && event.data.message || 'Worker XLSX gagal.'));
+        };
+        worker.onerror = error => {
+          worker.terminate();
+          URL.revokeObjectURL(workerUrl);
+          reject(error);
+        };
+        worker.postMessage(arrayBuffer, [arrayBuffer]);
+      });
+    }
+
     async function parseXlsxFile(file) {
       const buf = await file.arrayBuffer();
+      if (file.size > 180 * 1024) {
+        try {
+          const workerRows = await parseXlsxInWorker(buf.slice(0));
+          if (workerRows) return workerRows;
+        } catch (workerError) {
+          console.warn('[XLSX worker] fallback main thread:', workerError);
+        }
+      }
+      await ensureXlsxLoaded();
       const wb = XLSX.read(buf, { type: 'array' });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       // Returns 2D array; first row = headers
@@ -3384,7 +3849,7 @@ ${dokToolbarHtml()}
 
     function roleLabel(role) {
       const key = normalizeRoleKey(role);
-      return { peserta: 'Peserta', pengawas: 'Pengawas', proktor: 'Proktor', guru: 'Guru', admin: 'Admin' }[key] || textValue(role);
+      return { peserta: 'Peserta', pengawas: 'Pengawas', proktor: 'Proktor', guru: 'Guru', executive: 'Eksekutif', admin: 'Admin' }[key] || textValue(role);
     }
 
     function isPracticalExam(exam) {
@@ -3461,11 +3926,48 @@ ${dokToolbarHtml()}
     }
 
     const loginRoleMeta = {
-      peserta: { label: 'Username', placeholder: 'Masukkan NISN / username peserta' },
-      guru: { label: 'Username Guru', placeholder: 'Masukkan username guru' },
-      pengawas: { label: 'Username Pengawas', placeholder: 'Masukkan username pengawas' },
-      proktor: { label: 'Username Proktor', placeholder: 'Masukkan username proktor' },
-      executive: { label: 'Username Executive', placeholder: 'Masukkan username eksekutif' },       admin: { label: 'Username Admin', placeholder: 'Masukkan username admin' }
+      peserta: {
+        name: 'Peserta',
+        label: 'Username / NISN Peserta',
+        placeholder: 'Masukkan NISN / username peserta',
+        hint: 'Peserta menggunakan NISN atau username yang diberikan panitia.',
+        inputMode: 'text'
+      },
+      guru: {
+        name: 'Guru',
+        label: 'Username Guru',
+        placeholder: 'Masukkan username guru',
+        hint: 'Guru masuk untuk melihat ujian dan rekap sesuai mapel yang diampu.',
+        inputMode: 'text'
+      },
+      pengawas: {
+        name: 'Pengawas',
+        label: 'Username Pengawas',
+        placeholder: 'Masukkan username pengawas',
+        hint: 'Pengawas masuk untuk monitoring ruang dan aktivitas peserta.',
+        inputMode: 'text'
+      },
+      proktor: {
+        name: 'Proktor',
+        label: 'Username Proktor',
+        placeholder: 'Masukkan username proktor',
+        hint: 'Proktor masuk untuk mengelola sesi ujian, monitoring, dan utilitas teknis.',
+        inputMode: 'text'
+      },
+      executive: {
+        name: 'Eksekutif',
+        label: 'Username Eksekutif',
+        placeholder: 'Masukkan username eksekutif',
+        hint: 'Eksekutif masuk untuk melihat ringkasan nilai dan laporan.',
+        inputMode: 'text'
+      },
+      admin: {
+        name: 'Admin',
+        label: 'Username Admin',
+        placeholder: 'Masukkan username admin',
+        hint: 'Admin memiliki akses penuh ke konfigurasi, akun, soal, dan data ujian.',
+        inputMode: 'text'
+      }
     };
 
     // Persist tenant code from login form
@@ -3494,6 +3996,163 @@ ${dokToolbarHtml()}
       if (stored && loginRoleMeta[normalized]) selectedLoginRole = normalized;
     }
 
+    function clearLoginFieldErrors() {
+      document.getElementById('username')?.classList.remove('login-input-error');
+      document.getElementById('password')?.classList.remove('login-input-error');
+      document.querySelectorAll('.login-role-tab').forEach(button => button.classList.remove('login-role-error'));
+    }
+
+    function focusLoginField(field, selectText = true) {
+      const role = document.getElementById('login-role')?.value || selectedLoginRole;
+      const target = field === 'password'
+        ? document.getElementById('password')
+        : field === 'role'
+          ? document.querySelector(`.login-role-tab[data-role="${role}"]`)
+          : document.getElementById('username');
+      if (!target) return;
+      setTimeout(() => {
+        try { target.focus({ preventScroll: true }); } catch (error) { target.focus(); }
+        if (selectText && typeof target.select === 'function') target.select();
+      }, 70);
+    }
+
+    function setLoginFieldError(field) {
+      clearLoginFieldErrors();
+      if (field === 'password') {
+        document.getElementById('password')?.classList.add('login-input-error');
+      } else if (field === 'role') {
+        const role = document.getElementById('login-role')?.value || selectedLoginRole;
+        document.querySelector(`.login-role-tab[data-role="${role}"]`)?.classList.add('login-role-error');
+      } else if (field === 'username') {
+        document.getElementById('username')?.classList.add('login-input-error');
+      }
+    }
+
+    function clearLoginFeedback(keepFieldErrors = false) {
+      const box = document.getElementById('login-feedback');
+      if (box) {
+        box.hidden = true;
+        box.className = 'login-feedback login-feedback-info';
+        box.setAttribute('role', 'status');
+      }
+      if (!keepFieldErrors) clearLoginFieldErrors();
+    }
+
+    function showLoginFeedback(type, title, message, field) {
+      const box = document.getElementById('login-feedback');
+      const icon = document.getElementById('login-feedback-icon');
+      const titleEl = document.getElementById('login-feedback-title');
+      const messageEl = document.getElementById('login-feedback-message');
+      if (!box || !titleEl || !messageEl) return;
+      const normalizedType = ['error', 'warning', 'success', 'info'].includes(type) ? type : 'info';
+      const iconName = {
+        error: 'circle-alert',
+        warning: 'triangle-alert',
+        success: 'circle-check',
+        info: 'info'
+      }[normalizedType];
+      box.className = `login-feedback login-feedback-${normalizedType}`;
+      box.hidden = false;
+      box.setAttribute('role', normalizedType === 'error' || normalizedType === 'warning' ? 'alert' : 'status');
+      if (icon) icon.setAttribute('data-lucide', iconName);
+      titleEl.textContent = title || 'Informasi login';
+      messageEl.textContent = message || '';
+      if (field) {
+        setLoginFieldError(field);
+        focusLoginField(field);
+      } else {
+        clearLoginFieldErrors();
+      }
+      refreshIcons();
+    }
+
+    function classifyLoginFailure(message, role) {
+      const raw = String(message || '').trim();
+      const lower = raw.toLowerCase();
+      const roleName = (loginRoleMeta[normalizeRoleKey(role)] || loginRoleMeta.peserta).name;
+      if (!raw) {
+        return {
+          title: 'Akun tidak cocok',
+          message: 'Periksa username, password, dan role login yang dipilih.',
+          field: 'username'
+        };
+      }
+      if (/password|sandi|kata sandi|pin/.test(lower)) {
+        return {
+          title: 'Password tidak sesuai',
+          message: raw,
+          field: 'password'
+        };
+      }
+      if (/role|peran|hak akses|otorisasi|akses|sebagai/.test(lower)) {
+        return {
+          title: `Role ${roleName} belum sesuai`,
+          message: raw,
+          field: 'role'
+        };
+      }
+      if (/tidak ditemukan|tidak terdaftar|not found|unknown|username|nisn|akun/.test(lower)) {
+        return {
+          title: 'Username tidak ditemukan',
+          message: raw,
+          field: 'username'
+        };
+      }
+      if (/nonaktif|tidak aktif|disabled|blokir|diblokir/.test(lower)) {
+        return {
+          title: 'Akun belum aktif',
+          message: raw,
+          field: 'username'
+        };
+      }
+      if (/device|perangkat|sesi|session|login lain|terkunci/.test(lower)) {
+        return {
+          title: 'Sesi atau perangkat perlu dicek',
+          message: raw,
+          field: null
+        };
+      }
+      if (/jadwal|belum dibuka|ditutup|maintenance|pemeliharaan/.test(lower)) {
+        return {
+          title: 'Login belum tersedia',
+          message: raw,
+          field: null
+        };
+      }
+      return {
+        title: 'Login gagal',
+        message: raw,
+        field: 'username'
+      };
+    }
+
+    function classifyLoginNetworkError(error) {
+      const raw = String(error && error.message ? error.message : error || '').trim();
+      const lower = raw.toLowerCase();
+      if (!navigator.onLine) {
+        return {
+          title: 'Perangkat sedang offline',
+          message: 'Sambungkan internet lalu coba login kembali.'
+        };
+      }
+      if (/backend_url/.test(lower)) {
+        return {
+          title: 'Backend belum dikonfigurasi',
+          message: raw
+        };
+      }
+      if (/failed to fetch|network|cors|http|merespons|menghubungi|backend/.test(lower)) {
+        return {
+          title: 'Server belum merespons',
+          message: raw || 'Koneksi ke server gagal. Coba lagi beberapa saat.'
+        };
+      }
+      return {
+        title: 'Login tertunda',
+        message: raw || 'Terjadi kendala saat menghubungi server.'
+      };
+    }
+
     function setSelectedLoginRole(role) {
       const normalizedRole = normalizeRoleKey(role);
       selectedLoginRole = loginRoleMeta[normalizedRole] ? normalizedRole : 'peserta';
@@ -3501,12 +4160,24 @@ ${dokToolbarHtml()}
       const hidden = document.getElementById('login-role');
       const usernameLabel = document.getElementById('username-label');
       const usernameInput = document.getElementById('username');
+      const roleHint = document.getElementById('login-role-hint');
+      const roleCurrent = document.getElementById('login-role-current');
       if (hidden) hidden.value = selectedLoginRole;
       if (usernameLabel) usernameLabel.textContent = meta.label;
-      if (usernameInput) usernameInput.placeholder = meta.placeholder;
+      if (usernameInput) {
+        usernameInput.placeholder = meta.placeholder;
+        usernameInput.inputMode = meta.inputMode || 'text';
+        usernameInput.setAttribute('aria-label', meta.label);
+      }
+      if (roleHint) roleHint.textContent = meta.hint;
+      if (roleCurrent) roleCurrent.textContent = meta.name;
       try { localStorage.setItem(LOGIN_ROLE_STORAGE_KEY, selectedLoginRole); } catch (error) {}
       document.querySelectorAll('.login-role-tab').forEach(button => {
-        button.setAttribute('aria-selected', normalizeRoleKey(button.dataset.role) === selectedLoginRole ? 'true' : 'false');
+        const buttonRole = normalizeRoleKey(button.dataset.role);
+        const buttonMeta = loginRoleMeta[buttonRole] || {};
+        const isSelected = buttonRole === selectedLoginRole;
+        button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        button.setAttribute('title', `${buttonMeta.name || button.textContent.trim()} - ${buttonMeta.hint || ''}`.trim());
       });
     }
 
@@ -3516,12 +4187,25 @@ ${dokToolbarHtml()}
         if (button.dataset.bound === '1') return;
         button.dataset.bound = '1';
         button.addEventListener('click', () => {
+          clearLoginFeedback();
           setSelectedLoginRole(button.dataset.role || 'peserta');
           const username = document.getElementById('username');
           if (username) username.focus();
         });
       });
       setSelectedLoginRole(selectedLoginRole);
+    }
+
+    function bindLoginInputUx() {
+      ['username', 'password', 'tenant-code'].forEach(id => {
+        const input = document.getElementById(id);
+        if (!input || input.dataset.loginUxBound === '1') return;
+        input.dataset.loginUxBound = '1';
+        input.addEventListener('input', () => {
+          input.classList.remove('login-input-error');
+          clearLoginFeedback();
+        });
+      });
     }
 
     function bindPasswordToggle() {
@@ -3541,7 +4225,10 @@ ${dokToolbarHtml()}
 
     function setLoginFormBusy(isBusy) {
       const form = document.getElementById('loginForm');
-      if (form) form.classList.toggle('login-form-busy', !!isBusy);
+      if (form) {
+        form.classList.toggle('login-form-busy', !!isBusy);
+        form.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+      }
       document.querySelectorAll('#loginForm input, #loginForm button, #loginForm summary').forEach(el => {
         if (el.id === 'btn-login') return;
         if ('disabled' in el) el.disabled = !!isBusy;
@@ -3552,7 +4239,7 @@ ${dokToolbarHtml()}
       const status = document.getElementById('login-server-status');
       const label = document.getElementById('login-server-status-text');
       if (!status || !label) return;
-      status.classList.remove('login-status-online', 'login-status-checking', 'login-status-offline');
+      status.classList.remove('login-status-online', 'login-status-slow', 'login-status-checking', 'login-status-offline');
       status.classList.add(`login-status-${state || 'checking'}`);
       label.textContent = text || 'Memeriksa server...';
     }
@@ -3563,9 +4250,11 @@ ${dokToolbarHtml()}
         return;
       }
       setLoginServerStatus('checking', 'Memeriksa server...');
+      const started = performance.now();
+      let timer = null;
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 5500);
+        timer = setTimeout(() => controller.abort(), 5500);
         const tenantId = localStorage.getItem('cbt_tenant_id') || '';
         const response = await fetch(BACKEND_URL, {
           method: 'POST',
@@ -3576,9 +4265,11 @@ ${dokToolbarHtml()}
         clearTimeout(timer);
         const data = response.ok ? await response.json() : null;
         if (!response.ok || !data || data.status !== 'success') throw new Error('Backend tidak siap');
-        setLoginServerStatus('online', 'Server tersambung');
+        const latency = Math.round(performance.now() - started);
+        setLoginServerStatus(latency > 2500 ? 'slow' : 'online', `${latency > 2500 ? 'Server lambat' : 'Server online'} · ${latency} ms`);
       } catch (error) {
-        setLoginServerStatus('offline', navigator.onLine ? 'Server lambat' : 'Offline');
+        if (timer) clearTimeout(timer);
+        setLoginServerStatus(navigator.onLine ? 'slow' : 'offline', navigator.onLine ? 'Server belum merespons' : 'Offline');
       }
     }
 
@@ -3602,7 +4293,7 @@ ${dokToolbarHtml()}
           <div class="text-left text-sm text-slate-600 space-y-3">
             <p><b>Peserta</b>: gunakan NISN atau username peserta dari panitia/proktor.</p>
             <p><b>Guru</b>: gunakan username guru yang dibuat admin. Panel guru hanya menampilkan ujian/mapel yang diampu.</p>
-            <p><b>Pengawas/Proktor/Admin</b>: gunakan akun petugas sesuai role yang dipilih.</p>
+            <p><b>Pengawas/Proktor/Eksekutif/Admin</b>: gunakan akun petugas sesuai role yang dipilih.</p>
             <p class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2 text-xs text-blue-800">Jika lupa password atau role tidak sesuai, hubungi admin/proktor untuk reset akun.</p>
           </div>
         `
@@ -3639,14 +4330,19 @@ ${dokToolbarHtml()}
 
     function setButtonBusy(button, label) {
       if (!button) return;
-      button.dataset.original = button.innerHTML;
+      if (!button.dataset.original) button.dataset.original = button.innerHTML;
       button.disabled = true;
-      button.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>${escapeHtml(label)}`;
+      button.setAttribute('aria-busy', 'true');
+      button.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>${escapeHtml(label)}</span>`;
       refreshIcons();
     }
 
     function restoreButton(button) {
       if (button && button.dataset.original) button.innerHTML = button.dataset.original;
+      if (button) {
+        delete button.dataset.original;
+        button.removeAttribute('aria-busy');
+      }
       if (button) button.disabled = false;
       refreshIcons();
     }
@@ -3680,10 +4376,13 @@ ${dokToolbarHtml()}
     function showLoginScreen() {
       document.getElementById('app-section').classList.add('hidden');
       document.getElementById('login-section').classList.remove('hidden');
+      clearLoginFeedback();
       setSelectedLoginRole(selectedLoginRole);
+      bindLoginInputUx();
       bindPasswordToggle();
       updateAppVersionLabels();
       checkLoginServerStatus();
+      setTimeout(() => focusLoginField('username', false), 120);
       setTimeout(() => { loginParticles = initParticles('login-canvas'); }, 50);
     }
 
@@ -3938,10 +4637,12 @@ ${dokToolbarHtml()}
         }
 
         ctx.restore();
+        if (lowPowerMode || document.hidden) return;
         watermarkAnimationId = requestAnimationFrame(draw);
       }
 
-      watermarkAnimationId = requestAnimationFrame(draw);
+      if (lowPowerMode || document.hidden) draw();
+      else watermarkAnimationId = requestAnimationFrame(draw);
     }
 
     let alarmAudioContext = null;
@@ -4095,6 +4796,7 @@ ${dokToolbarHtml()}
        PARTICLE SYSTEM
     ============================================ */
     function initParticles(canvasId) {
+      if (lowPowerMode || document.hidden) return null;
       const canvas = document.getElementById(canvasId);
       if (!canvas) return null;
       const ctx = canvas.getContext('2d');
@@ -4103,7 +4805,7 @@ ${dokToolbarHtml()}
       resize();
       const onResize = () => resize();
       window.addEventListener('resize', onResize);
-      const pts = Array.from({ length: 50 }, () => ({
+      const pts = Array.from({ length: navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 6 ? 24 : 50 }, () => ({
         x: Math.random() * (w || 800), y: Math.random() * (h || 600),
         vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
         r: Math.random() * 1.6 + 0.4, o: Math.random() * 0.15 + 0.04
@@ -4187,6 +4889,7 @@ ${dokToolbarHtml()}
       addBootLog('UI', 'Binding interface components...');
       bindLoginRoleTabs();
       bindPasswordToggle();
+      bindLoginInputUx();
       updateAppVersionLabels();
       addBootLog('UI', 'Role selector tabs bound', 'ok');
       await delay(180);
@@ -4222,12 +4925,35 @@ ${dokToolbarHtml()}
             updateBootProgress(6, 'Connecting to server...');
             addBootLog('NET', 'Establishing backend handshake...');
             currentUserData = stored.user;
-            try {
+            const cachedBootstrap = readBootstrapCache();
+            if (cachedBootstrap) {
+              appData = cachedBootstrap;
+              if (appData.user) currentUserData = appData.user;
+              addBootLog('CACHE', 'Dashboard cache restored', 'ok');
+              updateBootProgress(7, 'Building dashboard...');
+              document.getElementById('login-section').classList.add('hidden');
+              document.getElementById('app-section').classList.remove('hidden');
+              renderShell();
+              restored = true;
+              serverCall('getCbtBootstrap', currentUserData).then(resp => {
+                if (resp.status !== 'success') throw new Error(resp.message);
+                appData = resp.data;
+                if (appData.user) currentUserData = appData.user;
+                persistSession();
+                writeBootstrapCache(appData);
+                renderShell();
+                addBootLog('NET', 'Bootstrap refreshed in background', 'ok');
+              }).catch(err => {
+                addBootLog('NET', 'Background refresh failed: ' + escapeHtml(err.message || 'Error'), 'warn');
+              });
+            } else {
+              try {
               const resp = await serverCall('getCbtBootstrap', currentUserData);
               if (resp.status !== 'success') throw new Error(resp.message);
               appData = resp.data;
               if (appData.user) currentUserData = appData.user;
               persistSession();
+              writeBootstrapCache(appData);
               addBootLog('NET', 'Bootstrap data received — <span class="boot-ok">200 OK</span>');
               // Step 7 — Render
               updateBootProgress(7, 'Building dashboard...');
@@ -4237,10 +4963,11 @@ ${dokToolbarHtml()}
               renderShell();
               addBootLog('RENDER', 'Dashboard ready', 'ok');
               restored = true;
-            } catch (err) {
-              addBootLog('NET', 'Handshake failed: ' + escapeHtml(err.message || 'Error'), 'fail');
-              addBootLog('AUTH', 'Session invalidated', 'warn');
-              currentUserData = null; appData = null; clearPersistedSession();
+              } catch (err) {
+                addBootLog('NET', 'Handshake failed: ' + escapeHtml(err.message || 'Error'), 'fail');
+                addBootLog('AUTH', 'Session invalidated', 'warn');
+                currentUserData = null; appData = null; clearPersistedSession();
+              }
             }
           }
         }
@@ -4270,23 +4997,42 @@ ${dokToolbarHtml()}
     }
 
     async function handleLogin(event) {
-      saveTenantCodeFromForm();
       event.preventDefault();
+      saveTenantCodeFromForm();
       const button = document.getElementById('btn-login');
-      setLoginFormBusy(true);
-      setButtonBusy(button, 'Memproses...');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      const role = document.getElementById('login-role').value || selectedLoginRole;
+      const roleMeta = loginRoleMeta[normalizeRoleKey(role)] || loginRoleMeta.peserta;
+
+      clearLoginFeedback();
+      if (!username) {
+        showLoginFeedback('warning', `${roleMeta.label} belum diisi`, `Masukkan ${roleMeta.placeholder.toLowerCase().replace(/^masukkan\s+/, '')}.`, 'username');
+        return;
+      }
+      if (!password) {
+        showLoginFeedback('warning', 'Password belum diisi', `Masukkan password untuk akun ${roleMeta.name}.`, 'password');
+        return;
+      }
+
       try {
+        setLoginFormBusy(true);
+        setButtonBusy(button, 'Memeriksa akun...');
         setLoginServerStatus('checking', 'Memeriksa akun...');
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const role = document.getElementById('login-role').value || selectedLoginRole;
+        showLoginFeedback('info', 'Menghubungi server', 'Sedang memeriksa username, password, dan role login.', null);
+        const started = performance.now();
         const response = await serverCall('prosesLogin', username, password, getDeviceId(), role);
+        const latency = Math.round(performance.now() - started);
         if (response.status !== 'success') {
-          setLoginServerStatus('online', 'Server tersambung');
-          Swal.fire('Login gagal', response.message || 'Username atau password salah.', 'error');
+          const failure = classifyLoginFailure(response.message, role);
+          setLoginServerStatus(latency > 2500 ? 'slow' : 'online', `${latency > 2500 ? 'Server lambat' : 'Server online'} · ${latency} ms`);
+          showLoginFeedback('error', failure.title, failure.message, failure.field);
           return;
         }
         setLoginServerStatus('online', 'Login berhasil');
+        showLoginFeedback('success', 'Login berhasil', 'Menyiapkan dashboard...', null);
         currentUserData = response.data;
         persistSession();
         
@@ -4296,6 +5042,7 @@ ${dokToolbarHtml()}
           practicalData = null;
           if (appData.user) currentUserData = appData.user;
           persistSession();
+          writeBootstrapCache(appData);
           renderShell();
         } else {
           // Fallback if bootstrap is not bundled
@@ -4306,8 +5053,9 @@ ${dokToolbarHtml()}
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
       } catch (error) {
-        setLoginServerStatus(navigator.onLine ? 'offline' : 'offline', navigator.onLine ? 'Server bermasalah' : 'Offline');
-        Swal.fire('Error', error.message || 'Koneksi ke server gagal.', 'error');
+        const failure = classifyLoginNetworkError(error);
+        setLoginServerStatus(navigator.onLine ? 'slow' : 'offline', navigator.onLine ? 'Server belum merespons' : 'Offline');
+        showLoginFeedback('error', failure.title, failure.message, null);
       } finally {
         setLoginFormBusy(false);
         restoreButton(button);
@@ -4315,12 +5063,19 @@ ${dokToolbarHtml()}
     }
 
     async function loadBootstrap() {
+      const cached = readBootstrapCache();
+      if (cached && !appData) {
+        appData = cached;
+        if (appData.user) currentUserData = appData.user;
+        renderShell();
+      }
       const response = await serverCall('getCbtBootstrap', currentUserData);
       if (response.status !== 'success') throw new Error(response.message || 'Gagal memuat dashboard.');
       appData = response.data;
       practicalData = null;
       if (appData.user) currentUserData = appData.user;
       persistSession();
+      writeBootstrapCache(appData);
       renderShell();
     }
 
@@ -4352,9 +5107,11 @@ ${dokToolbarHtml()}
     }
 
     function renderDashboard() {
-      document.getElementById('dashboard-view').innerHTML = isParticipantRole(currentUserData.role) ? renderStudentDashboard() : renderStaffDashboard();
-      bindDashboardEvents();
-      refreshIcons();
+      measureRender('dashboard', () => {
+        document.getElementById('dashboard-view').innerHTML = isParticipantRole(currentUserData.role) ? renderStudentDashboard() : renderStaffDashboard();
+        bindDashboardEvents();
+        refreshIcons();
+      });
     }
 
     function renderStudentDashboard() {
@@ -6136,7 +6893,7 @@ ${dokToolbarHtml()}
                     </button>
                   </div>
                   <div id="qbank-dropzone" class="relative group">
-                    <textarea id="qbank-tsv-input" name="text" required rows="14" class="w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-4 font-mono text-xs leading-relaxed focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Tempel data dari Google Sheet / Excel di sini...&#10;&#10;Format kolom (dipisahkan TAB):&#10;nomor &#8677; tipe &#8677; pertanyaan &#8677; pilihanA &#8677; pilihanB &#8677; pilihanC &#8677; pilihanD &#8677; pilihanE &#8677; kunci &#8677; skorMaks&#10;&#10;Contoh:&#10;1&#9;PG&#9;Apa ibu kota Indonesia?&#9;Jakarta&#9;Bandung&#9;Surabaya&#9;Semarang&#9;Medan&#9;A&#9;1&#10;2&#9;PG&#9;Siapa presiden pertama RI?&#9;Soeharto&#9;Soekarno&#9;Habibie&#9;SBY&#9;Jokowi&#9;B&#9;1&#10;51&#9;ESAI&#9;Jelaskan fungsi pankreas&#9;&#9;&#9;&#9;&#9;&#9;&#9;&#9;10" oninput="previewBulkQuestions()"></textarea>
+                    <textarea id="qbank-tsv-input" name="text" required rows="14" class="w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-4 font-mono text-xs leading-relaxed focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Tempel data dari Google Sheet / Excel di sini...&#10;&#10;Format kolom (dipisahkan TAB):&#10;nomor &#8677; tipe &#8677; pertanyaan &#8677; pilihanA &#8677; pilihanB &#8677; pilihanC &#8677; pilihanD &#8677; pilihanE &#8677; kunci &#8677; skorMaks&#10;&#10;Gambar: pakai ![gambar](https://...) atau [gambar:https://...] di kolom pertanyaan/pilihan. Link Google Drive didukung jika file dibagikan anyone with link.&#10;&#10;Contoh:&#10;1&#9;PG&#9;Perhatikan gambar berikut. ![diagram](https://...)&#9;Jakarta&#9;Bandung&#9;Surabaya&#9;Semarang&#9;Medan&#9;A&#9;1&#10;2&#9;PG&#9;Siapa presiden pertama RI?&#9;Soeharto&#9;Soekarno&#9;Habibie&#9;SBY&#9;Jokowi&#9;B&#9;1&#10;51&#9;ESAI&#9;Jelaskan fungsi pankreas&#9;&#9;&#9;&#9;&#9;&#9;&#9;&#9;10" oninput="previewBulkQuestions()"></textarea>
                     <!-- Drag & Drop overlay -->
                     <div id="qbank-drag-overlay" class="hidden absolute inset-0 rounded-xl bg-blue-500/10 border-2 border-blue-500 border-dashed flex items-center justify-center z-10 pointer-events-none">
                       <div class="text-center">
@@ -6321,7 +7078,28 @@ ${dokToolbarHtml()}
                     <input name="skorMaks" type="number" min="1" value="1" class="rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Skor Maks">
                   </div>
                 </div>
-                <textarea name="pertanyaan" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm min-h-[100px] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Tulis pertanyaan di sini..."></textarea>
+                <textarea name="pertanyaan" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm min-h-[100px] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Tulis pertanyaan di sini...&#10;&#10;Gambar bisa memakai format: ![gambar soal](https://...) atau [gambar:https://...]"></textarea>
+                <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <select id="question-media-target" class="rounded-lg border border-blue-100 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700">
+                      <option value="pertanyaan">Masukkan ke Pertanyaan</option>
+                      <option value="pilihanA">Masukkan ke Pilihan A</option>
+                      <option value="pilihanB">Masukkan ke Pilihan B</option>
+                      <option value="pilihanC">Masukkan ke Pilihan C</option>
+                      <option value="pilihanD">Masukkan ke Pilihan D</option>
+                      <option value="pilihanE">Masukkan ke Pilihan E</option>
+                    </select>
+                    <input id="question-image-file" type="file" accept="image/*" class="sr-only" onchange="uploadQuestionImageToBank(this)">
+                    <button type="button" onclick="document.getElementById('question-image-file')?.click()" class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-700 border border-blue-100 hover:bg-blue-50">
+                      <i data-lucide="image-up" class="w-3.5 h-3.5"></i> Upload Gambar
+                    </button>
+                    <button type="button" onclick="insertQuestionImageUrl()" class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-700 border border-blue-100 hover:bg-slate-50">
+                      <i data-lucide="link" class="w-3.5 h-3.5"></i> Tempel URL
+                    </button>
+                    <span id="question-media-status" class="text-[11px] font-semibold text-slate-500"></span>
+                  </div>
+                  <p class="mt-2 text-[11px] leading-relaxed text-slate-500">File akan disimpan ke Google Drive dan ditempel sebagai markdown gambar. Untuk link Drive manual, pastikan file dibagikan "Anyone with the link".</p>
+                </div>
                 <div class="grid sm:grid-cols-2 gap-3">
                   ${['A', 'B', 'C', 'D', 'E'].map(key => `
                     <div class="flex items-center gap-2">
@@ -6643,6 +7421,8 @@ ${dokToolbarHtml()}
                 <button id="btn-load-practical" type="button" class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Muat</button>
                 <button id="btn-export-practical-attendance" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50" ${dataReady ? '' : 'disabled'}><i data-lucide="file-down" class="w-4 h-4"></i> CSV Hadir</button>
                 <button id="btn-export-practical-pdf" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50" ${dataReady ? '' : 'disabled'}><i data-lucide="file-text" class="w-4 h-4"></i> PDF</button>
+                <button type="button" onclick="openDaftarHadirPrint('${escapeHtml(selectedId)}', '')" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50" ${dataReady ? '' : 'disabled'}><i data-lucide="users" class="w-4 h-4"></i> Daftar Hadir</button>
+                <button type="button" onclick="openBeritaAcaraPrint('${escapeHtml(selectedId)}', '')" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700" ${dataReady ? '' : 'disabled'}><i data-lucide="clipboard-pen" class="w-4 h-4"></i> Berita Acara</button>
               </div>
             </div>
             ${selectedExam ? `<div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
@@ -7554,6 +8334,36 @@ ${dokToolbarHtml()}
       showToast('Jadwal dimuat ke form edit.', 'info');
     }
 
+    function setupDelegatedDashboardEvents() {
+      if (window.__cbtDelegatedDashboardEvents) return;
+      window.__cbtDelegatedDashboardEvents = true;
+      document.addEventListener('click', event => {
+        const utility = event.target.closest('.utility-action');
+        if (utility && !utility.disabled) {
+          event.preventDefault();
+          handleUtilityAction(utility);
+          return;
+        }
+        const examAction = event.target.closest('.exam-action');
+        if (examAction && !examAction.disabled) {
+          event.preventDefault();
+          handleExamAction(examAction);
+          return;
+        }
+        const participant = event.target.closest('.participant-action');
+        if (participant && !participant.disabled) {
+          event.preventDefault();
+          handleParticipantAction(participant);
+          return;
+        }
+        const practical = event.target.closest('.practical-attendance-action');
+        if (practical && !practical.disabled) {
+          event.preventDefault();
+          handlePracticalAttendanceAction(practical);
+        }
+      });
+    }
+
     function bindDashboardEvents() {
       bindFileUploadEvents();
       document.querySelectorAll('.admin-quick-action, .admin-nav-action').forEach(button => {
@@ -7828,10 +8638,6 @@ ${dokToolbarHtml()}
       if (loadKendala) loadKendala.addEventListener('click', loadKendalaList);
       const loadLogs = document.getElementById('btn-load-logs');
       if (loadLogs) loadLogs.addEventListener('click', loadActivityLogs);
-      document.querySelectorAll('.utility-action').forEach(button => button.addEventListener('click', () => handleUtilityAction(button)));
-      document.querySelectorAll('.exam-action').forEach(button => button.addEventListener('click', () => handleExamAction(button)));
-      document.querySelectorAll('.participant-action').forEach(button => button.addEventListener('click', () => handleParticipantAction(button)));
-      document.querySelectorAll('.practical-attendance-action').forEach(button => button.addEventListener('click', () => handlePracticalAttendanceAction(button)));
       const btnLoadBackups = document.getElementById('btn-load-backups');
       if (btnLoadBackups) btnLoadBackups.addEventListener('click', loadBackupList);
 
@@ -7962,6 +8768,7 @@ ${dokToolbarHtml()}
       autoRefreshEnabled = true;
       lastRefreshAt = Date.now();
       autoRefreshTimer = setInterval(() => {
+        if (document.hidden) return;
         const sel = document.getElementById('monitor-exam-select');
         refreshMonitoring(sel ? sel.value : '');
       }, 15000);
@@ -8107,6 +8914,74 @@ ${dokToolbarHtml()}
       }
     }
 
+    function getQuestionMediaTargetElement() {
+      const form = document.getElementById('question-form');
+      const target = document.getElementById('question-media-target')?.value || 'pertanyaan';
+      return form ? form.elements.namedItem(target) : null;
+    }
+
+    function appendQuestionMediaMarkup(markup) {
+      const target = getQuestionMediaTargetElement();
+      if (!target) {
+        Swal.fire('Target belum tersedia', 'Pilih tab Tambah Satuan terlebih dahulu.', 'warning');
+        return;
+      }
+      const current = String(target.value || '').trimEnd();
+      target.value = current ? `${current}\n${markup}` : markup;
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+      target.focus();
+    }
+
+    async function uploadQuestionImageToBank(input) {
+      const file = input && input.files && input.files[0];
+      if (!file) return;
+      const status = document.getElementById('question-media-status');
+      try {
+        if (!/^image\//i.test(file.type || '')) {
+          throw new Error('File harus berupa gambar.');
+        }
+        if (file.size > 3 * 1024 * 1024) {
+          throw new Error('Ukuran gambar maksimal 3 MB. Kompres gambar terlebih dahulu.');
+        }
+        if (status) status.textContent = 'Mengupload gambar...';
+        const base64 = await readFileAsync(file);
+        const response = await serverCall('uploadQuestionMedia', {
+          actor: currentUserData,
+          fileName: file.name,
+          mimeType: file.type || 'image/png',
+          base64
+        });
+        if (response.status !== 'success') throw new Error(response.message || 'Upload gambar gagal.');
+        appendQuestionMediaMarkup(response.markdown || `![gambar soal](${response.thumbnailUrl || response.url})`);
+        if (status) status.textContent = 'Gambar ditempel ke field terpilih.';
+        showToast('Gambar soal berhasil diupload.', 'success');
+      } catch (error) {
+        if (status) status.textContent = '';
+        Swal.fire('Upload gambar gagal', error.message || String(error), 'error');
+      } finally {
+        if (input) input.value = '';
+      }
+    }
+
+    async function insertQuestionImageUrl() {
+      const result = await Swal.fire({
+        title: 'Tempel URL Gambar',
+        input: 'url',
+        inputPlaceholder: 'https://... atau link Google Drive',
+        showCancelButton: true,
+        confirmButtonText: 'Tempel',
+        cancelButtonText: 'Batal',
+        inputValidator: value => {
+          if (!value) return 'URL gambar wajib diisi.';
+          if (!/^https?:\/\//i.test(value)) return 'URL harus diawali http:// atau https://';
+          return null;
+        }
+      });
+      if (!result.isConfirmed || !result.value) return;
+      appendQuestionMediaMarkup(`![gambar soal](${result.value.trim()})`);
+      showToast('URL gambar ditempel.', 'success');
+    }
+
     async function saveQuestion(event) {
       event.preventDefault();
       const button = event.submitter;
@@ -8166,7 +9041,7 @@ ${dokToolbarHtml()}
           ta.placeholder = 'Tempel JSON di sini (output dari AI chatbot atau script)...\n\nContoh format:\n\n[\n  {\n    "nomor": "1",\n    "tipe": "PG",\n    "pertanyaan": "Apa ibu kota Indonesia?",\n    "pilihanA": "Jakarta",\n    "pilihanB": "Bandung",\n    "pilihanC": "Surabaya",\n    "pilihanD": "Medan",\n    "pilihanE": "Semarang",\n    "kunci": "A",\n    "skorMaks": "1"\n  },\n  {\n    "nomor": "2",\n    "tipe": "ESAI",\n    "pertanyaan": "Jelaskan fungsi pankreas.",\n    "kunci": "",\n    "skorMaks": "10"\n  }\n]\n\nAlias field yang diterima: question/soal/text, type, answer/key, choices/options (array), pilihan (object {A,B,C,...}), score/skor. Wrapper {"questions":[...]} juga OK.';
           ta.classList.add('font-mono');
         } else {
-          ta.placeholder = 'Tempel data dari Google Sheet / Excel di sini...\n\nFormat kolom (dipisahkan TAB):\nnomor \u21E5 tipe \u21E5 pertanyaan \u21E5 pilihanA \u21E5 pilihanB \u21E5 pilihanC \u21E5 pilihanD \u21E5 pilihanE \u21E5 kunci \u21E5 skorMaks';
+          ta.placeholder = 'Tempel data dari Google Sheet / Excel di sini...\n\nFormat kolom (dipisahkan TAB):\nnomor \u21E5 tipe \u21E5 pertanyaan \u21E5 pilihanA \u21E5 pilihanB \u21E5 pilihanC \u21E5 pilihanD \u21E5 pilihanE \u21E5 kunci \u21E5 skorMaks\n\nGambar: pakai ![gambar](https://...) atau [gambar:https://...] di kolom pertanyaan/pilihan. Link Google Drive didukung jika file dibagikan anyone with link.';
           ta.classList.add('font-mono');
         }
       }
@@ -9020,7 +9895,8 @@ ${dokToolbarHtml()}
         return;
       }
       if (konvOutputView === 'table') {
-        const rows = konvParsedQuestions.map((q, i) => `
+        const tableQuestions = konvParsedQuestions.slice(0, 200);
+        const rows = tableQuestions.map((q, i) => `
           <tr class="${q._errors && q._errors.length ? 'bg-amber-50' : ''}">
             <td class="px-1 py-0.5 border-b border-slate-100">${escapeHtml(q.nomor)}</td>
             <td class="px-1 py-0.5 border-b border-slate-100"><span class="text-[9px] px-1 rounded ${q.tipe === 'ESAI' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${escapeHtml(q.tipe)}</span></td>
@@ -9028,11 +9904,13 @@ ${dokToolbarHtml()}
             <td class="px-1 py-0.5 border-b border-slate-100 font-bold">${escapeHtml(q.kunci || '-')}</td>
             <td class="px-1 py-0.5 border-b border-slate-100">${escapeHtml(q.skorMaks || '-')}</td>
           </tr>`).join('');
-        out.innerHTML = `<table class="w-full text-[10px]"><thead class="bg-slate-50 sticky top-0"><tr><th class="px-1 py-1 text-left">#</th><th class="px-1 py-1 text-left">Tipe</th><th class="px-1 py-1 text-left">Pertanyaan</th><th class="px-1 py-1 text-left">Kunci</th><th class="px-1 py-1 text-left">Skor</th></tr></thead><tbody>${rows}</tbody></table>`;
+        out.innerHTML = `<table class="w-full text-[10px]"><thead class="bg-slate-50 sticky top-0"><tr><th class="px-1 py-1 text-left">#</th><th class="px-1 py-1 text-left">Tipe</th><th class="px-1 py-1 text-left">Pertanyaan</th><th class="px-1 py-1 text-left">Kunci</th><th class="px-1 py-1 text-left">Skor</th></tr></thead><tbody>${rows}</tbody></table>${konvParsedQuestions.length > tableQuestions.length ? `<div class="p-2 text-[10px] font-semibold text-slate-500">Menampilkan ${tableQuestions.length} dari ${konvParsedQuestions.length} soal.</div>` : ''}`;
         return;
       }
       // Cards view (default) — with inline edit
-      out.innerHTML = konvParsedQuestions.map((q, i) => renderKonvCard(q, i)).join('');
+      const cardQuestions = konvParsedQuestions.slice(0, 120);
+      out.innerHTML = cardQuestions.map((q, i) => renderKonvCard(q, i)).join('') +
+        (konvParsedQuestions.length > cardQuestions.length ? `<div class="p-2 text-[10px] font-semibold text-slate-500">Menampilkan ${cardQuestions.length} dari ${konvParsedQuestions.length} soal. Ekspor tetap memakai semua soal.</div>` : '');
       refreshIcons();
     }
 
@@ -9168,7 +10046,7 @@ ${dokToolbarHtml()}
       return `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="UTF-8"><title>Soal</title></head><body style="font-family:'Times New Roman',serif;font-size:12pt">${body}</body></html>`;
     }
 
-    function exportKonv(format) {
+    async function exportKonv(format) {
       if (!konvParsedQuestions.length) {
         Swal.fire('Tidak ada soal', 'Parse input terlebih dahulu.', 'warning');
         return;
@@ -9189,7 +10067,7 @@ ${dokToolbarHtml()}
             downloadBlob(questionsToHtmlDoc(konvParsedQuestions), `soal-${ts}.doc`, 'application/msword');
             break;
           case 'xlsx': {
-            if (!window.XLSX) throw new Error('SheetJS belum loaded');
+            await ensureXlsxLoaded();
             const ws = XLSX.utils.json_to_sheet(konvParsedQuestions.map(q => ({
               nomor: q.nomor, tipe: q.tipe, pertanyaan: q.pertanyaan,
               pilihanA: q.pilihanA, pilihanB: q.pilihanB, pilihanC: q.pilihanC,
@@ -9364,13 +10242,14 @@ ${dokToolbarHtml()}
         ` &middot; <span class="text-purple-600">${esaiCount} Esai</span>` +
         (errorCount > 0 ? ` &middot; <span class="text-red-500 font-bold">${errorCount} &#9888; bermasalah</span>` : ` &middot; <span class="text-emerald-600">✓ Valid</span>`);
       
-      preview.innerHTML = questions.map(q => {
+      const previewRows = questions.slice(0, 120);
+      preview.innerHTML = previewRows.map(q => {
         const hasError = q._errors.length > 0;
         const borderColor = hasError ? 'border-red-200 bg-red-50/50' : 'border-slate-100 bg-white';
         const choices = ['A','B','C','D','E'].filter(k => q['pilihan' + k]).map(k => 
-          `<span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${q.kunci && q.kunci.toUpperCase() === k ? 'bg-green-100 text-green-700 font-bold ring-1 ring-green-300' : 'bg-slate-100 text-slate-600'}">
-            <span class="font-bold">${k}.</span> ${escapeHtml(q['pilihan' + k])}
-          </span>`
+          `<div class="inline-flex items-start gap-1 text-xs px-2 py-0.5 rounded ${q.kunci && q.kunci.toUpperCase() === k ? 'bg-green-100 text-green-700 font-bold ring-1 ring-green-300' : 'bg-slate-100 text-slate-600'}">
+            <span class="font-bold">${k}.</span> <div class="media-rich">${renderRichContent(q['pilihan' + k], { compact: true })}</div>
+          </div>`
         ).join(' ');
         
         return `
@@ -9382,11 +10261,11 @@ ${dokToolbarHtml()}
               </div>
               <span class="text-[10px] text-slate-400">skor: ${escapeHtml(q.skorMaks)}</span>
             </div>
-            <p class="text-xs text-slate-800 leading-relaxed mb-1.5 line-clamp-2">${escapeHtml(q.pertanyaan || '(kosong)')}</p>
+            <div class="media-rich text-xs text-slate-800 leading-relaxed mb-1.5 line-clamp-2">${renderRichContent(q.pertanyaan || '(kosong)', { compact: true })}</div>
             ${choices ? `<div class="flex flex-wrap gap-1">${choices}</div>` : ''}
             ${hasError ? `<div class="mt-1.5 text-[10px] text-red-500 font-medium">&#9888; ${q._errors.join(', ')}</div>` : ''}
           </div>`;
-      }).join('');
+      }).join('') + (questions.length > previewRows.length ? `<div class="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs font-semibold text-slate-500">Pratinjau menampilkan ${previewRows.length} dari ${questions.length} soal. Semua soal tetap ikut diimpor.</div>` : '');
       
       refreshIcons();
     }
@@ -9409,6 +10288,7 @@ ${dokToolbarHtml()}
        numbering by walking the HTML structure.
     ============================================ */
     async function readDocxToText(file) {
+      await ensureMammothLoaded();
       const arrayBuffer = await file.arrayBuffer();
       // Try HTML output first — preserves <ol><li> structure when Word auto-numbers.
       let htmlValue = '';
@@ -9599,7 +10479,7 @@ ${dokToolbarHtml()}
     }
 
     async function extractPdfText(file) {
-      if (!window.pdfjsLib) throw new Error('PDF.js belum loaded. Refresh halaman.');
+      await ensurePdfJsLoaded();
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const numPages = Math.min(pdf.numPages, 100); // cap at 100 pages
@@ -10463,6 +11343,7 @@ ${dokToolbarHtml()}
         const response = await serverCall('getAdminQuestions', { actor: currentUserData, examId });
         if (response.status !== 'success') throw new Error(response.message || 'Gagal memuat soal.');
         const questions = response.questions || [];
+        qbankVisibleLimit = QBANK_RENDER_BATCH;
         updateQBankStats(questions);
         renderQBankBrowse(questions);
       } catch (error) {
@@ -10494,6 +11375,7 @@ ${dokToolbarHtml()}
         if (response.status !== 'success') throw new Error(response.message || 'Gagal memuat soal.');
         
         const questions = response.questions || [];
+        qbankVisibleLimit = QBANK_RENDER_BATCH;
         updateQBankStats(questions);
         renderQBankBrowse(questions);
       } catch (error) {
@@ -10531,10 +11413,11 @@ ${dokToolbarHtml()}
     function renderQBankBrowse(questions) {
       const container = document.getElementById('qbank-browse-content');
       if (!container) return;
+      qbankQuestionsCache = questions || [];
       // Reset selection saat re-render
       qbankSelectedSet = new Set();
 
-      if (!questions.length) {
+      if (!qbankQuestionsCache.length) {
         container.innerHTML = `
           <div class="flex items-center justify-center h-48 text-slate-400">
             <div class="text-center">
@@ -10547,7 +11430,14 @@ ${dokToolbarHtml()}
         return;
       }
 
-      const sorted = [...questions].sort((a, b) => Number(a.nomor) - Number(b.nomor));
+      const searchValue = (document.getElementById('qbank-search')?.value || '').toLowerCase();
+      const sorted = [...qbankQuestionsCache].sort((a, b) => Number(a.nomor) - Number(b.nomor));
+      const filtered = sorted.filter(q => {
+        if (!searchValue) return true;
+        return [q.nomor, q.tipe, q.pertanyaan, q.kunci, q.pilihanA, q.pilihanB, q.pilihanC, q.pilihanD, q.pilihanE]
+          .some(v => String(v || '').toLowerCase().includes(searchValue));
+      });
+      const visibleQuestions = filtered.slice(0, qbankVisibleLimit);
       const examId = sorted[0].examId || '';
 
       container.innerHTML = `
@@ -10558,10 +11448,10 @@ ${dokToolbarHtml()}
               <input id="qbank-select-all" type="checkbox" onchange="qbankSelectAll(this.checked)" class="rounded">
               Pilih Semua
             </label>
-            <span id="qbank-select-counter" class="text-xs text-slate-500"><b>${sorted.length}</b> soal tersimpan</span>
+            <span id="qbank-select-counter" class="text-xs text-slate-500"><b>${visibleQuestions.length}</b> dari <b>${filtered.length}</b> soal</span>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <input id="qbank-search" type="text" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm w-44" placeholder="Cari soal..." oninput="filterQBankBrowse()">
+            <input id="qbank-search" type="text" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm w-44" placeholder="Cari soal..." value="${escapeHtml(searchValue)}" oninput="filterQBankBrowse()">
             <button id="btn-delete-selected" type="button" onclick="deleteSelectedQuestions()" disabled class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-amber-200">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span id="btn-delete-selected-label">Hapus Pilihan</span>
             </button>
@@ -10572,8 +11462,9 @@ ${dokToolbarHtml()}
         </div>
 
         <div id="qbank-browse-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-          ${sorted.map(q => renderQBankCard(q)).join('')}
+          ${visibleQuestions.map(q => renderQBankCard(q)).join('')}
         </div>
+        ${filtered.length > visibleQuestions.length ? `<div class="mt-2 flex justify-center"><button type="button" onclick="loadMoreQBankRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Muat ${Math.min(QBANK_RENDER_BATCH, filtered.length - visibleQuestions.length)} soal lagi</button></div>` : ''}
       `;
       refreshIcons();
     }
@@ -10604,13 +11495,13 @@ ${dokToolbarHtml()}
                   </button>
                 </div>
               </div>
-              <p class="text-sm text-slate-800 leading-relaxed">${escapeHtml(q.pertanyaan || '(tidak ada pertanyaan)')}</p>
+              <div class="media-rich text-sm text-slate-800 leading-relaxed">${renderRichContent(q.pertanyaan || '(tidak ada pertanyaan)', { compact: true })}</div>
               ${choices.length ? `
                 <div class="mt-2 grid sm:grid-cols-2 gap-1">
                   ${choices.map(k => `
                     <div class="flex items-center gap-1.5 text-xs ${q.kunci && q.kunci.toUpperCase() === k ? 'text-green-700 font-bold' : 'text-slate-600'}">
                       <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${q.kunci && q.kunci.toUpperCase() === k ? 'bg-green-100 ring-1 ring-green-300' : 'bg-slate-100'}">${k}</span>
-                      <span class="truncate">${escapeHtml(q['pilihan' + k])}</span>
+                      <div class="min-w-0 media-rich">${renderRichContent(q['pilihan' + k], { compact: true })}</div>
                     </div>
                   `).join('')}
                 </div>
@@ -10622,11 +11513,18 @@ ${dokToolbarHtml()}
     }
 
     function filterQBankBrowse() {
-      const search = (document.getElementById('qbank-search')?.value || '').toLowerCase();
-      document.querySelectorAll('#qbank-browse-list > div').forEach(card => {
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(search) ? '' : 'none';
-      });
+      qbankVisibleLimit = QBANK_RENDER_BATCH;
+      renderQBankBrowse(qbankQuestionsCache);
+      const input = document.getElementById('qbank-search');
+      if (input) {
+        input.focus();
+        try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
+      }
+    }
+
+    function loadMoreQBankRows() {
+      qbankVisibleLimit += QBANK_RENDER_BATCH;
+      renderQBankBrowse(qbankQuestionsCache);
     }
 
     /* ============================================
@@ -10888,6 +11786,7 @@ ${dokToolbarHtml()}
 
     function setAcctRoleFilter(role) {
       acctActiveRole = role === 'all' ? 'all' : normalizeRoleKey(role);
+      userVisibleLimit = 350;
       document.querySelectorAll('.acct-role-pill').forEach(p => {
         if (p.dataset.role === acctActiveRole) { p.classList.add('active', 'bg-blue-100', 'text-blue-700'); p.classList.remove('text-slate-500'); }
         else { p.classList.remove('active', 'bg-blue-100', 'text-blue-700'); p.classList.add('text-slate-500'); }
@@ -10896,8 +11795,9 @@ ${dokToolbarHtml()}
       refreshIcons();
     }
 
-    function filterUserTable() {
+    function filterUserTable(resetLimit) {
       if (!loadedUsersData) return;
+      if (resetLimit !== false) userVisibleLimit = 350;
       const searchInput = document.getElementById('search-users');
       const statusFilter = document.getElementById('filter-user-status');
       const kelasFilter = document.getElementById('filter-user-kelas');
@@ -10981,7 +11881,7 @@ ${dokToolbarHtml()}
               <tr><th class="p-3 whitespace-nowrap">Pengguna</th><th class="p-3 whitespace-nowrap">NISN/Username</th><th class="p-3 whitespace-nowrap">No Ujian</th><th class="p-3 whitespace-nowrap">Peran</th><th class="p-3 whitespace-nowrap">Kelas</th><th class="p-3 whitespace-nowrap">Ruang</th><th class="p-3 whitespace-nowrap">Status</th>${currentUserData.role === 'admin' ? '<th class="p-3 text-right sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)]">Aksi</th>' : ''}</tr>
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
-              ${sortedUsers.slice(0, 350).map(user => {
+              ${sortedUsers.slice(0, userVisibleLimit).map(user => {
                 const roleKey = normalizeRoleKey(user && user.role);
                 const nama = textValue(user && user.nama);
                 const userId = textValue(user && user.user);
@@ -11018,9 +11918,14 @@ ${dokToolbarHtml()}
             </tbody>
           </table>
         </div>
-        ${users.length > 350 ? `<p class="mt-2 text-xs text-slate-500">Menampilkan 350 dari ${users.length} akun.</p>` : ''}
+        ${users.length > userVisibleLimit ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${Math.min(userVisibleLimit, users.length)}</b> dari <b>${users.length}</b> akun.</span><button type="button" onclick="loadMoreUserRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
       `;
       refreshIcons();
+    }
+
+    function loadMoreUserRows() {
+      userVisibleLimit += BIG_TABLE_RENDER_BATCH;
+      filterUserTable(false);
     }
 
     async function saveMasterData(event) {
@@ -11034,6 +11939,7 @@ ${dokToolbarHtml()}
         if (response.status !== 'success') throw new Error(response.message || 'Master data gagal disimpan.');
         if (formEl && typeof formEl.reset === 'function') formEl.reset();
         mergeMasterRowsIntoCatalog(response.rows || []);
+        masterVisibleLimit = 300;
         renderMasterTable(response.rows || []);
         Swal.fire('Berhasil', 'Master data tersimpan.', 'success');
       } catch (error) {
@@ -11048,6 +11954,7 @@ ${dokToolbarHtml()}
         const response = await serverCall('listMasterData', { actor: currentUserData });
         if (response.status !== 'success') throw new Error(response.message || 'Master data gagal dimuat.');
         mergeMasterRowsIntoCatalog(response.rows || []);
+        masterVisibleLimit = 300;
         renderMasterTable(response.rows || []);
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -11209,6 +12116,8 @@ ${dokToolbarHtml()}
     function renderMasterTable(rows) {
       const container = document.getElementById('master-table');
       if (!container) return;
+      masterRowsCache = rows || [];
+      const visibleRows = masterRowsCache.slice(0, masterVisibleLimit);
       container.innerHTML = `
         <div class="overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full text-sm">
@@ -11216,7 +12125,7 @@ ${dokToolbarHtml()}
               <tr><th class="p-3">Tipe</th><th>Kode</th><th>Nama</th><th>Detail</th><th>Status</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${rows.map(row => `
+              ${visibleRows.map(row => `
                 <tr>
                   <td class="p-3 font-bold uppercase">${escapeHtml(row.type || '-')}</td>
                   <td class="font-mono text-xs">${escapeHtml(row.kode || '-')}</td>
@@ -11228,7 +12137,13 @@ ${dokToolbarHtml()}
             </tbody>
           </table>
         </div>
+        ${masterRowsCache.length > visibleRows.length ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleRows.length}</b> dari <b>${masterRowsCache.length}</b> master data.</span><button type="button" onclick="loadMoreMasterRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
       `;
+    }
+
+    function loadMoreMasterRows() {
+      masterVisibleLimit += BIG_TABLE_RENDER_BATCH;
+      renderMasterTable(masterRowsCache);
     }
 
     /* (#38) State pagination untuk loader bertabel besar. */
@@ -11333,6 +12248,7 @@ ${dokToolbarHtml()}
         const examId = document.getElementById('essay-exam-select').value;
         const response = await serverCall('getEssayQueue', { actor: currentUserData, examId });
         if (response.status !== 'success') throw new Error(response.message || 'Antrean esai gagal dimuat.');
+        essayVisibleLimit = 80;
         renderEssayQueue(response.queue || []);
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -11342,9 +12258,11 @@ ${dokToolbarHtml()}
     function renderEssayQueue(queue) {
       const container = document.getElementById('essay-queue');
       if (!container) return;
+      essayQueueCache = queue || [];
+      const visibleQueue = essayQueueCache.slice(0, essayVisibleLimit);
       container.innerHTML = `
         <div class="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-          ${queue.map((item, index) => `
+          ${visibleQueue.map((item, index) => `
             <article class="rounded-xl border border-slate-200 p-4">
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <div>
@@ -11369,11 +12287,17 @@ ${dokToolbarHtml()}
             </article>
           `).join('') || '<div class="rounded-xl border border-slate-200 p-5 text-center text-slate-500">Belum ada jawaban esai.</div>'}
         </div>
+        ${essayQueueCache.length > visibleQueue.length ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleQueue.length}</b> dari <b>${essayQueueCache.length}</b> jawaban esai.</span><button type="button" onclick="loadMoreEssayRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
       `;
       document.querySelectorAll('.essay-grade-action').forEach(button => {
         button.addEventListener('click', () => gradeEssayAnswer(queue[Number(button.dataset.index)], document.getElementById('essay-score-' + button.dataset.index).value));
       });
       refreshIcons();
+    }
+
+    function loadMoreEssayRows() {
+      essayVisibleLimit += BIG_TABLE_RENDER_BATCH;
+      renderEssayQueue(essayQueueCache);
     }
 
     async function gradeEssayAnswer(item, skor) {
@@ -12328,7 +13252,7 @@ ${dokToolbarHtml()}
               <div class="flex items-center gap-2 min-w-0">
                 <button onclick="showDashboard()" class="rounded-lg p-1.5 hover:bg-slate-100" title="Kembali ke Dashboard"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
                 <div class="min-w-0">
-                  <p class="text-xs text-slate-400 font-semibold truncate">${escapeHtml(activeExam.examId)} &middot; Soal ${currentQuestionIndex + 1}/${activeQuestions.length}</p>
+                  <p id="exam-toolbar-subtitle" class="text-xs text-slate-400 font-semibold truncate">${escapeHtml(activeExam.examId)} &middot; Soal ${currentQuestionIndex + 1}/${activeQuestions.length}</p>
                   <h2 class="text-sm font-bold text-slate-900 truncate">${escapeHtml(activeExam.mapel)}</h2>
                 </div>
               </div>
@@ -12344,7 +13268,7 @@ ${dokToolbarHtml()}
               </div>
             </div>
             <div class="max-w-7xl mx-auto mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-              <div class="h-full bg-blue-700 transition-all" style="width: ${pctDone}%"></div>
+              <div id="exam-progress-bar" class="h-full bg-blue-700 transition-all" style="width: ${pctDone}%"></div>
             </div>
           </div>
 
@@ -12356,11 +13280,11 @@ ${dokToolbarHtml()}
                 <div class="flex items-center justify-between mb-3">
                   <h3 class="font-bold text-sm">Nomor Soal</h3>
                   <div class="flex items-center gap-1.5 text-[11px] font-bold">
-                    <span class="text-emerald-600" title="Terjawab">${answered}</span>
+                    <span id="exam-answered-count" class="text-emerald-600" title="Terjawab">${answered}</span>
                     <span class="text-slate-300">&middot;</span>
-                    <span class="text-amber-500" title="Ragu-ragu">${flaggedCount}</span>
+                    <span id="exam-flagged-count" class="text-amber-500" title="Ragu-ragu">${flaggedCount}</span>
                     <span class="text-slate-300">&middot;</span>
-                    <span class="text-slate-400" title="Belum dijawab">${unansweredCount}</span>
+                    <span id="exam-unanswered-count" class="text-slate-400" title="Belum dijawab">${unansweredCount}</span>
                     <span class="kbd-hint hidden sm:inline text-slate-400 font-normal ml-1">&#8592;&#8594;</span>
                   </div>
                 </div>
@@ -12442,9 +13366,29 @@ ${dokToolbarHtml()}
         button.addEventListener('click', () => {
           saveDraft(true);
           currentQuestionIndex = Number(button.dataset.index);
-          renderExamView();
+          renderQuestionNav();
+          renderQuestionPanel();
+          updateExamProgressUi();
         });
       });
+    }
+
+    function updateExamProgressUi() {
+      if (!activeExam) return;
+      const answered = activeQuestions.filter(question => answers[String(question.nomor)] && String(answers[String(question.nomor)].jawaban || '').trim()).length;
+      const flaggedCount = activeQuestions.filter(q => { const a = answers[String(q.nomor)]; return a && a.ragu; }).length;
+      const unansweredCount = Math.max(0, activeQuestions.length - answered);
+      const pctDone = activeQuestions.length ? Math.round((answered / activeQuestions.length) * 100) : 0;
+      const subtitle = document.getElementById('exam-toolbar-subtitle');
+      const progress = document.getElementById('exam-progress-bar');
+      const answeredEl = document.getElementById('exam-answered-count');
+      const flaggedEl = document.getElementById('exam-flagged-count');
+      const unansweredEl = document.getElementById('exam-unanswered-count');
+      if (subtitle) subtitle.innerHTML = `${escapeHtml(activeExam.examId)} &middot; Soal ${currentQuestionIndex + 1}/${activeQuestions.length}`;
+      if (progress) progress.style.width = pctDone + '%';
+      if (answeredEl) answeredEl.textContent = String(answered);
+      if (flaggedEl) flaggedEl.textContent = String(flaggedCount);
+      if (unansweredEl) unansweredEl.textContent = String(unansweredCount);
     }
 
     function renderQuestionPanel() {
@@ -12465,7 +13409,7 @@ ${dokToolbarHtml()}
           </button>
         </div>
 
-        <div class="exam-question text-slate-800 leading-relaxed mb-6">${question.pertanyaan}</div>
+        <div class="exam-question media-rich text-slate-800 leading-relaxed mb-6">${renderRichContent(question.pertanyaan)}</div>
         ${question.tipe === 'ESAI' ? renderEssayAnswer(question, current) : renderChoiceAnswer(question, current)}
 
         <div class="mobile-sticky-actions flex flex-wrap justify-between gap-2 mt-6 pt-5 border-t border-slate-100">
@@ -12481,12 +13425,8 @@ ${dokToolbarHtml()}
       `;
       bindQuestionEvents(question);
       refreshIcons();
-      // Apply media enrich + MathJax to the question text
-      const qBox = document.querySelector('.exam-question');
-      if (qBox) {
-        qBox.innerHTML = enrichMedia(qBox.innerHTML);
-        renderMathInElement(qBox);
-      }
+      // Apply MathJax after media-rich text is rendered.
+      renderMathInElement(panel);
     }
 
     function renderChoiceAnswer(question, current) {
@@ -12500,7 +13440,7 @@ ${dokToolbarHtml()}
               <input type="radio" name="choice-answer" value="${escapeHtml(choice.key)}" class="mt-1" ${current.jawaban === choice.key ? 'checked' : ''}>
               <div>
                 <p class="font-bold text-slate-900">${String.fromCharCode(65 + index)}.</p>
-                <p class="text-sm leading-relaxed">${escapeHtml(choice.text)}</p>
+                <div class="choice-media media-rich text-sm leading-relaxed">${renderRichContent(choice.text, { compact: true })}</div>
               </div>
             </label>
           `).join('')}
@@ -12526,7 +13466,9 @@ ${dokToolbarHtml()}
         const current = answers[key] || { nomor: question.nomor, tipe: question.tipe, jawaban: '', ragu: false };
         answers[key] = { ...current, ragu: !current.ragu };
         markAnswerDirty(key);
-        renderExamView();
+        renderQuestionNav();
+        renderQuestionPanel();
+        updateExamProgressUi();
         scheduleAutosave();
       });
       const prev = document.getElementById('btn-prev');
@@ -12541,13 +13483,16 @@ ${dokToolbarHtml()}
       answers[key] = { ...current, nomor: question.nomor, tipe: question.tipe, jawaban: value };
       markAnswerDirty(key);
       renderQuestionNav();
+      updateExamProgressUi();
       scheduleAutosave();
     }
 
     function goQuestion(delta) {
       saveDraft(true);
       currentQuestionIndex = Math.min(activeQuestions.length - 1, Math.max(0, currentQuestionIndex + delta));
-      renderExamView();
+      renderQuestionNav();
+      renderQuestionPanel();
+      updateExamProgressUi();
     }
 
     function markAnswerDirty(key) {
@@ -13376,8 +14321,11 @@ ${dokToolbarHtml()}
         setSelectedLoginRole(lastRole);
         document.getElementById('app-section').classList.add('hidden');
         document.getElementById('login-section').classList.remove('hidden');
+        clearLoginFeedback();
+        bindLoginInputUx();
         bindPasswordToggle();
         checkLoginServerStatus();
+        setTimeout(() => focusLoginField('username', false), 120);
         setTimeout(() => { loginParticles = initParticles('login-canvas'); }, 50);
       });
     }
