@@ -1977,7 +1977,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 rounded-xl bg-slate-100/80 p-1.5 border border-black/[0.04]" role="tablist" aria-label="Role login">
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 rounded-xl bg-slate-100/80 p-1.5 border border-black/[0.04]" role="tablist" aria-label="Role login">
             <button type="button" class="login-role-tab login-role-tab-dark" data-role="peserta" aria-selected="true">
               <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Peserta
             </button>
@@ -1990,7 +1990,7 @@
             <button type="button" class="login-role-tab login-role-tab-dark" data-role="proktor" aria-selected="false">
               <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Proktor
             </button>
-            <button type="button" class="login-role-tab login-role-tab-dark" data-role="admin" aria-selected="false">
+                         <button type="button" class="login-role-tab login-role-tab-dark" data-role="executive" aria-selected="false">               <i data-lucide="crown" class="w-3.5 h-3.5"></i> Eksekutif             </button> <button type="button" class="login-role-tab login-role-tab-dark" data-role="admin" aria-selected="false">
               <i data-lucide="settings" class="w-3.5 h-3.5"></i> Admin
             </button>
           </div>
@@ -2168,6 +2168,9 @@
     let lastScreenshotEventAt = 0;
     let fullscreenPromptOpen = false;
     let dirtyAnswers = false;
+    let dirtyAnswerVersions = {};
+    let dirtyVersionSeq = 0;
+    let securityDirtyVersion = 0;
     let savingDraft = false;
     let submittingExam = false;
     let examEndAt = null;
@@ -2182,15 +2185,20 @@
     let lastRefreshAt = 0;
     let participantSearch = '';
     let participantFilter = 'all';
+    let participantVisibleLimit = 250;
+    const PARTICIPANT_RENDER_BATCH = 250;
     let participantSort = { col: '', asc: true };
     let studentExamTab = 'aktif';
     let monitorViewMode = 'table';
-    let faceModel = null;
-    let webcamStream = null;
-    let aiProctoringInterval = null;
-    let proctoringViolations = 0;
-    let isProctoringActive = false;
     let isPermanentlyLocked = false;
+    let seatingZoom = 1;
+    let seatingPanX = 0;
+    let seatingPanY = 0;
+    let isPanning = false;
+    let startPanX = 0;
+    let startPanY = 0;
+    let initialTouchDist = 0;
+    let lastSeenAnnouncementTimestamp = localStorage.getItem('cbt_last_announcement') || '';
     let monitorSoundEnabled = false;
     let participantRoomFilter = '';
     let previousBermasalah = 0;
@@ -3436,15 +3444,15 @@ ${dokToolbarHtml()}
     function getStaffMenuItems() {
       const r = currentUserData ? normalizeRoleKey(currentUserData.role) : '';
       const all = [
-        { key: 'overview', label: 'Pusat Kendali', icon: 'layout-dashboard', roles: ['admin','proktor'] },
-        { key: 'monitor', label: 'Monitoring', icon: 'monitor-check', roles: ['admin','proktor','pengawas','guru'] },
+        { key: 'overview', label: 'Pusat Kendali', icon: 'layout-dashboard', roles: ['admin','proktor','executive'] },
+        { key: 'monitor', label: 'Monitoring', icon: 'monitor-check', roles: ['admin','proktor','pengawas','guru','executive'] },
         { key: 'praktik', label: 'Ujian Praktik', icon: 'clipboard-list', roles: ['admin','proktor','pengawas'] },
         { key: 'jadwal', label: 'Jadwal Ujian', icon: 'calendar-plus', roles: ['admin','proktor'] },
         { key: 'soal', label: 'Bank Soal', icon: 'file-question', roles: ['admin'] },
         { key: 'akun', label: 'Akun Pengguna', icon: 'users-round', roles: ['admin'] },
         { key: 'master', label: 'Master Data', icon: 'database', roles: ['admin'] },
-        { key: 'nilai', label: 'Rekap Nilai', icon: 'table-2', roles: ['admin','proktor','guru'] },
-        { key: 'laporan', label: 'Laporan', icon: 'door-open', roles: ['admin','proktor','pengawas','guru'] },
+        { key: 'nilai', label: 'Rekap Nilai', icon: 'table-2', roles: ['admin','proktor','guru','executive'] },
+        { key: 'laporan', label: 'Laporan', icon: 'door-open', roles: ['admin','proktor','pengawas','guru','executive'] },
         { key: 'audit', label: 'Audit & Log', icon: 'scroll-text', roles: ['admin','proktor'] },
         { key: 'utilitas', label: 'Utilitas', icon: 'shield-check', roles: ['admin','proktor'] },
         { key: 'konfigurasi', label: 'Konfigurasi', icon: 'sliders-horizontal', roles: ['admin'] }
@@ -3457,7 +3465,7 @@ ${dokToolbarHtml()}
       guru: { label: 'Username Guru', placeholder: 'Masukkan username guru' },
       pengawas: { label: 'Username Pengawas', placeholder: 'Masukkan username pengawas' },
       proktor: { label: 'Username Proktor', placeholder: 'Masukkan username proktor' },
-      admin: { label: 'Username Admin', placeholder: 'Masukkan username admin' }
+      executive: { label: 'Username Executive', placeholder: 'Masukkan username eksekutif' },       admin: { label: 'Username Admin', placeholder: 'Masukkan username admin' }
     };
 
     // Persist tenant code from login form
@@ -3757,11 +3765,19 @@ ${dokToolbarHtml()}
     }
 
     function getExamSecurityPayload() {
+      let answeredCount = 0;
+      let totalCount = 0;
+      if (typeof activeQuestions !== 'undefined' && activeQuestions.length) {
+        totalCount = activeQuestions.length;
+        answeredCount = activeQuestions.filter(q => answers[String(q.nomor)] && answers[String(q.nomor)].jawaban).length;
+      }
       return {
         tabKeluar: Number(tabLeaveCount || 0),
         fullscreenExit: Number(fullscreenExitCount || 0),
         screenshotAttempt: Number(screenshotAttemptCount || 0),
-        aiViolations: Number(proctoringViolations || 0)
+        aiViolations: 0,
+        answeredCount: answeredCount,
+        totalCount: totalCount
       };
     }
 
@@ -3811,7 +3827,7 @@ ${dokToolbarHtml()}
       updateExamSecurityStatus();
       if (!isExamFullscreenActive()) {
         fullscreenExitCount += 1;
-        dirtyAnswers = true;
+        markSecurityDirty();
         logExamSecurityEvent('KELUAR_FULLSCREEN', 'Peserta keluar dari mode fullscreen.');
         promptReturnFullscreen();
       }
@@ -3832,7 +3848,7 @@ ${dokToolbarHtml()}
       if (now - lastScreenshotEventAt < 1200) return;
       lastScreenshotEventAt = now;
       screenshotAttemptCount += 1;
-      dirtyAnswers = true;
+      markSecurityDirty();
       logExamSecurityEvent('SCREENSHOT_ATTEMPT', detail || 'Shortcut screenshot terdeteksi.');
       updateExamSecurityStatus();
       Swal.fire({
@@ -6800,6 +6816,15 @@ ${dokToolbarHtml()}
         if (s.includes('login') || !s.includes('belum')) return 'login';
         return 'belum';
       }
+      const searchTerm = String(participantSearch || '').toLowerCase();
+      const filteredParticipants = participants.filter(item => {
+        const text = `${item.nama || ''} ${item.nisn || ''} ${item.kelas || ''} ${item.ruang || ''}`.toLowerCase();
+        const matchSearch = !searchTerm || text.includes(searchTerm);
+        const matchRoom = !participantRoomFilter || String(item.ruang || '').toLowerCase() === participantRoomFilter.toLowerCase();
+        const matchFilter = participantFilter === 'all' || statusKey(item.status) === participantFilter;
+        return matchSearch && matchRoom && matchFilter;
+      });
+      const renderedParticipants = filteredParticipants.slice(0, Math.max(PARTICIPANT_RENDER_BATCH, participantVisibleLimit));
       return `
         <section class="surface-card p-5 shadow-sm overflow-hidden">
           <div class="flex items-center gap-2 mb-3">
@@ -6819,7 +6844,7 @@ ${dokToolbarHtml()}
               <button class="filter-pill ${participantFilter==='mengerjakan'?'active':''}" data-filter="mengerjakan">Mengerjakan (${participants.filter(p=>statusKey(p.status)==='mengerjakan').length})</button>
               <button class="filter-pill ${participantFilter==='submit'?'active':''}" data-filter="submit">Submit (${participants.filter(p=>statusKey(p.status)==='submit').length})</button>
             </div>
-            <p id="filter-counter" class="text-xs font-semibold text-slate-400">Menampilkan ${participants.length} dari ${participants.length}</p>
+            <p id="filter-counter" class="text-xs font-semibold text-slate-400">Menampilkan ${renderedParticipants.length} dari ${filteredParticipants.length} hasil (${participants.length} peserta)</p>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -6827,7 +6852,7 @@ ${dokToolbarHtml()}
                 <tr><th class="py-2">Peserta</th><th>Status</th><th>Sisa Waktu</th><th>Hadir</th><th>Tab</th><th>Fullscreen</th><th>Screenshot</th><th>Last Active</th><th class="text-right">Aksi</th></tr>
               </thead>
               <tbody id="participant-tbody" class="divide-y divide-slate-100">
-                ${participants.map(item => {
+                ${renderedParticipants.map(item => {
                   const tabCount = Number(item.tabKeluar || 0);
                   const fullscreenCount = Number(item.fullscreenExit || 0);
                   const screenshotCount = Number(item.screenshotAttempt || 0);
@@ -6876,6 +6901,13 @@ ${dokToolbarHtml()}
               </tbody>
             </table>
           </div>
+          ${filteredParticipants.length > renderedParticipants.length ? `
+            <div class="mt-3 flex justify-center">
+              <button type="button" id="participant-load-more" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                <i data-lucide="list" class="w-4 h-4"></i> Muat ${Math.min(PARTICIPANT_RENDER_BATCH, filteredParticipants.length - renderedParticipants.length)} peserta lagi
+              </button>
+            </div>
+          ` : ''}
         </section>
       `;
     }
@@ -7261,10 +7293,41 @@ ${dokToolbarHtml()}
     }
 
     function renderSupervisorForms(selectedExamId) {
+      const canWriteReport = ['admin', 'proktor', 'pengawas', 'executive'].includes(currentUserData.role);
+      const canBroadcast = ['admin', 'proktor', 'pengawas'].includes(currentUserData.role);
       const canRunUtilities = ['admin', 'proktor'].includes(currentUserData.role);
-      const canWriteReport = ['admin', 'proktor', 'pengawas'].includes(currentUserData.role);
       return `
         <aside class="space-y-4">
+          ${canBroadcast ? `
+          <!-- Broadcast Pengumuman Section -->
+          <section class="surface-card p-5 shadow-sm space-y-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="megaphone" class="w-5 h-5 text-indigo-700"></i>
+              <h3 class="font-bold text-slate-900 text-sm">Broadcast Pengumuman</h3>
+            </div>
+            <div class="space-y-2.5">
+              <textarea id="broadcast-message-input" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-semibold focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none" placeholder="Ketik pengumuman penting untuk seluruh peserta kelas..."></textarea>
+              <button type="button" onclick="sendClassBroadcast('${escapeHtml(selectedExamId)}')" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Kirim ke Seluruh Kelas
+              </button>
+            </div>
+          </section>
+          ` : ''}
+
+          ${canWriteReport ? `
+          <!-- Lembar Cetak Berita Acara Section -->
+          <section class="surface-card p-5 shadow-sm space-y-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="file-text" class="w-5 h-5 text-emerald-700"></i>
+              <h3 class="font-bold text-slate-900 text-sm">Laporan Resmi</h3>
+            </div>
+            <p class="text-[11px] text-slate-500 font-semibold leading-relaxed">Unduh lembar dokumen berita acara resmi pelaksanaan ujian untuk dicetak fisik atau disimpan PDF.</p>
+            <button type="button" onclick="printExamReport('${escapeHtml(selectedExamId)}')" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm">
+              <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak Berita Acara Ujian
+            </button>
+          </section>
+          ` : ''}
+
           ${canRunUtilities ? `
           <section class="surface-card p-5 shadow-sm space-y-3">
             <div class="flex items-center gap-2">
@@ -7277,8 +7340,11 @@ ${dokToolbarHtml()}
               <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="backup" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="copy" class="w-4 h-4"></i> Backup</button>
               <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="auto-token" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="clock" class="w-4 h-4"></i> Auto Token</button>
               <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="daily-backup" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="archive" class="w-4 h-4"></i> Backup Harian</button>
+              <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="warm-cache" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="zap" class="w-4 h-4"></i> Warm Cache</button>
+              <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="auto-archive" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="archive" class="w-4 h-4"></i> Auto Arsip</button>
               <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="csv" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="file-down" class="w-4 h-4"></i> CSV Nilai</button>
               <button class="utility-action inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50" data-action="answer-csv" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> CSV Jawaban</button>
+              <button class="utility-action col-span-2 inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800 hover:bg-amber-100" data-action="archive-now" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="archive-restore" class="w-4 h-4"></i> Arsipkan Ujian Terpilih</button>
               <button class="utility-action col-span-2 inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white hover:bg-rose-700" data-action="expired" data-exam-id="${escapeHtml(selectedExamId || '')}" type="button"><i data-lucide="lock" class="w-4 h-4"></i> Kunci Waktu Habis</button>
             </div>
             <div id="readiness-result" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs"></div>
@@ -7562,16 +7628,28 @@ ${dokToolbarHtml()}
     ============================================ */
       const searchInput = document.getElementById('participant-search');
       if (searchInput) {
-        searchInput.addEventListener('input', () => { participantSearch = searchInput.value; applyParticipantFilter(); });
+        searchInput.addEventListener('input', () => {
+          participantSearch = searchInput.value;
+          participantVisibleLimit = PARTICIPANT_RENDER_BATCH;
+          rerenderParticipantTableView();
+        });
       }
       document.querySelectorAll('.filter-pill[data-filter]').forEach(pill => {
         pill.addEventListener('click', () => {
           participantFilter = pill.dataset.filter;
+          participantVisibleLimit = PARTICIPANT_RENDER_BATCH;
           document.querySelectorAll('.filter-pill[data-filter]').forEach(p => p.classList.remove('active'));
           pill.classList.add('active');
-          applyParticipantFilter();
+          rerenderParticipantTableView();
         });
       });
+      const participantLoadMore = document.getElementById('participant-load-more');
+      if (participantLoadMore) {
+        participantLoadMore.addEventListener('click', () => {
+          participantVisibleLimit += PARTICIPANT_RENDER_BATCH;
+          rerenderParticipantTableView();
+        });
+      }
 
       const scheduleForm = document.getElementById('schedule-form');
       if (scheduleForm) scheduleForm.addEventListener('submit', saveSchedule);
@@ -7784,6 +7862,20 @@ ${dokToolbarHtml()}
     /* ============================================
        PARTICIPANT SEARCH  FILTER
     ============================================ */
+    function rerenderParticipantTableView() {
+      if (activeStaffSection !== 'monitor' || !appData || !appData.monitoring) return applyParticipantFilter();
+      const contentEl = document.getElementById('staff-section-content');
+      if (!contentEl) return applyParticipantFilter();
+      contentEl.innerHTML = renderStaffSection('monitor');
+      bindDashboardEvents();
+      refreshIcons();
+      const input = document.getElementById('participant-search');
+      if (input && document.activeElement !== input) {
+        input.focus();
+        try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
+      }
+    }
+
     function applyParticipantFilter() {
       const rows = document.querySelectorAll('#participant-tbody tr');
       let shown = 0;
@@ -7803,10 +7895,11 @@ ${dokToolbarHtml()}
 
     function filterParticipantByRoom(roomName) {
       if (participantRoomFilter === roomName) { participantRoomFilter = ''; } else { participantRoomFilter = roomName; }
+      participantVisibleLimit = PARTICIPANT_RENDER_BATCH;
       document.querySelectorAll('.room-filter-card').forEach(c => {
         if (c.dataset.room === participantRoomFilter) { c.classList.add('ring-2', 'ring-blue-400'); } else { c.classList.remove('ring-2', 'ring-blue-400'); }
       });
-      applyParticipantFilter();
+      rerenderParticipantTableView();
     }
 
     function toggleMonitorSound() {
@@ -11595,14 +11688,22 @@ ${dokToolbarHtml()}
       const data = statusData || {};
       const tokenStatus = data.tokenRotationActive ? `Aktif setiap ${escapeHtml(data.tokenRotationMinutes || '10')} menit` : 'Nonaktif';
       const backupStatus = data.dailyBackupActive ? `Aktif sekitar pukul ${formatAutomationHour(data.dailyBackupHour || 6)}` : 'Nonaktif';
+      const warmerStatus = data.cacheWarmerActive ? `Aktif setiap ${escapeHtml(data.cacheWarmerMinutes || '5')} menit` : 'Nonaktif';
+      const archiveStatus = data.archiveActive ? `Aktif, arsip > ${escapeHtml(data.archiveDays || '30')} hari${data.archivePurge ? ' + purge' : ''}` : 'Nonaktif';
       const tokenLast = data.tokenRotationLast ? escapeHtml(data.tokenRotationLast) : 'Belum berjalan';
       const backupLast = data.dailyBackupLast ? escapeHtml(data.dailyBackupLast) : 'Belum berjalan';
+      const warmerLast = data.cacheWarmerLast ? escapeHtml(data.cacheWarmerLast) : 'Belum berjalan';
+      const archiveLast = data.archiveLast ? escapeHtml(data.archiveLast) : 'Belum berjalan';
       return `
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs text-slate-700">
           <p><b>Rotasi token:</b> ${tokenStatus}</p>
           <p><b>Backup harian:</b> ${backupStatus}</p>
+          <p><b>Cache warmer:</b> ${warmerStatus}</p>
+          <p><b>Arsip otomatis:</b> ${archiveStatus}</p>
           <p class="mt-2 text-slate-500">Terakhir rotasi: ${tokenLast}</p>
           <p class="text-slate-500">Terakhir backup: ${backupLast}</p>
+          <p class="text-slate-500">Terakhir warm cache: ${warmerLast}</p>
+          <p class="text-slate-500">Terakhir arsip: ${archiveLast}</p>
         </div>
       `;
     }
@@ -11688,6 +11789,94 @@ ${dokToolbarHtml()}
           const response = await serverCall('configureDailyBackup', { actor: currentUserData, enabled, hour });
           if (response.status !== 'success') throw new Error(response.message || 'Backup harian gagal disimpan.');
           Swal.fire({ title: 'Backup Harian Tersimpan', html: maintenanceStatusHtml(response.statusData || {}), icon: 'success' });
+          return;
+        }
+        if (action === 'warm-cache') {
+          const statusResponse = await serverCall('getMaintenanceStatus', { actor: currentUserData });
+          if (statusResponse.status !== 'success') throw new Error(statusResponse.message || 'Status otomasi gagal dibaca.');
+          const statusData = statusResponse.statusData || {};
+          const result = await Swal.fire({
+            title: 'Cache Warmer',
+            html: maintenanceStatusHtml(statusData),
+            input: 'select',
+            inputOptions: {
+              0: 'Nonaktif',
+              5: 'Setiap 5 menit',
+              10: 'Setiap 10 menit',
+              15: 'Setiap 15 menit',
+              30: 'Setiap 30 menit',
+              now: 'Jalankan sekali sekarang'
+            },
+            inputValue: statusData.cacheWarmerActive ? String(statusData.cacheWarmerMinutes || 5) : 'now',
+            showCancelButton: true,
+            confirmButtonText: 'Jalankan / Simpan',
+            cancelButtonText: 'Batal'
+          });
+          if (!result.isConfirmed) return;
+          let response;
+          if (result.value === 'now') {
+            response = await serverCall('warmActiveExamCaches', { actor: currentUserData });
+          } else {
+            const minutes = Number(result.value || 0);
+            response = await serverCall('configureCacheWarmer', { actor: currentUserData, enabled: minutes > 0, minutes });
+          }
+          if (response.status !== 'success') throw new Error(response.message || 'Cache warmer gagal diproses.');
+          const warmed = response.warmed ? `<p class="mb-2">${Number(response.warmed.exams || 0)} ujian aktif dipanaskan.</p>` : '';
+          Swal.fire({ title: 'Cache Warmer Siap', html: warmed + maintenanceStatusHtml(response.statusData || {}), icon: 'success' });
+          return;
+        }
+        if (action === 'auto-archive') {
+          const statusResponse = await serverCall('getMaintenanceStatus', { actor: currentUserData });
+          if (statusResponse.status !== 'success') throw new Error(statusResponse.message || 'Status otomasi gagal dibaca.');
+          const statusData = statusResponse.statusData || {};
+          const result = await Swal.fire({
+            title: 'Arsip Otomatis',
+            html: maintenanceStatusHtml(statusData),
+            input: 'select',
+            inputOptions: {
+              off: 'Nonaktif',
+              7: 'Ujian selesai > 7 hari',
+              14: 'Ujian selesai > 14 hari',
+              30: 'Ujian selesai > 30 hari',
+              60: 'Ujian selesai > 60 hari'
+            },
+            inputValue: statusData.archiveActive ? String(statusData.archiveDays || 30) : 'off',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Arsip saja',
+            denyButtonText: 'Arsip + purge',
+            cancelButtonText: 'Batal'
+          });
+          if (!result.isConfirmed && !result.isDenied) return;
+          const enabled = result.value !== 'off';
+          const days = enabled ? Number(result.value || 30) : 30;
+          const response = await serverCall('configureDataArchive', { actor: currentUserData, enabled, days, purge: result.isDenied });
+          if (response.status !== 'success') throw new Error(response.message || 'Arsip otomatis gagal disimpan.');
+          Swal.fire({ title: 'Arsip Otomatis Tersimpan', html: maintenanceStatusHtml(response.statusData || {}), icon: 'success' });
+          return;
+        }
+        if (action === 'archive-now') {
+          if (!examId) throw new Error('Pilih ujian terlebih dahulu.');
+          const result = await Swal.fire({
+            title: 'Arsipkan ujian ini?',
+            text: 'Data akan disalin ke spreadsheet arsip. Pilih purge hanya jika ingin mengosongkan data aktif setelah arsip dibuat.',
+            icon: 'warning',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Arsip saja',
+            denyButtonText: 'Arsip + purge',
+            cancelButtonText: 'Batal'
+          });
+          if (!result.isConfirmed && !result.isDenied) return;
+          const response = await serverCall('archiveCompletedExamData', { actor: currentUserData, examId, days: 0, purge: result.isDenied });
+          if (response.status !== 'success') throw new Error(response.message || 'Arsip data gagal.');
+          const archive = response.archive || {};
+          const file = (archive.files || [])[0] || {};
+          Swal.fire({
+            title: 'Arsip Dibuat',
+            html: `<p class="mb-2">${Number(archive.rowCount || 0)} baris diarsipkan${archive.purgedRows ? `, ${Number(archive.purgedRows)} baris dipurge` : ''}.</p>${file.url ? `<a class="text-blue-700 font-bold underline" href="${escapeHtml(file.url)}" target="_blank" rel="noopener">${escapeHtml(file.name || 'Buka arsip')}</a>` : ''}`,
+            icon: 'success'
+          });
           return;
         }
         if (action === 'csv') {
@@ -12114,6 +12303,8 @@ ${dokToolbarHtml()}
       screenshotAttemptCount = Number(data.timer && data.timer.screenshotAttempt || 0);
       examEndAt = new Date(data.timer && data.timer.endAt ? data.timer.endAt : Date.now() + Number(activeExam.durasiMenit || 90) * 60000);
       dirtyAnswers = false;
+      dirtyAnswerVersions = {};
+      securityDirtyVersion = 0;
       submittingExam = false;
       document.getElementById('dashboard-view').classList.add('hidden');
       document.getElementById('exam-view').classList.remove('hidden');
@@ -12122,7 +12313,6 @@ ${dokToolbarHtml()}
       updateExamSecurityStatus();
       if (isFullscreenSupported() && !isExamFullscreenActive()) promptReturnFullscreen();
       startExamTimers();
-      initAiProctoring();
     }
 
     function renderExamView() {
@@ -12335,7 +12525,7 @@ ${dokToolbarHtml()}
         const key = String(question.nomor);
         const current = answers[key] || { nomor: question.nomor, tipe: question.tipe, jawaban: '', ragu: false };
         answers[key] = { ...current, ragu: !current.ragu };
-        dirtyAnswers = true;
+        markAnswerDirty(key);
         renderExamView();
         scheduleAutosave();
       });
@@ -12349,7 +12539,7 @@ ${dokToolbarHtml()}
       const key = String(question.nomor);
       const current = answers[key] || { nomor: question.nomor, tipe: question.tipe, jawaban: '', ragu: false };
       answers[key] = { ...current, nomor: question.nomor, tipe: question.tipe, jawaban: value };
-      dirtyAnswers = true;
+      markAnswerDirty(key);
       renderQuestionNav();
       scheduleAutosave();
     }
@@ -12360,8 +12550,27 @@ ${dokToolbarHtml()}
       renderExamView();
     }
 
-    function collectAnswers() {
-      return Object.values(answers).map(item => ({
+    function markAnswerDirty(key) {
+      dirtyVersionSeq += 1;
+      dirtyAnswerVersions[String(key)] = dirtyVersionSeq;
+      dirtyAnswers = true;
+    }
+
+    function markSecurityDirty() {
+      dirtyVersionSeq += 1;
+      securityDirtyVersion = dirtyVersionSeq;
+      dirtyAnswers = true;
+    }
+
+    function hasPendingDraftChanges() {
+      return securityDirtyVersion > 0 || Object.keys(dirtyAnswerVersions).length > 0;
+    }
+
+    function collectAnswers(keys) {
+      const source = Array.isArray(keys)
+        ? keys.map(key => answers[String(key)]).filter(Boolean)
+        : Object.values(answers);
+      return source.map(item => ({
         nomor: item.nomor,
         tipe: item.tipe,
         jawaban: item.jawaban || '',
@@ -12375,8 +12584,11 @@ ${dokToolbarHtml()}
     }
 
     async function saveDraft(silent) {
-      if (!activeExam || savingDraft || !dirtyAnswers) return;
+      if (!activeExam || savingDraft || !hasPendingDraftChanges()) return;
       savingDraft = true;
+      const answerVersionSnapshot = { ...dirtyAnswerVersions };
+      const securityVersionSnapshot = securityDirtyVersion;
+      const answerKeys = Object.keys(answerVersionSnapshot);
       const status = document.getElementById('autosave-status');
       const setAutosaveStatus = (text, className) => {
         if (!status) return;
@@ -12387,7 +12599,8 @@ ${dokToolbarHtml()}
       const payload = {
         user: currentUserData,
         examId: activeExam.examId,
-        answers: collectAnswers(),
+        answers: collectAnswers(answerKeys),
+        partial: true,
         ...getExamSecurityPayload()
       };
       payload.triggerLock = isPermanentlyLocked;
@@ -12397,7 +12610,11 @@ ${dokToolbarHtml()}
         const response = await serverCall('saveAnswerBatch', payload);
         if (response.status !== 'success') throw new Error(response.message || 'Auto-save gagal.');
         if (response.timer && response.timer.endAt) examEndAt = new Date(response.timer.endAt);
-        dirtyAnswers = false;
+        answerKeys.forEach(key => {
+          if (dirtyAnswerVersions[key] === answerVersionSnapshot[key]) delete dirtyAnswerVersions[key];
+        });
+        if (securityDirtyVersion === securityVersionSnapshot) securityDirtyVersion = 0;
+        dirtyAnswers = hasPendingDraftChanges();
         setAutosaveStatus('Tersimpan ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), 'hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700');
         
         // Handle sync locked state from backend
@@ -12406,11 +12623,20 @@ ${dokToolbarHtml()}
         } else {
           dismissPermanentLockScreen();
         }
+        
+        // Handle incoming announcements
+        if (response.announcement) {
+          handleIncomingBroadcast(response.announcement);
+        }
       } catch (error) {
         if (!navigator.onLine) {
           const queued = await queueOfflineAnswer(activeExam.examId, currentUserData.user, payload);
           if (queued) {
-            dirtyAnswers = false;
+            answerKeys.forEach(key => {
+              if (dirtyAnswerVersions[key] === answerVersionSnapshot[key]) delete dirtyAnswerVersions[key];
+            });
+            if (securityDirtyVersion === securityVersionSnapshot) securityDirtyVersion = 0;
+            dirtyAnswers = hasPendingDraftChanges();
             setAutosaveStatus('Offline - tersimpan lokal', 'hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700');
             if (!silent) showToast('Jawaban disimpan lokal dan akan dikirim saat online.', 'info');
             return;
@@ -12420,6 +12646,7 @@ ${dokToolbarHtml()}
         if (!silent) Swal.fire('Error', error.message, 'error');
       } finally {
         savingDraft = false;
+        if (hasPendingDraftChanges()) scheduleAutosave();
       }
     }
 
@@ -12441,18 +12668,6 @@ ${dokToolbarHtml()}
       window.clearInterval(countdownInterval);
       window.clearInterval(heartbeatInterval);
       window.clearTimeout(autosaveDebounce);
-      
-      // Stop AI proctoring tracks
-      window.clearInterval(aiProctoringInterval);
-      isProctoringActive = false;
-      if (webcamStream) {
-        try {
-          webcamStream.getTracks().forEach(track => track.stop());
-        } catch (e) {}
-        webcamStream = null;
-      }
-      const pVid = document.getElementById('proctor-video');
-      if (pVid) pVid.remove();
     }
 
     async function sendExamHeartbeat() {
@@ -12640,6 +12855,9 @@ ${dokToolbarHtml()}
           
           const backlogKey = `cbt_backlog_${activeExam.examId}_${currentUserData.user}`;
           localStorage.removeItem(backlogKey);
+          dirtyAnswerVersions = {};
+          securityDirtyVersion = 0;
+          dirtyAnswers = false;
 
           await loadBootstrap();
           submittingExam = false;
@@ -12713,7 +12931,7 @@ ${dokToolbarHtml()}
       if (!activeExam) return;
       if (document.hidden) {
         tabLeaveCount += 1;
-        dirtyAnswers = true;
+        markSecurityDirty();
         logExamSecurityEvent('PINDAH_TAB', 'Tab browser tidak aktif');
         
         // 1. Jalankan Alarm Suara
@@ -12814,7 +13032,7 @@ ${dokToolbarHtml()}
         const key = String(question.nomor);
         const cur = answers[key] || { nomor: question.nomor, tipe: question.tipe, jawaban: '', ragu: false };
         answers[key] = { ...cur, ragu: !cur.ragu };
-        dirtyAnswers = true;
+        markAnswerDirty(key);
         renderQuestionNav();
         renderQuestionPanel();
         scheduleAutosave();
@@ -13175,151 +13393,10 @@ ${dokToolbarHtml()}
 
     bootApp();
 
-    /* ========================================================
-       EDGE AI PROCTORING, BATCH SYNC, & SEATING GRID SYSTEM
-       ======================================================== */
-    async function loadProctorScript(url) {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
-
-    async function initAiProctoring() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn("Kamera tidak didukung di perangkat ini.");
-        return;
-      }
-      
-      try {
-        if (!window.tf) {
-          showToast('Mengaktifkan kecerdasan buatan AI proctoring...', 'info');
-          await loadProctorScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js");
-          await loadProctorScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js");
-        }
-        
-        if (!faceModel) {
-          faceModel = await blazeface.load();
-        }
-        
-        webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width: 160, height: 120, facingMode: "user" } });
-        
-        let video = document.getElementById('proctor-video');
-        if (!video) {
-          video = document.createElement('video');
-          video.id = 'proctor-video';
-          video.autoplay = true;
-          video.playsInline = true;
-          video.muted = true;
-          video.className = 'sr-only';
-          document.body.appendChild(video);
-        }
-        video.srcObject = webcamStream;
-        
-        isProctoringActive = true;
-        proctoringViolations = 0;
-        
-        // Dynamic Glassmorphic Floating Webcam badge indicator
-        let badge = document.getElementById('ai-camera-badge-container');
-        if (!badge) {
-          badge = document.createElement('div');
-          badge.id = 'ai-camera-badge-container';
-          badge.className = 'fixed bottom-4 right-4 z-40 p-1.5 rounded-2xl bg-white/70 border border-white/40 backdrop-blur-md shadow-lg flex items-center gap-2';
-          badge.innerHTML = `
-            <div class="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-800">
-              <video id="ai-badge-video" class="w-full h-full object-cover scale-x-[-1]" autoplay muted playsinline></video>
-              <canvas id="ai-badge-canvas" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></canvas>
-            </div>
-            <div class="pr-2.5">
-              <p class="text-[9px] font-black uppercase text-indigo-600 tracking-wider">AI Proctor</p>
-              <p id="ai-proctor-status-text" class="text-[10px] font-bold text-emerald-600">Aktif & Awasi</p>
-            </div>
-          `;
-          document.body.appendChild(badge);
-          document.getElementById('ai-badge-video').srcObject = webcamStream;
-        }
-        
-        aiProctoringInterval = window.setInterval(async () => {
-          if (!isProctoringActive) return;
-          try {
-            const predictions = await faceModel.estimateFaces(video, false);
-            const statusText = document.getElementById('ai-proctor-status-text');
-            const badgeBorder = document.getElementById('ai-camera-badge-container');
-            
-            if (predictions.length === 0) {
-              console.warn("AI Proctoring: Wajah tidak terdeteksi.");
-              if (statusText) { statusText.textContent = "Tidak Terdeteksi"; statusText.className = "text-[10px] font-bold text-rose-600 animate-pulse"; }
-              if (badgeBorder) { badgeBorder.className = 'fixed bottom-4 right-4 z-40 p-1.5 rounded-2xl bg-rose-50/90 border border-rose-300 backdrop-blur-md shadow-lg flex items-center gap-2'; }
-              handleProctoringViolation("Wajah meninggalkan kamera");
-            } else if (predictions.length > 1) {
-              console.warn("AI Proctoring: Beberapa wajah terdeteksi.");
-              if (statusText) { statusText.textContent = "Multi-Wajah!"; statusText.className = "text-[10px] font-bold text-rose-600 animate-pulse"; }
-              if (badgeBorder) { badgeBorder.className = 'fixed bottom-4 right-4 z-40 p-1.5 rounded-2xl bg-rose-50/90 border border-rose-300 backdrop-blur-md shadow-lg flex items-center gap-2'; }
-              handleProctoringViolation("Terdeteksi beberapa orang di kamera");
-            } else {
-              const prediction = predictions[0];
-              const landmarks = prediction.landmarks;
-              if (landmarks && landmarks.length >= 6) {
-                const noseX = landmarks[2][0];
-                const earLeftX = landmarks[4][0];
-                const earRightX = landmarks[5][0];
-                
-                const totalWidth = Math.abs(earLeftX - earRightX);
-                if (totalWidth > 0) {
-                  const noseRatio = Math.abs(noseX - earRightX) / totalWidth;
-                  if (noseRatio < 0.28 || noseRatio > 0.72) {
-                    console.warn("AI Proctoring: Gaze drift.");
-                    if (statusText) { statusText.textContent = "Pandangan Keluar"; statusText.className = "text-[10px] font-bold text-amber-600 animate-pulse"; }
-                    if (badgeBorder) { badgeBorder.className = 'fixed bottom-4 right-4 z-40 p-1.5 rounded-2xl bg-amber-50/90 border border-amber-300 backdrop-blur-md shadow-lg flex items-center gap-2'; }
-                    handleProctoringViolation("Fokus terdeteksi keluar dari layar");
-                    return;
-                  }
-                }
-              }
-              if (statusText) { statusText.textContent = "Aktif & Awasi"; statusText.className = "text-[10px] font-bold text-emerald-600"; }
-              if (badgeBorder) { badgeBorder.className = 'fixed bottom-4 right-4 z-40 p-1.5 rounded-2xl bg-white/70 border border-white/40 backdrop-blur-md shadow-lg flex items-center gap-2'; }
-              if (proctoringViolations > 0) proctoringViolations = Math.max(0, proctoringViolations - 0.5);
-            }
-          } catch (err) {
-            console.error("AI Face prediction error:", err);
-          }
-        }, 4000);
-        
-      } catch (err) {
-        console.warn("Failed to init webcam AI:", err);
-        showToast('Kamera offline - pengawasan AI dilewati.', 'warning');
-      }
-    }
-
-    function handleProctoringViolation(reason) {
-      proctoringViolations++;
-      console.warn(`Pelanggaran AI #${proctoringViolations}: ${reason}`);
-      
-      if (proctoringViolations === 3) {
-        Swal.fire({
-          title: '⚠️ Peringatan Pengawasan AI',
-          text: `Sistem AI mendeteksi aktivitas mencurigakan: "${reason}". Harap tetap menghadap ke layar ujian.`,
-          icon: 'warning',
-          timer: 5000,
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false
-        });
-      } else if (proctoringViolations >= 5) {
-        isProctoringActive = false;
-        window.permanentLockReason = "Ujian dibekukan otomatis oleh sistem AI (" + reason + ")";
-        triggerPermanentLockScreen(window.permanentLockReason);
-        saveDraft(true); // Sync status lock to proctor immediately
-      }
-    }
 
     function triggerPermanentLockScreen(reason) {
       if (isPermanentlyLocked) return;
       isPermanentlyLocked = true;
-      isProctoringActive = false;
       
       playLoudAlarm();
       if (navigator.vibrate) {
@@ -13370,8 +13447,6 @@ ${dokToolbarHtml()}
       if (!isPermanentlyLocked) return;
       isPermanentlyLocked = false;
       window.permanentLockReason = '';
-      isProctoringActive = true;
-      proctoringViolations = 0;
       tabLeaveCount = 0; // Reset local counts!
       
       stopLoudAlarm();
@@ -13412,8 +13487,7 @@ ${dokToolbarHtml()}
       const cardsHtml = participants.map((p, index) => {
         const status = String(p.status || '').toLowerCase();
         const tabCount = Number(p.tabKeluar || 0);
-        const aiCount = Number(p.aiViolations || 0);
-        const hasIssue = status.includes('kunci') || status.includes('masalah') || tabCount >= 3 || aiCount >= 5;
+        const hasIssue = status.includes('kunci') || status.includes('masalah') || tabCount >= 3;
         
         let borderClass = 'border-slate-200 bg-slate-50 text-slate-400';
         let badgeClass = 'bg-slate-100 text-slate-500';
@@ -13454,7 +13528,7 @@ ${dokToolbarHtml()}
             <div class="flex items-center gap-1.5 mt-3 flex-wrap">
               <span class="rounded-full ${badgeClass} px-2 py-0.5 text-[9px] font-bold">${statusLabel}</span>
               ${tabCount > 0 ? `<span class="rounded-full bg-amber-100 text-amber-800 px-1.5 py-0.5 text-[9px] font-extrabold">&#9888; Tab ${tabCount}</span>` : ''}
-              ${aiCount > 0 ? `<span class="rounded-full bg-red-100 text-red-800 px-1.5 py-0.5 text-[9px] font-extrabold">&#9829; AI ${aiCount}</span>` : ''}
+
             </div>
           </button>
         `;
@@ -13479,8 +13553,7 @@ ${dokToolbarHtml()}
       if (!student) return;
       
       const tabCount = Number(student.tabKeluar || 0);
-      const aiCount = Number(student.aiViolations || 0);
-      const isLocked = String(student.status || '').toLowerCase().includes('kunci') || tabCount >= 3 || aiCount >= 5;
+      const isLocked = String(student.status || '').toLowerCase().includes('kunci') || tabCount >= 3;
       
       let badgeColor = 'bg-slate-100 text-slate-800';
       if (student.status === 'Submit') badgeColor = 'bg-indigo-100 text-indigo-800';
@@ -13510,14 +13583,10 @@ ${dokToolbarHtml()}
           
           <div class="rounded-xl border border-slate-150 p-3 space-y-2">
             <div class="text-[11px] font-black uppercase text-slate-400">Rekap Pelanggaran Keamanan</div>
-            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="grid grid-cols-2 gap-2 text-center text-xs">
               <div class="rounded-lg p-2 ${tabCount >= 3 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
                 <p class="text-sm font-black">${tabCount}</p>
                 <p class="text-[9px] text-slate-400">Keluar Tab</p>
-              </div>
-              <div class="rounded-lg p-2 ${aiCount >= 5 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
-                <p class="text-sm font-black">${aiCount}</p>
-                <p class="text-[9px] text-slate-400">Fokus AI</p>
               </div>
               <div class="rounded-lg p-2 ${Number(student.screenshotAttempt || 0) > 0 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
                 <p class="text-sm font-black">${Number(student.screenshotAttempt || 0)}</p>
@@ -13541,7 +13610,7 @@ ${dokToolbarHtml()}
           ` : ''}
 
           <div class="flex gap-2 pt-2">
-            ${isLocked ? `
+            ${isLocked && ['admin', 'proktor', 'pengawas'].includes(currentUserData.role) ? `
               <button type="button" id="btn-modal-remote-unlock" onclick="performRemoteUnlock('${escapeHtml(examId)}', '${escapeHtml(student.nisn)}')" 
                 class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm">
                 <i data-lucide="unlock" class="w-4 h-4"></i> Buka Kunci Jarak Jauh
@@ -13578,6 +13647,450 @@ ${dokToolbarHtml()}
       } catch (err) {
         Swal.fire('Gagal', err.message, 'error');
       }
+    }
+
+
+    /* ========================================================
+       PROCTOR ENHANCEMENTS: PAN/ZOOM, BROADCAST, AND REPORTS
+       ======================================================== */
+    function initSeatingGridNavigation() {
+      const viewport = document.getElementById('seating-viewport');
+      const grid = document.getElementById('seating-zoomable-grid');
+      if (!viewport || !grid) return;
+
+      applySeatingTransform();
+
+      viewport.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        isPanning = true;
+        startPanX = e.clientX - seatingPanX;
+        startPanY = e.clientY - seatingPanY;
+        viewport.classList.remove('cursor-grab');
+        viewport.classList.add('cursor-grabbing');
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        seatingPanX = e.clientX - startPanX;
+        seatingPanY = e.clientY - startPanY;
+        applySeatingTransform();
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!isPanning) return;
+        isPanning = false;
+        const vp = document.getElementById('seating-viewport');
+        if (vp) {
+          vp.classList.remove('cursor-grabbing');
+          vp.classList.add('cursor-grab');
+        }
+      });
+
+      viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = 1.15;
+        if (e.deltaY < 0) {
+          seatingZoom = Math.min(3, seatingZoom * factor);
+        } else {
+          seatingZoom = Math.max(0.4, seatingZoom / factor);
+        }
+        applySeatingTransform();
+      }, { passive: false });
+
+      viewport.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isPanning = true;
+          startPanX = e.touches[0].clientX - seatingPanX;
+          startPanY = e.touches[0].clientY - seatingPanY;
+        } else if (e.touches.length === 2) {
+          isPanning = false;
+          initialTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        }
+      });
+
+      viewport.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isPanning) {
+          seatingPanX = e.touches[0].clientX - startPanX;
+          seatingPanY = e.touches[0].clientY - startPanY;
+          applySeatingTransform();
+        } else if (e.touches.length === 2 && initialTouchDist > 0) {
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          const factor = dist / initialTouchDist;
+          initialTouchDist = dist;
+          seatingZoom = Math.max(0.4, Math.min(3, seatingZoom * factor));
+          applySeatingTransform();
+        }
+      });
+
+      viewport.addEventListener('touchend', () => {
+        isPanning = false;
+        initialTouchDist = 0;
+      });
+      
+      refreshIcons();
+    }
+
+    function applySeatingTransform() {
+      const grid = document.getElementById('seating-zoomable-grid');
+      if (grid) {
+        grid.style.transform = `translate(${seatingPanX}px, ${seatingPanY}px) scale(${seatingZoom})`;
+      }
+    }
+
+    function zoomSeatingGrid(factor) {
+      seatingZoom = Math.max(0.4, Math.min(3, seatingZoom * factor));
+      applySeatingTransform();
+    }
+
+    function resetSeatingGrid() {
+      seatingZoom = 1;
+      seatingPanX = 0;
+      seatingPanY = 0;
+      applySeatingTransform();
+    }
+
+    async function sendClassBroadcast(examId) {
+      const input = document.getElementById('broadcast-message-input');
+      if (!input) return;
+      const message = input.value.trim();
+      if (!message) {
+        Swal.fire('Error', 'Pesan pengumuman tidak boleh kosong.', 'error');
+        return;
+      }
+
+      Swal.fire({
+        title: 'Kirim Pengumuman',
+        text: 'Apakah Anda yakin ingin menyebarkan pengumuman ini ke seluruh peserta ujian?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Kirim',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#4f46e5'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await serverCall('createClassBroadcast', {
+              actor: currentUserData,
+              examId: examId,
+              message: message
+            });
+            if (response.status !== 'success') throw new Error(response.message || 'Gagal mengirim broadcast.');
+            Swal.fire('Berhasil', 'Pengumuman berhasil disebarkan. Siswa akan menerimanya dalam waktu kurang dari 10 detik!', 'success');
+            input.value = '';
+          } catch (err) {
+            Swal.fire('Gagal', err.message, 'error');
+          }
+        }
+      });
+    }
+
+    function handleIncomingBroadcast(ann) {
+      if (ann.timestamp === lastSeenAnnouncementTimestamp) return;
+      
+      lastSeenAnnouncementTimestamp = ann.timestamp;
+      localStorage.setItem('cbt_last_announcement', ann.timestamp);
+      
+      playBroadcastChime();
+
+      Swal.fire({
+        icon: 'info',
+        title: '📢 PENGUMUMAN KELAS',
+        html: `
+          <div class="text-left space-y-3.5 text-slate-700 text-sm">
+            <div class="rounded-2xl bg-indigo-50/50 border border-indigo-100 p-4 relative overflow-hidden backdrop-blur-md">
+              <p class="font-extrabold text-indigo-900 text-base leading-relaxed">"${escapeHtml(ann.message)}"</p>
+              <div class="flex items-center gap-2 mt-4 text-xs font-bold text-indigo-700">
+                <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                <span>Dikirim oleh: ${escapeHtml(ann.sender)}</span>
+                <span class="text-slate-400 font-semibold">&middot;</span>
+                <span class="text-slate-400 font-semibold">${new Date(ann.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 text-center font-bold animate-pulse mt-2">Harap baca pengumuman di atas dengan teliti sebelum melanjutkan ujian.</p>
+          </div>
+        `,
+        confirmButtonText: 'Saya Mengerti & Lanjutkan Ujian',
+        confirmButtonColor: '#4f46e5',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+          popup: 'rounded-3xl border border-indigo-200 shadow-2xl backdrop-blur-md bg-white/95'
+        }
+      });
+      refreshIcons();
+    }
+
+    function playBroadcastChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Note 1 (Ding)
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        gain1.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.8);
+
+        // Note 2 (Dong)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.25); // E5
+        gain2.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain2.gain.setValueAtTime(0.2, audioCtx.currentTime + 0.25);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(audioCtx.currentTime + 0.25);
+        osc2.stop(audioCtx.currentTime + 1.0);
+      } catch (e) {
+        console.warn("Failed to play chime:", e);
+      }
+    }
+
+    function printExamReport(examId) {
+      const participants = appData.monitoring?.participants || [];
+      const exam = (appData.exams || []).find(e => e.examId === examId) || { examId, mapel: 'Ujian', durasiMenit: 90 };
+      
+      const nowStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+      
+      let rowsHtml = '';
+      participants.forEach((p, idx) => {
+        const tabCount = Number(p.tabKeluar || 0);
+        const screenCount = Number(p.screenshotAttempt || 0);
+        const answered = Number(p.answeredCount || 0);
+        const total = Number(p.totalCount || 0);
+        const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+        
+        let statusLabel = 'Belum Login';
+        if (String(p.status).toLowerCase().includes('mengerjakan')) statusLabel = 'Aktif';
+        else if (String(p.status).toLowerCase() === 'submit') statusLabel = 'Selesai (Submit)';
+        else if (tabCount >= 3) statusLabel = 'DIKUNCI (Tab Keluar)';
+        else if (String(p.status).toLowerCase().includes('kunci') || String(p.status).toLowerCase().includes('masalah')) statusLabel = 'DIKUNCI';
+        
+        rowsHtml += `
+          <tr>
+            <td style="text-align: center;">${idx + 1}</td>
+            <td><strong>${escapeHtml(p.nama)}</strong></td>
+            <td style="text-align: center;">${escapeHtml(p.nisn)}</td>
+            <td style="text-align: center;">${escapeHtml(p.kelas)}</td>
+            <td style="text-align: center;">${escapeHtml(p.ruang || '---')}</td>
+            <td style="text-align: center;">${statusLabel}</td>
+            <td style="text-align: center;">${answered}/${total} (${pct}%)</td>
+            <td style="text-align: center; color: ${tabCount >= 3 ? 'red' : 'inherit'}; font-weight: ${tabCount > 0 ? 'bold' : 'normal'};">${tabCount}</td>
+            <td style="text-align: center; font-weight: ${screenCount > 0 ? 'bold' : 'normal'};">${screenCount}</td>
+          </tr>
+        `;
+      });
+      
+      if (!participants.length) {
+        rowsHtml = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #888;">Belum ada peserta yang memulai ujian.</td></tr>';
+      }
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Berita Acara & Laporan Ujian - ${escapeHtml(examId)}</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              color: #1e293b;
+              margin: 40px;
+              line-height: 1.5;
+              font-size: 12px;
+            }
+            .header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              border-bottom: 3px double #000;
+              padding-bottom: 15px;
+              margin-bottom: 25px;
+            }
+            .logo {
+              height: 65px;
+            }
+            .kop-surat {
+              text-align: center;
+              flex-grow: 1;
+              margin: 0 20px;
+            }
+            .kop-surat h1 {
+              font-size: 16px;
+              margin: 0;
+              text-transform: uppercase;
+              font-weight: 800;
+              letter-spacing: 0.5px;
+            }
+            .kop-surat h2 {
+              font-size: 12px;
+              margin: 5px 0 0 0;
+              font-weight: 600;
+            }
+            .kop-surat p {
+              margin: 3px 0 0 0;
+              font-size: 10px;
+              color: #64748b;
+            }
+            .title {
+              text-align: center;
+              font-size: 14px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 20px;
+              text-decoration: underline;
+            }
+            .meta-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 25px;
+              background-color: #f8fafc;
+              padding: 15px;
+              border-radius: 8px;
+              border: 1px solid #e2e8f0;
+            }
+            .meta-info div p {
+              margin: 4px 0;
+            }
+            .meta-info strong {
+              color: #0f172a;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 30px;
+            }
+            th, td {
+              border: 1px solid #94a3b8;
+              padding: 8px 10px;
+              text-align: left;
+            }
+            th {
+              background-color: #f1f5f9;
+              font-weight: 800;
+              text-transform: uppercase;
+              font-size: 10px;
+              letter-spacing: 0.5px;
+            }
+            tr:nth-child(even) {
+              background-color: #f8fafc;
+            }
+            .signatures {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 50px;
+              margin-top: 40px;
+              page-break-inside: avoid;
+            }
+            .sig-box {
+              text-align: center;
+            }
+            .sig-space {
+              height: 75px;
+            }
+            .sig-name {
+              font-weight: 800;
+              text-decoration: underline;
+            }
+            @media print {
+              body { margin: 20px; }
+              .no-print { display: none; }
+              @page { size: A4; margin: 1.5cm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <img class="logo" src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" alt="Logo Sekolah" onerror="this.style.display='none'" />
+            <div class="kop-surat">
+              <h1>YAYASAN GANESA SATRIA</h1>
+              <h1>SMK GANESA SATRIA 4 KEDU TEMANGGUNG</h1>
+              <p>Jl. Raya Kedu No. 4, Temanggung, Jawa Tengah &middot; Telp: (0293) 490123 &middot; Email: smkgs4kedu@gmail.com</p>
+            </div>
+            <div style="width: 65px;"></div>
+          </div>
+          
+          <div class="title">BERITA ACARA PELAKSANAAN UJIAN DIGITAL</div>
+          
+          <div class="meta-info">
+            <div>
+              <p><strong>Mata Pelajaran:</strong> ${escapeHtml(exam.mapel)}</p>
+              <p><strong>ID Jadwal Ujian:</strong> ${escapeHtml(exam.examId)}</p>
+              <p><strong>Durasi Default:</strong> ${escapeHtml(exam.durasiMenit)} Menit</p>
+            </div>
+            <div>
+              <p><strong>Hari, Tanggal Cetak:</strong> ${nowStr}</p>
+              <p><strong>Waktu Cetak:</strong> ${timeStr}</p>
+              <p><strong>Total Peserta Terdeteksi:</strong> ${participants.length} Siswa</p>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 5%; text-align: center;">No</th>
+                <th style="width: 30%;">Nama Peserta</th>
+                <th style="width: 12%; text-align: center;">NISN</th>
+                <th style="width: 10%; text-align: center;">Kelas</th>
+                <th style="width: 8%; text-align: center;">Ruang</th>
+                <th style="width: 15%; text-align: center;">Status Akhir</th>
+                <th style="width: 15%; text-align: center;">Progres Soal</th>
+                <th style="width: 8%; text-align: center;">Tab Out</th>
+                <th style="width: 8%; text-align: center;">SS</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          
+          <div class="signatures">
+            <div class="sig-box">
+              <p>Mengetahui,</p>
+              <p>Kepala SMK Ganesa Satria 4 Kedu</p>
+              <div class="sig-space"></div>
+              <p class="sig-name">..................................................</p>
+              <p>NIP/NUPTK. ....................................</p>
+            </div>
+            <div class="sig-box">
+              <p>Temanggung, ${nowStr}</p>
+              <p>Proktor/Pengawas Ruang,</p>
+              <div class="sig-space"></div>
+              <p class="sig-name">${escapeHtml(currentUserData.nama)}</p>
+              <p>NIP/NIS. ${escapeHtml(currentUserData.user || '....................................')}</p>
+            </div>
+          </div>
+          
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 300);
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      // Log client activity
+      serverCall('logClientEvent', {
+        user: currentUserData,
+        examId: examId,
+        event: 'CETAK_BERITA_ACARA',
+        detail: 'Mencetak berita acara ujian untuk ' + examId,
+        status: 'Sukses'
+      });
     }
 
   </script>
