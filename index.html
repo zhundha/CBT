@@ -541,7 +541,7 @@
         padding-top: max(0.75rem, env(safe-area-inset-top));
         padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
       }
-      #login-section {
+      #login-section:not(.hidden) {
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
         display: flex !important;
@@ -693,7 +693,9 @@
     }
 
     /* App layers sit above blobs */
-    #app-section, #login-section, #splash-screen { position: relative; z-index: 1; }
+    #app-section, #splash-screen { position: relative; z-index: 1; }
+    #login-section { z-index: 40; }
+    #app-section.hidden, #login-section.hidden, #splash-screen.hidden { display: none !important; }
 
     /* ============================================
        SPLASH — PREMIUM macOS
@@ -2178,7 +2180,7 @@
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260522-04</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260525-05</span></div>
           </div>
         </form>
       </div>
@@ -2275,7 +2277,7 @@
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260525-03';
+    const APP_VERSION = '20260525-05';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -3384,6 +3386,26 @@ ${dokToolbarHtml()}
       return match ? match[1] : '';
     }
 
+    function parseAppVersionParts(version) {
+      return String(version || '')
+        .split(/[^\d]+/)
+        .filter(Boolean)
+        .map(part => Number(part));
+    }
+
+    function compareAppVersions(left, right) {
+      const a = parseAppVersionParts(left);
+      const b = parseAppVersionParts(right);
+      const len = Math.max(a.length, b.length);
+      for (let i = 0; i < len; i++) {
+        const av = Number(a[i] || 0);
+        const bv = Number(b[i] || 0);
+        if (av > bv) return 1;
+        if (av < bv) return -1;
+      }
+      return 0;
+    }
+
     function appVersionCheckUrls() {
       const urls = [];
       try {
@@ -3425,13 +3447,16 @@ ${dokToolbarHtml()}
       const minRequiredVersion = String(data.minRequiredVersion || data.minimumVersion || '').trim();
       const clientVersion = String(data.clientVersion || APP_VERSION).trim();
       if (!latestVersion) return null;
+      const latestIsNewer = compareAppVersions(latestVersion, APP_VERSION) > 0;
+      const clientBelowMinimum = minRequiredVersion ? compareAppVersions(APP_VERSION, minRequiredVersion) < 0 : false;
+      const forceUpdate = Boolean(data.forceUpdate || clientBelowMinimum);
       return {
         source: source || data.source || 'backend',
         clientVersion,
         latestVersion,
         minRequiredVersion,
-        updateAvailable: Boolean(data.updateAvailable || data.forceUpdate || latestVersion !== APP_VERSION),
-        forceUpdate: Boolean(data.forceUpdate)
+        updateAvailable: Boolean(forceUpdate || latestIsNewer),
+        forceUpdate
       };
     }
 
@@ -3534,7 +3559,7 @@ ${dokToolbarHtml()}
       try { localStorage.setItem(APP_VERSION_LAST_CHECK_KEY, String(Date.now())); } catch (error) {}
       const versionInfo = await fetchLatestAppVersionInfo();
       const latestVersion = versionInfo && versionInfo.latestVersion ? versionInfo.latestVersion : '';
-      if (!latestVersion || (!versionInfo.updateAvailable && latestVersion === APP_VERSION)) {
+      if (!latestVersion || (!versionInfo.updateAvailable && !versionInfo.forceUpdate)) {
         if (opts.manual) showToast('Aplikasi sudah memakai versi terbaru.', 'success');
         return;
       }
@@ -4589,9 +4614,29 @@ ${dokToolbarHtml()}
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    function setScreenVisibility(id, visible) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('hidden', !visible);
+      el.hidden = !visible;
+      if (visible) el.style.removeProperty('display');
+      else el.style.display = 'none';
+    }
+
+    function showDashboardScreen() {
+      if (loginParticles) { loginParticles.stop(); loginParticles = null; }
+      setScreenVisibility('login-section', false);
+      setScreenVisibility('app-section', true);
+      document.body.classList.add('dashboard-active');
+      document.body.classList.remove('login-active');
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+
     function showLoginScreen() {
-      document.getElementById('app-section').classList.add('hidden');
-      document.getElementById('login-section').classList.remove('hidden');
+      setScreenVisibility('app-section', false);
+      setScreenVisibility('login-section', true);
+      document.body.classList.add('login-active');
+      document.body.classList.remove('dashboard-active');
       clearLoginFeedback();
       setSelectedLoginRole(selectedLoginRole);
       bindLoginInputUx();
@@ -5183,8 +5228,7 @@ ${dokToolbarHtml()}
               if (appData.user) currentUserData = appData.user;
               addBootLog('CACHE', 'Dashboard cache restored', 'ok');
               updateBootProgress(7, 'Building dashboard...');
-              document.getElementById('login-section').classList.add('hidden');
-              document.getElementById('app-section').classList.remove('hidden');
+              showDashboardScreen();
               renderShell();
               restored = true;
               serverCall('getCbtBootstrap', currentUserData).then(resp => {
@@ -5210,8 +5254,7 @@ ${dokToolbarHtml()}
               // Step 7 — Render
               updateBootProgress(7, 'Building dashboard...');
               addBootLog('RENDER', 'Building dashboard interface...');
-              document.getElementById('login-section').classList.add('hidden');
-              document.getElementById('app-section').classList.remove('hidden');
+              showDashboardScreen();
               renderShell();
               addBootLog('RENDER', 'Dashboard ready', 'ok');
               restored = true;
@@ -5287,6 +5330,7 @@ ${dokToolbarHtml()}
         showLoginFeedback('success', 'Login berhasil', 'Menyiapkan dashboard...', null);
         currentUserData = response.data;
         persistSession();
+        setScreenVisibility('login-section', false);
         
         // Fast-loading: use bootstrap data returned directly from processesLogin
         if (response.bootstrap) {
@@ -5301,10 +5345,9 @@ ${dokToolbarHtml()}
           await loadBootstrap();
         }
 
-        if (loginParticles) { loginParticles.stop(); loginParticles = null; }
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
+        showDashboardScreen();
       } catch (error) {
+        showLoginScreen();
         const failure = classifyLoginNetworkError(error);
         setLoginServerStatus(navigator.onLine ? 'slow' : 'offline', navigator.onLine ? 'Server belum merespons' : 'Offline');
         showLoginFeedback('error', failure.title, failure.message, null);
@@ -6892,24 +6935,90 @@ ${dokToolbarHtml()}
       `;
     }
 
+    function qbankMatchText(value) {
+      return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    function qbankTeacherKey(value) {
+      return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
+    function qbankListValues(value) {
+      return String(value || '')
+        .split(',')
+        .map(item => qbankMatchText(item))
+        .filter(Boolean);
+    }
+
+    function qbankClassMatches(scheduleKelas, targetKelas) {
+      const targets = qbankListValues(targetKelas);
+      if (!targets.length) return true;
+      const values = qbankListValues(scheduleKelas);
+      if (!values.length || values.includes('semua')) return true;
+      return values.some(value => targets.some(target => value === target || value.startsWith(target + ' ') || target.startsWith(value + ' ')));
+    }
+
+    function resolveQBankExamForEntry(entry, exams, usedExamIds) {
+      const meta = entry.meta || {};
+      const mapel = qbankMatchText(entry.nama);
+      const kelas = qbankMatchText(meta.kelas);
+      const jenis = qbankMatchText(meta.jenis);
+      const guru = qbankTeacherKey(meta.guru);
+      const candidates = (exams || []).filter(exam => qbankMatchText(exam.mapel) === mapel);
+      const exact = candidates.filter(exam => {
+        if (kelas && !qbankClassMatches(exam.kelas, kelas)) return false;
+        if (jenis && qbankMatchText(exam.jenis) !== jenis) return false;
+        if (guru && qbankTeacherKey(exam.guru) !== guru) return false;
+        return true;
+      });
+      if (exact.length === 1) return exact[0];
+      if (exact.length > 1) {
+        const unusedExact = exact.filter(exam => !usedExamIds.has(String(exam.examId || '')));
+        return unusedExact[0] || exact[0];
+      }
+      if (!kelas && !jenis && !guru && candidates.length === 1) return candidates[0];
+      const classOnly = candidates.filter(exam => kelas && qbankClassMatches(exam.kelas, kelas));
+      if (classOnly.length === 1 && !jenis && !guru) return classOnly[0];
+      return null;
+    }
+
+    function qbankOptionKey(item) {
+      return [item.examId || '', item.nama || '', item.kelas || '', item.jenis || '', item.guru || ''].map(qbankMatchText).join('|');
+    }
+
     function getQBankMapelOptions(exams) {
       const mapelEntries = getPsatMapelEntries();
-      const examMap = {};
-      (exams || []).forEach(e => { examMap[(e.mapel||'').toLowerCase()] = e; });
       const byGuru = {};
-      mapelEntries.forEach(row => {
-        const guru = (row.meta && row.meta.guru) || 'Belum ditentukan';
+      const usedExamIds = new Set();
+      const optionKeys = new Set();
+      const pushOption = (item) => {
+        const guru = item.guru || 'Belum ditentukan';
+        const key = qbankOptionKey(item);
+        if (optionKeys.has(key)) return;
+        optionKeys.add(key);
+        if (item.examId) usedExamIds.add(String(item.examId));
         if (!byGuru[guru]) byGuru[guru] = [];
-        const exam = examMap[(row.nama||'').toLowerCase()];
-        byGuru[guru].push({ nama: row.nama, kelas: row.meta.kelas || '', jenis: row.meta.jenis || '', guru, examId: exam ? exam.examId : '' });
-      });
-      if (!mapelEntries.length) {
-        (exams || []).forEach(e => {
-          const guru = e.guru || 'Belum ditentukan';
-          if (!byGuru[guru]) byGuru[guru] = [];
-          byGuru[guru].push({ nama: e.mapel, kelas: e.kelas || '', jenis: e.jenis || '', guru, examId: e.examId });
+        byGuru[guru].push(item);
+      };
+      mapelEntries.forEach(row => {
+        const meta = row.meta || {};
+        const exam = resolveQBankExamForEntry(row, exams, usedExamIds);
+        pushOption({
+          nama: row.nama,
+          kelas: meta.kelas || (exam ? exam.kelas : ''),
+          jenis: meta.jenis || (exam ? exam.jenis : ''),
+          guru: meta.guru || (exam ? exam.guru : '') || 'Belum ditentukan',
+          examId: exam ? exam.examId : '',
+          source: exam ? 'linked' : 'master'
         });
-      }
+      });
+      (exams || []).forEach(e => {
+        if (!e.examId || usedExamIds.has(String(e.examId))) return;
+        pushOption({ nama: e.mapel, kelas: e.kelas || '', jenis: e.jenis || '', guru: e.guru || 'Belum ditentukan', examId: e.examId, source: 'schedule' });
+      });
+      Object.keys(byGuru).forEach(guru => {
+        byGuru[guru].sort((a, b) => String(a.kelas || '').localeCompare(String(b.kelas || '')) || String(a.nama || '').localeCompare(String(b.nama || '')) || String(a.jenis || '').localeCompare(String(b.jenis || '')));
+      });
       return byGuru;
     }
 
@@ -6922,7 +7031,9 @@ ${dokToolbarHtml()}
         const items = byGuru[guru];
         const opts = items.map(m => {
           const label = [m.nama, m.kelas, m.jenis].filter(Boolean).join(' - ');
-          return `<option value="${escapeHtml(m.examId)}" data-mapel="${escapeHtml(m.nama)}" data-guru="${escapeHtml(m.guru)}" data-kelas="${escapeHtml(m.kelas)}">${escapeHtml(label)}</option>`;
+          const disabled = m.examId ? '' : 'disabled';
+          const statusLabel = m.examId ? '' : ' (belum ada jadwal)';
+          return `<option value="${escapeHtml(m.examId)}" data-mapel="${escapeHtml(m.nama)}" data-guru="${escapeHtml(m.guru)}" data-kelas="${escapeHtml(m.kelas)}" data-jenis="${escapeHtml(m.jenis || '')}" ${disabled}>${escapeHtml(label + statusLabel)}</option>`;
         }).join('');
         return `<optgroup label="Guru: ${escapeHtml(guru)}">${opts}</optgroup>`;
       }).join('');
@@ -7321,7 +7432,10 @@ ${dokToolbarHtml()}
                 <div class="grid sm:grid-cols-3 gap-3">
                   <select name="examId" required class="rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
                     <option value="" disabled selected>Pilih ujian</option>
-                    ${exams.map(exam => `<option value="${escapeHtml(exam.examId)}">${escapeHtml(exam.mapel)} (${escapeHtml(exam.examId)})</option>`).join('')}
+                    ${exams.map(exam => {
+                      const label = [exam.mapel, exam.kelas, exam.jenis].filter(Boolean).join(' - ');
+                      return `<option value="${escapeHtml(exam.examId)}">${escapeHtml(label)} (${escapeHtml(exam.examId)})</option>`;
+                    }).join('')}
                   </select>
                   <input name="nomor" required type="number" min="1" class="rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Nomor Soal">
                   <div class="grid grid-cols-2 gap-3">
@@ -8972,6 +9086,8 @@ ${dokToolbarHtml()}
           }
           refreshIcons();
         }
+        const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+        if (questionExamSelect && qbankSelect.value) questionExamSelect.value = qbankSelect.value;
       });
       const accountForm = document.getElementById('account-form');
       if (accountForm) accountForm.addEventListener('submit', saveAccount);
@@ -9416,11 +9532,17 @@ ${dokToolbarHtml()}
       try {
         const form = new FormData(formEl);
         const question = Object.fromEntries(form.entries());
+        const cachedExamId = question.examId || '';
         const response = await serverCall('saveQuestion', { actor: currentUserData, question });
         if (response.status !== 'success') throw new Error(response.message || 'Soal gagal disimpan.');
         if (formEl && typeof formEl.reset === 'function') formEl.reset();
         Swal.fire('Berhasil', 'Soal tersimpan.', 'success');
         await loadBootstrap();
+        const newSelect = document.getElementById('qbank-exam-select');
+        if (newSelect && cachedExamId) newSelect.value = cachedExamId;
+        const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+        if (questionExamSelect && cachedExamId) questionExamSelect.value = cachedExamId;
+        try { await loadQBankQuestionsFor(cachedExamId); } catch (e) {}
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
       } finally {
@@ -9438,6 +9560,11 @@ ${dokToolbarHtml()}
         const response = await serverCall('bulkImportQuestions', { actor: currentUserData, examId: payload.examId, text: payload.text });
         if (response.status !== 'success') throw new Error(response.message || 'Impor soal gagal.');
         await loadBootstrap();
+        const newSelect = document.getElementById('qbank-exam-select');
+        if (newSelect && payload.examId) newSelect.value = payload.examId;
+        const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+        if (questionExamSelect && payload.examId) questionExamSelect.value = payload.examId;
+        try { await loadQBankQuestionsFor(payload.examId); } catch (e) {}
         Swal.fire('Berhasil', `${response.imported || 0} soal berhasil diimpor.`, 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -10582,9 +10709,10 @@ ${dokToolbarHtml()}
         if (!result.isConfirmed) return;
       }
       const tsv = questionsToTsv(konvParsedQuestions);
+      const cachedExamId = examSelect.value;
       try {
         const response = await serverCall('bulkImportQuestions', {
-          actor: currentUserData, examId: examSelect.value, text: tsv
+          actor: currentUserData, examId: cachedExamId, text: tsv
         });
         if (response.status !== 'success') throw new Error(response.message || 'Impor gagal');
         await Swal.fire({
@@ -10594,7 +10722,10 @@ ${dokToolbarHtml()}
         });
         await loadBootstrap();
         const newSelect = document.getElementById('qbank-exam-select');
-        if (newSelect && examSelect.value) newSelect.value = examSelect.value;
+        if (newSelect && cachedExamId) newSelect.value = cachedExamId;
+        const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+        if (questionExamSelect && cachedExamId) questionExamSelect.value = cachedExamId;
+        try { await loadQBankQuestionsFor(cachedExamId); } catch (e) {}
       } catch (err) {
         Swal.fire('Impor Gagal', err.message || String(err), 'error');
       }
@@ -11749,6 +11880,8 @@ ${dokToolbarHtml()}
         if (newSelect && cachedExamId) {
           newSelect.value = cachedExamId;
         }
+        const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+        if (questionExamSelect && cachedExamId) questionExamSelect.value = cachedExamId;
 
         // Auto-refresh browse tab using the cached examId (avoids reading possibly-empty new select)
         try { await loadQBankQuestionsFor(cachedExamId); } catch (e) {}
@@ -11987,6 +12120,11 @@ ${dokToolbarHtml()}
     async function refreshQBankAfterDelete(examId) {
       if (!examId) return;
       updateQbankDeleteProgress('Menghapus berhasil. Memuat ulang daftar soal...');
+      await loadBootstrap();
+      const newSelect = document.getElementById('qbank-exam-select');
+      if (newSelect) newSelect.value = examId;
+      const questionExamSelect = document.querySelector('#question-form select[name="examId"]');
+      if (questionExamSelect) questionExamSelect.value = examId;
       await loadQBankQuestionsFor(examId);
     }
 
@@ -14774,14 +14912,7 @@ ${dokToolbarHtml()}
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         setSelectedLoginRole(lastRole);
-        document.getElementById('app-section').classList.add('hidden');
-        document.getElementById('login-section').classList.remove('hidden');
-        clearLoginFeedback();
-        bindLoginInputUx();
-        bindPasswordToggle();
-        checkLoginServerStatus();
-        setTimeout(() => focusLoginField('username', false), 120);
-        setTimeout(() => { loginParticles = initParticles('login-canvas'); }, 50);
+        showLoginScreen();
       });
     }
 
