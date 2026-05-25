@@ -2180,7 +2180,7 @@
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260525-05</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260525-06</span></div>
           </div>
         </form>
       </div>
@@ -2277,7 +2277,7 @@
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260525-05';
+    const APP_VERSION = '20260525-06';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -9259,18 +9259,6 @@ ${dokToolbarHtml()}
       const btn = document.getElementById('btn-monitor-sound');
       if (btn) { btn.innerHTML = `<i data-lucide="${monitorSoundEnabled ? 'volume-2' : 'volume-x'}" class="w-4 h-4 ${monitorSoundEnabled ? 'text-blue-700' : 'text-slate-400'}"></i>`; refreshIcons(); }
       showToast(monitorSoundEnabled ? 'Notifikasi suara diaktifkan' : 'Notifikasi suara dinonaktifkan', 'info');
-    }
-
-    function playAlertBeep() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880; osc.type = 'sine';
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
-      } catch(e) {}
     }
 
     // Keyboard shortcuts for monitoring
