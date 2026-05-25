@@ -29,6 +29,18 @@
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
+    .h-11 { height: 2.75rem; }
+    .w-11 { width: 2.75rem; }
+    .min-h-\[40px\] { min-height: 40px; }
+    .min-h-\[42px\] { min-height: 42px; }
+    .max-w-xl { max-width: 36rem; }
+    .normal-case { text-transform: none; }
+    .tracking-normal { letter-spacing: 0; }
+    .bg-white\/70 { background-color: rgba(255, 255, 255, 0.7); }
+    .hover\:bg-white\/70:hover { background-color: rgba(255, 255, 255, 0.7); }
+    @media (min-width: 1280px) {
+      .xl\:grid-cols-\[1fr_0\.8fr\] { grid-template-columns: 1fr 0.8fr; }
+    }
     /* Exam lockdown — applied to <body> only when role=peserta AND exam in progress.
        Blocks copy/paste/text selection + context menu (anti-cheat). */
     body.exam-lockdown {
@@ -2180,7 +2192,7 @@
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260525-06</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260525-07</span></div>
           </div>
         </form>
       </div>
@@ -2277,7 +2289,7 @@
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260525-06';
+    const APP_VERSION = '20260525-07';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -2300,6 +2312,7 @@
     let currentUserData = null;
     let appData = null;
     let masterRowsCache = [];
+    let masterWizardStep = 'ringkasan';
     let qbankQuestionsCache = [];
     let essayQueueCache = [];
 
@@ -2465,6 +2478,153 @@
     function getUploadMapelOptions() {
       const fromMaster = uniqueSorted(getPsatMapelEntries().map(row => row.nama));
       return fromMaster.length ? fromMaster : mapelOptions;
+    }
+
+    const MASTER_TYPE_META = {
+      jenis: { label: 'Jenis', icon: 'badge-check', tone: 'blue' },
+      kelas: { label: 'Kelas', icon: 'graduation-cap', tone: 'emerald' },
+      ruang: { label: 'Ruang', icon: 'door-open', tone: 'amber' },
+      mapel: { label: 'Mapel', icon: 'book-open-check', tone: 'purple' },
+      guru: { label: 'Guru', icon: 'user-round-check', tone: 'rose' }
+    };
+
+    function getMasterRowsForView() {
+      if (Array.isArray(masterRowsCache) && masterRowsCache.length) return masterRowsCache;
+      const catalog = getMasterCatalog();
+      return Object.keys(catalog).flatMap(type => (catalog[type] || []).map(row => ({ ...row, type: row.type || type })));
+    }
+
+    function masterTypeMeta(type) {
+      return MASTER_TYPE_META[String(type || '').toLowerCase()] || { label: textValue(type || 'Lainnya'), icon: 'database', tone: 'slate' };
+    }
+
+    function masterTypeLabel(type) {
+      return masterTypeMeta(type).label;
+    }
+
+    function masterTypeBadge(type) {
+      const meta = masterTypeMeta(type);
+      const tone = {
+        blue: 'bg-blue-50 text-blue-700 border-blue-100',
+        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        amber: 'bg-amber-50 text-amber-700 border-amber-100',
+        purple: 'bg-purple-50 text-purple-700 border-purple-100',
+        rose: 'bg-rose-50 text-rose-700 border-rose-100',
+        slate: 'bg-slate-50 text-slate-700 border-slate-200'
+      }[meta.tone] || 'bg-slate-50 text-slate-700 border-slate-200';
+      return `<span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${tone}"><i data-lucide="${escapeHtml(meta.icon)}" class="h-3.5 w-3.5"></i>${escapeHtml(meta.label)}</span>`;
+    }
+
+    function getMasterOptionValues(type, fallbackValues = []) {
+      const fromMaster = activeMasterRows(type).map(row => {
+        if (String(type).toLowerCase() === 'guru') return masterDisplayValue(row);
+        return row.kode || row.nama;
+      });
+      return uniqueSorted([...fromMaster, ...fallbackValues]);
+    }
+
+    function renderMasterOptions(values, selectedValue = '') {
+      const selected = String(selectedValue || '');
+      return uniqueSorted(values).map(value => `<option value="${escapeHtml(value)}" ${String(value) === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('');
+    }
+
+    function masterSlug(value) {
+      return String(value || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 90);
+    }
+
+    function generateMasterCode(type, item = {}) {
+      const meta = item.meta || parseMasterDetail(item.detail);
+      const parts = [type];
+      if (String(type).toLowerCase() === 'mapel') parts.push(meta.jenis, meta.kelas);
+      parts.push(item.nama || item.mapel || item.kode);
+      return masterSlug(parts.filter(Boolean).join('-'));
+    }
+
+    function buildMasterSummary(rows) {
+      const summary = {};
+      Object.keys(MASTER_TYPE_META).forEach(type => {
+        summary[type] = { total: 0, aktif: 0, nonaktif: 0 };
+      });
+      (rows || []).forEach(row => {
+        const type = String(row.type || '').toLowerCase();
+        if (!summary[type]) summary[type] = { total: 0, aktif: 0, nonaktif: 0 };
+        summary[type].total++;
+        if (String(row.status || 'aktif').toLowerCase() === 'nonaktif') summary[type].nonaktif++;
+        else summary[type].aktif++;
+      });
+      return summary;
+    }
+
+    function renderMasterStatCard(type, summary) {
+      const meta = masterTypeMeta(type);
+      const item = summary[type] || { total: 0, aktif: 0, nonaktif: 0 };
+      const tone = {
+        blue: 'text-blue-700 bg-blue-50 border-blue-100',
+        emerald: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+        amber: 'text-amber-700 bg-amber-50 border-amber-100',
+        purple: 'text-purple-700 bg-purple-50 border-purple-100',
+        rose: 'text-rose-700 bg-rose-50 border-rose-100'
+      }[meta.tone] || 'text-slate-700 bg-slate-50 border-slate-100';
+      return `
+        <article class="rounded-xl border border-slate-200 bg-white p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">${escapeHtml(meta.label)}</p>
+              <p class="mt-1 text-3xl font-black text-slate-900">${Number(item.aktif || 0)}</p>
+            </div>
+            <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl border ${tone}">
+              <i data-lucide="${escapeHtml(meta.icon)}" class="h-5 w-5"></i>
+            </span>
+          </div>
+          <p class="mt-2 text-xs font-semibold text-slate-500">${Number(item.total || 0)} total${item.nonaktif ? ` &middot; ${Number(item.nonaktif)} nonaktif` : ''}</p>
+        </article>
+      `;
+    }
+
+    function masterDetailChips(row) {
+      const meta = parseMasterDetail(row && row.detail);
+      const raw = String(row && row.detail || '').trim();
+      const chips = [];
+      if (meta.jenis) chips.push(['Jenis', meta.jenis, 'blue']);
+      if (meta.kelas) chips.push(['Kelas', meta.kelas, 'emerald']);
+      if (meta.guru) chips.push(['Guru', meta.guru, 'rose']);
+      if (meta.mapel) chips.push(['Mapel', meta.mapel, 'purple']);
+      if (!chips.length && raw) {
+        if (/^\s*[\[{]/.test(raw)) chips.push(['Detail', 'Metadata perlu dicek', 'amber']);
+        else chips.push(['Detail', raw, 'slate']);
+      }
+      if (!chips.length) return '<span class="text-xs font-semibold text-slate-400">Tanpa detail</span>';
+      const colors = {
+        blue: 'bg-blue-50 text-blue-700 border-blue-100',
+        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        rose: 'bg-rose-50 text-rose-700 border-rose-100',
+        purple: 'bg-purple-50 text-purple-700 border-purple-100',
+        amber: 'bg-amber-50 text-amber-700 border-amber-100',
+        slate: 'bg-slate-50 text-slate-600 border-slate-200'
+      };
+      return `<div class="flex max-w-xl flex-wrap gap-1.5">${chips.map(([label, value, tone]) => `
+        <span title="${escapeHtml(value)}" class="inline-flex max-w-full items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ${colors[tone] || colors.slate}">
+          <span class="text-[10px] uppercase opacity-70">${escapeHtml(label)}</span>
+          <span class="truncate">${escapeHtml(value)}</span>
+        </span>
+      `).join('')}</div>`;
+    }
+
+    function masterRowMatchesFilter(row, filter) {
+      const type = String(row.type || '').toLowerCase();
+      const status = String(row.status || 'aktif').toLowerCase();
+      const query = String(filter.query || '').toLowerCase().trim();
+      if (filter.type && filter.type !== 'all' && type !== filter.type) return false;
+      if (filter.status === 'aktif' && status === 'nonaktif') return false;
+      if (filter.status === 'nonaktif' && status !== 'nonaktif') return false;
+      if (!query) return true;
+      const meta = parseMasterDetail(row.detail);
+      const haystack = [row.type, row.kode, row.nama, row.detail, meta.jenis, meta.kelas, meta.guru, meta.mapel].join(' ').toLowerCase();
+      return haystack.includes(query);
     }
 
     const BUILT_IN_ASSESSMENTS = {
@@ -4544,7 +4704,8 @@ ${dokToolbarHtml()}
     function statusBadge(status) {
       const value = String(status || '').toLowerCase();
       let color = 'bg-slate-100 text-slate-700 border-slate-200';
-      if (value.includes('aktif') || value.includes('mengerjakan')) color = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      if (value.includes('nonaktif') || value.includes('inactive')) color = 'bg-slate-100 text-slate-600 border-slate-200';
+      else if (value.includes('aktif') || value.includes('mengerjakan')) color = 'bg-emerald-50 text-emerald-700 border-emerald-200';
       if (value.includes('submit')) color = 'bg-blue-50 text-blue-700 border-blue-200';
       if (value.includes('belum') || value.includes('draft')) color = 'bg-amber-50 text-amber-700 border-amber-200';
       if (value.includes('masalah') || value.includes('tutup') || value.includes('kunci') || value.includes('lock')) color = 'bg-rose-50 text-rose-700 border-rose-200';
@@ -7653,34 +7814,248 @@ ${dokToolbarHtml()}
     }
 
     function renderMasterDataManagement() {
+      const rows = getMasterRowsForView();
       return `
         <section class="surface-card p-5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-2">
-              <i data-lucide="database" class="w-5 h-5 text-blue-700"></i>
-              <h3 class="font-bold text-slate-900">Master Data</h3>
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                <i data-lucide="database" class="h-5 w-5"></i>
+              </span>
+              <div>
+                <h3 class="text-lg font-black text-slate-900">Master Data PSAT</h3>
+                <p class="mt-0.5 text-sm font-semibold text-slate-500">Kelola struktur ujian tanpa menulis JSON manual.</p>
+              </div>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button id="btn-seed-psat-master" class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800" type="button"><i data-lucide="database" class="w-4 h-4"></i> Isi PSAT</button>
-              <button id="btn-load-master" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50" type="button"><i data-lucide="list" class="w-4 h-4"></i> Muat Master</button>
+              <button id="btn-seed-psat-master" class="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800" type="button"><i data-lucide="database" class="w-4 h-4"></i> Isi PSAT</button>
+              <button id="btn-load-master" class="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" type="button"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Muat Master</button>
             </div>
           </div>
-          <form id="master-form" class="grid lg:grid-cols-6 gap-3">
-            <select name="type" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
-              <option value="jenis">Jenis</option><option value="kelas">Kelas</option><option value="ruang">Ruang</option><option value="mapel">Mapel</option><option value="guru">Guru</option>
-            </select>
-            <input name="kode" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Kode">
-            <input name="nama" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm lg:col-span-2" placeholder="Nama">
-            <input name="detail" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Detail">
-            <select name="status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+
+          <div id="master-summary-grid" class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            ${renderMasterSummaryGrid(rows)}
+          </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 text-xs font-black text-slate-500 lg:grid-cols-5">
+            ${renderMasterStepButton('ringkasan', 'Ringkasan', 'layout-dashboard')}
+            ${renderMasterStepButton('struktur', 'Struktur', 'layers-3')}
+            ${renderMasterStepButton('mapel', 'Relasi Mapel', 'book-open-check')}
+            ${renderMasterStepButton('guru', 'Guru', 'user-round-check')}
+            ${renderMasterStepButton('review', 'Review Data', 'list-checks')}
+          </div>
+
+          <div id="master-wizard-panel" class="mt-5">
+            ${renderMasterWizardStep()}
+          </div>
+
+          <details class="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+            <summary class="cursor-pointer text-sm font-black text-slate-700">Mode lanjutan</summary>
+            <p class="mt-2 text-xs font-semibold text-slate-500">Gunakan hanya untuk recovery atau kebutuhan teknis. Alur utama tetap melalui wizard di atas.</p>
+            <form id="master-form" class="mt-4 grid gap-3 lg:grid-cols-6">
+              <select name="type" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="jenis">Jenis</option><option value="kelas">Kelas</option><option value="ruang">Ruang</option><option value="mapel">Mapel</option><option value="guru">Guru</option>
+              </select>
+              <input name="kode" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Kode otomatis jika kosong">
+              <input name="nama" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm lg:col-span-2" placeholder="Nama">
+              <input name="detail" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Detail teknis">
+              <select name="status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option>
+              </select>
+              <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 font-bold text-white hover:bg-slate-900 lg:col-span-6">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan Mode Lanjutan
+              </button>
+            </form>
+          </details>
+
+          <div id="master-table" class="mt-5">${renderMasterTableHtml(rows)}</div>
+          <div id="master-datalists">${renderMasterDatalists()}</div>
+        </section>
+      `;
+    }
+
+    function renderMasterSummaryGrid(rows) {
+      const summary = buildMasterSummary(rows || []);
+      return Object.keys(MASTER_TYPE_META).map(type => renderMasterStatCard(type, summary)).join('');
+    }
+
+    function renderMasterStepButton(step, label, icon) {
+      const active = masterWizardStep === step;
+      return `
+        <button type="button" data-master-step="${escapeHtml(step)}" class="master-step-btn inline-flex min-h-[40px] items-center justify-center gap-2 rounded-lg px-3 py-2 ${active ? 'bg-white text-blue-700 shadow-sm' : 'hover:bg-white/70 hover:text-slate-800'}">
+          <i data-lucide="${escapeHtml(icon)}" class="h-4 w-4"></i><span>${escapeHtml(label)}</span>
+        </button>
+      `;
+    }
+
+    function renderMasterWizardStep() {
+      const rows = getMasterRowsForView();
+      switch (masterWizardStep) {
+        case 'struktur': return renderMasterStructureStep();
+        case 'mapel': return renderMasterMapelStep();
+        case 'guru': return renderMasterGuruStep();
+        case 'review': return renderMasterReviewStep(rows);
+        case 'ringkasan':
+        default: return renderMasterSummaryStep(rows);
+      }
+    }
+
+    function renderMasterSummaryStep(rows) {
+      const summary = buildMasterSummary(rows || []);
+      const totalActive = Object.keys(summary).reduce((sum, type) => sum + Number(summary[type].aktif || 0), 0);
+      return `
+        <div class="grid gap-4 xl:grid-cols-[1fr_0.8fr]">
+          <div class="rounded-xl border border-blue-100 bg-blue-50 p-5">
+            <div class="flex items-start gap-3">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-blue-700 shadow-sm"><i data-lucide="sparkles" class="h-5 w-5"></i></span>
+              <div>
+                <p class="text-xs font-black uppercase tracking-wide text-blue-700">Wizard PSAT</p>
+                <h4 class="mt-1 text-xl font-black text-slate-900">Siapkan data ujian dari struktur sampai relasi mapel.</h4>
+                <p class="mt-2 text-sm font-semibold text-slate-600">Data aktif saat ini: <b>${Number(totalActive)}</b>. Gunakan relasi mapel agar Jadwal Ujian dan Bank Soal membaca kelas/guru dengan tepat.</p>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button type="button" data-master-step="struktur" class="master-step-btn inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-blue-700 shadow-sm hover:bg-blue-50"><i data-lucide="layers-3" class="h-4 w-4"></i> Atur Struktur</button>
+              <button type="button" data-master-step="mapel" class="master-step-btn inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800"><i data-lucide="book-open-check" class="h-4 w-4"></i> Tambah Relasi Mapel</button>
+            </div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-5">
+            <div class="flex items-center gap-2">
+              <i data-lucide="check-circle-2" class="h-5 w-5 text-emerald-600"></i>
+              <h4 class="font-black text-slate-900">Checklist data</h4>
+            </div>
+            <div class="mt-4 space-y-2 text-sm font-bold">
+              ${Object.keys(MASTER_TYPE_META).map(type => {
+                const ok = Number(summary[type]?.aktif || 0) > 0;
+                return `<div class="flex items-center justify-between gap-3 rounded-xl border ${ok ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-3 py-2"><span>${escapeHtml(masterTypeLabel(type))}</span><span>${ok ? 'Siap' : 'Perlu diisi'}</span></div>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMasterStructureStep() {
+      return `
+        <div class="grid gap-4 xl:grid-cols-3">
+          ${renderMasterSimpleForm('jenis', 'Jenis Ujian', 'Contoh: PSAT', 'Penilaian Sumatif Akhir Tahun', 'badge-check')}
+          ${renderMasterSimpleForm('kelas', 'Kelas', 'Contoh: X', 'Jenjang atau rombel', 'graduation-cap')}
+          ${renderMasterSimpleForm('ruang', 'Ruang', 'Contoh: Ruang 1', 'Lokasi/ruang ujian', 'door-open')}
+        </div>
+      `;
+    }
+
+    function renderMasterSimpleForm(type, title, namePlaceholder, detailPlaceholder, icon) {
+      return `
+        <form class="master-simple-form rounded-xl border border-slate-200 bg-white p-4" data-type="${escapeHtml(type)}">
+          <div class="mb-3 flex items-center gap-2">
+            <i data-lucide="${escapeHtml(icon)}" class="h-5 w-5 text-blue-700"></i>
+            <h4 class="font-black text-slate-900">${escapeHtml(title)}</h4>
+          </div>
+          <div class="space-y-3">
+            <input name="nama" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="${escapeHtml(namePlaceholder)}">
+            <input name="kode" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Kode otomatis jika kosong">
+            <input name="detail" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="${escapeHtml(detailPlaceholder)}">
+            <select name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
               <option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option>
             </select>
-            <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white hover:bg-blue-800 lg:col-span-6">
-              <i data-lucide="save" class="w-4 h-4"></i> Simpan Master Data
-            </button>
-          </form>
-          <div id="master-table" class="mt-5"></div>
-        </section>
+            <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800"><i data-lucide="save" class="h-4 w-4"></i>Simpan ${escapeHtml(title)}</button>
+          </div>
+        </form>
+      `;
+    }
+
+    function renderMasterMapelStep() {
+      const jenisOptions = getMasterOptionValues('jenis', ['PSAT', 'Ujian Praktik']);
+      const kelasOptions = getMasterOptionValues('kelas', ['X', 'XI', 'XII']);
+      const guruOptions = getMasterOptionValues('guru', getScheduleGuruOptions());
+      return `
+        <form id="master-mapel-form" class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-wide text-blue-700">Relasi Mapel</p>
+              <h4 class="mt-1 text-lg font-black text-slate-900">Hubungkan jenis, kelas, mapel, dan guru.</h4>
+              <p class="mt-1 text-sm font-semibold text-slate-500">Relasi ini dipakai oleh Jadwal Ujian dan Bank Soal.</p>
+            </div>
+            <span class="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">Tanpa JSON manual</span>
+          </div>
+          <div class="mt-4 grid gap-3 lg:grid-cols-2">
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Jenis
+              <select name="jenis" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800">
+                ${renderMasterOptions(jenisOptions, 'PSAT')}
+              </select>
+            </label>
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Kelas
+              <select name="kelas" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800">
+                ${renderMasterOptions(kelasOptions, 'X')}
+              </select>
+            </label>
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Mapel
+              <input name="mapel" list="master-mapel-datalist" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800" placeholder="Contoh: PKn">
+            </label>
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Guru
+              <input name="guru" list="master-guru-datalist" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800" placeholder="Nama guru pengampu">
+            </label>
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Kode
+              <input name="kode" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800" placeholder="Otomatis: MAPEL-PSAT-X-PKN">
+            </label>
+            <label class="space-y-1 text-xs font-black uppercase tracking-wide text-slate-500">Status
+              <select name="status" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-800">
+                <option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option>
+              </select>
+            </label>
+          </div>
+          <button class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-black text-white hover:bg-blue-800"><i data-lucide="save" class="h-4 w-4"></i>Simpan Relasi Mapel</button>
+        </form>
+      `;
+    }
+
+    function renderMasterGuruStep() {
+      return `
+        <form id="master-guru-form" class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex items-start gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700"><i data-lucide="user-round-check" class="h-5 w-5"></i></span>
+            <div>
+              <p class="text-xs font-black uppercase tracking-wide text-rose-700">Data Guru</p>
+              <h4 class="mt-1 text-lg font-black text-slate-900">Tambah atau perbarui guru pengampu.</h4>
+              <p class="mt-1 text-sm font-semibold text-slate-500">Mapel dan kelas boleh dikosongkan; relasi utama tetap dari form Relasi Mapel.</p>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-3 lg:grid-cols-2">
+            <input name="nama" required class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Nama guru">
+            <input name="kode" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Kode otomatis jika kosong">
+            <input name="kelas" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Kelas, contoh: X, XI">
+            <select name="status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold">
+              <option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option>
+            </select>
+            <textarea name="mapel" rows="3" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold lg:col-span-2" placeholder="Mapel yang diampu, pisahkan dengan titik koma jika banyak"></textarea>
+          </div>
+          <button class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-black text-white hover:bg-rose-700"><i data-lucide="save" class="h-4 w-4"></i>Simpan Guru</button>
+        </form>
+      `;
+    }
+
+    function renderMasterReviewStep(rows) {
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-wide text-slate-400">Review</p>
+              <h4 class="mt-1 text-lg font-black text-slate-900">Cek data sebelum dipakai di jadwal dan bank soal.</h4>
+            </div>
+            <button type="button" id="btn-load-master-review" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><i data-lucide="refresh-cw" class="h-4 w-4"></i>Muat ulang</button>
+          </div>
+          <div class="mt-4 text-sm font-semibold text-slate-500">Gunakan tabel di bawah untuk mencari, mengedit, atau menonaktifkan data. Detail ditampilkan sebagai chip agar mudah dibaca.</div>
+        </div>
+      `;
+    }
+
+    function renderMasterDatalists() {
+      const guruOptions = getMasterOptionValues('guru', getScheduleGuruOptions());
+      const subjectOptions = getUploadMapelOptions();
+      return `
+        <datalist id="master-guru-datalist">${renderMasterOptions(guruOptions)}</datalist>
+        <datalist id="master-mapel-datalist">${renderMasterOptions(subjectOptions)}</datalist>
       `;
     }
 
@@ -9101,8 +9476,7 @@ ${dokToolbarHtml()}
       if (seedStudents) seedStudents.addEventListener('click', seedPsatStudents);
       const seedStaff = document.getElementById('btn-seed-psat-staff');
       if (seedStaff) seedStaff.addEventListener('click', seedPsatStaffAccounts);
-      const masterForm = document.getElementById('master-form');
-      if (masterForm) masterForm.addEventListener('submit', saveMasterData);
+      bindMasterDataEvents();
       const xlsxAkunInput = document.getElementById('xlsx-akun-input');
       const xlsxAkunBtn = document.getElementById('btn-xlsx-akun-import');
       const xlsxAkunLabel = document.getElementById('xlsx-file-label');
@@ -9154,10 +9528,6 @@ ${dokToolbarHtml()}
           if (providerSel) providerSel.addEventListener('change', handleProviderChange);
         } catch (e) {}
       }
-      const loadMaster = document.getElementById('btn-load-master');
-      if (loadMaster) loadMaster.addEventListener('click', loadMasterData);
-      const seedMaster = document.getElementById('btn-seed-psat-master');
-      if (seedMaster) seedMaster.addEventListener('click', seedPsatMasterData);
       const loadGradebook = document.getElementById('btn-load-gradebook');
       if (loadGradebook) loadGradebook.addEventListener('click', loadGradebookData);
       const loadEssays = document.getElementById('btn-load-essays');
@@ -12481,18 +12851,71 @@ ${dokToolbarHtml()}
 
     async function saveMasterData(event) {
       event.preventDefault();
-      const button = event.submitter;
-      const formEl = event.currentTarget; // cache before await
+      const formEl = event.currentTarget;
+      const item = Object.fromEntries(new FormData(formEl).entries());
+      item.kode = item.kode || generateMasterCode(item.type, item);
+      await persistMasterItem(item, event.submitter, { formEl, message: 'Master data tersimpan.' });
+    }
+
+    async function saveMasterSimpleData(event) {
+      event.preventDefault();
+      const formEl = event.currentTarget;
+      const type = formEl.dataset.type || '';
+      const item = Object.fromEntries(new FormData(formEl).entries());
+      item.type = type;
+      item.kode = item.kode || generateMasterCode(type, item);
+      await persistMasterItem(item, event.submitter, { formEl, message: `${masterTypeLabel(type)} tersimpan.` });
+    }
+
+    async function saveMasterMapelData(event) {
+      event.preventDefault();
+      const formEl = event.currentTarget;
+      const data = Object.fromEntries(new FormData(formEl).entries());
+      const meta = {
+        jenis: String(data.jenis || '').trim(),
+        kelas: String(data.kelas || '').trim(),
+        guru: String(data.guru || '').trim()
+      };
+      const item = {
+        type: 'mapel',
+        kode: data.kode || generateMasterCode('mapel', { nama: data.mapel, meta }),
+        nama: String(data.mapel || '').trim(),
+        detail: meta,
+        status: data.status || 'aktif'
+      };
+      await persistMasterItem(item, event.submitter, { formEl, message: 'Relasi mapel tersimpan.' });
+    }
+
+    async function saveMasterGuruData(event) {
+      event.preventDefault();
+      const formEl = event.currentTarget;
+      const data = Object.fromEntries(new FormData(formEl).entries());
+      const meta = {
+        jenis: 'PSAT',
+        kelas: String(data.kelas || '').trim(),
+        mapel: String(data.mapel || '').trim()
+      };
+      const item = {
+        type: 'guru',
+        kode: data.kode || generateMasterCode('guru', { nama: data.nama }),
+        nama: String(data.nama || '').trim(),
+        detail: meta,
+        status: data.status || 'aktif'
+      };
+      await persistMasterItem(item, event.submitter, { formEl, message: 'Data guru tersimpan.' });
+    }
+
+    async function persistMasterItem(item, button, options = {}) {
       setButtonBusy(button, 'Menyimpan...');
       try {
-        const item = Object.fromEntries(new FormData(formEl).entries());
         const response = await serverCall('saveMasterData', { actor: currentUserData, item });
         if (response.status !== 'success') throw new Error(response.message || 'Master data gagal disimpan.');
-        if (formEl && typeof formEl.reset === 'function') formEl.reset();
+        if (options.formEl && typeof options.formEl.reset === 'function') options.formEl.reset();
         mergeMasterRowsIntoCatalog(response.rows || []);
+        masterRowsCache = response.rows || [];
         masterVisibleLimit = 300;
-        renderMasterTable(response.rows || []);
-        Swal.fire('Berhasil', 'Master data tersimpan.', 'success');
+        renderMasterDataSection(masterRowsCache);
+        Swal.fire('Berhasil', options.message || 'Master data tersimpan.', 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
       } finally {
@@ -12500,15 +12923,22 @@ ${dokToolbarHtml()}
       }
     }
 
-    async function loadMasterData() {
+    async function loadMasterData(eventOrOptions) {
+      const button = eventOrOptions && eventOrOptions.currentTarget ? eventOrOptions.currentTarget : document.getElementById('btn-load-master');
+      const silent = eventOrOptions && eventOrOptions.silent;
+      if (button) setButtonBusy(button, 'Memuat...');
       try {
         const response = await serverCall('listMasterData', { actor: currentUserData });
         if (response.status !== 'success') throw new Error(response.message || 'Master data gagal dimuat.');
         mergeMasterRowsIntoCatalog(response.rows || []);
+        masterRowsCache = response.rows || [];
         masterVisibleLimit = 300;
-        renderMasterTable(response.rows || []);
+        renderMasterDataSection(masterRowsCache);
+        if (!silent) showToast('Master data dimuat.', 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
+      } finally {
+        restoreButton(button);
       }
     }
 
@@ -12516,7 +12946,8 @@ ${dokToolbarHtml()}
       if (!appData) return;
       if (!appData.masterData) appData.masterData = {};
       const grouped = {};
-      rows.forEach(row => {
+      Object.keys(MASTER_TYPE_META).forEach(type => { grouped[type] = []; });
+      (rows || []).forEach(row => {
         const type = String(row.type || '').toLowerCase();
         if (!type || String(row.status || 'aktif').toLowerCase() === 'nonaktif') return;
         if (!grouped[type]) grouped[type] = [];
@@ -12654,8 +13085,9 @@ ${dokToolbarHtml()}
         const response = await serverCall('seedPsatMasterData', { actor: currentUserData });
         if (response.status !== 'success') throw new Error(response.message || 'Data PSAT gagal diisi.');
         if (response.masterData) appData.masterData = response.masterData;
-        renderDashboard();
-        renderMasterTable(response.rows || []);
+        masterRowsCache = response.rows || [];
+        mergeMasterRowsIntoCatalog(masterRowsCache);
+        renderMasterDataSection(masterRowsCache);
         Swal.fire('Berhasil', `${Number(response.imported || 0)} baris master PSAT siap dipakai.`, 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -12664,37 +13096,248 @@ ${dokToolbarHtml()}
       }
     }
 
+    function renderMasterDataSection(rows) {
+      const panel = document.getElementById('master-wizard-panel');
+      if (panel) panel.innerHTML = renderMasterWizardStep();
+      const summary = document.getElementById('master-summary-grid');
+      if (summary) summary.innerHTML = renderMasterSummaryGrid(rows || getMasterRowsForView());
+      const datalists = document.getElementById('master-datalists');
+      if (datalists) datalists.innerHTML = renderMasterDatalists();
+      renderMasterTable(rows || getMasterRowsForView());
+      document.querySelectorAll('.master-step-btn').forEach(button => {
+        const active = button.dataset.masterStep === masterWizardStep;
+        button.classList.toggle('bg-white', active);
+        button.classList.toggle('text-blue-700', active);
+        button.classList.toggle('shadow-sm', active);
+      });
+      bindMasterDataEvents();
+      refreshIcons();
+    }
+
+    function readMasterTableFilter() {
+      return {
+        type: document.getElementById('master-filter-type')?.value || 'all',
+        status: document.getElementById('master-filter-status')?.value || 'aktif',
+        query: document.getElementById('master-filter-query')?.value || ''
+      };
+    }
+
+    function renderMasterTableHtml(rows) {
+      const allRows = Array.isArray(rows) && rows.length ? rows : getMasterRowsForView();
+      const filter = readMasterTableFilter();
+      const filteredRows = allRows
+        .filter(row => masterRowMatchesFilter(row, filter))
+        .sort((a, b) => String(a.type || '').localeCompare(String(b.type || '')) || String(a.kode || '').localeCompare(String(b.kode || '')) || String(a.nama || '').localeCompare(String(b.nama || '')));
+      const visibleRows = filteredRows.slice(0, masterVisibleLimit);
+      return `
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-wide text-slate-400">Daftar Master</p>
+              <h4 class="mt-1 font-black text-slate-900">${Number(filteredRows.length)} data ditemukan</h4>
+            </div>
+            <div class="grid w-full gap-2 sm:w-auto sm:grid-cols-3">
+              <input id="master-filter-query" value="${escapeHtml(filter.query)}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Cari kode/nama/guru">
+              <select id="master-filter-type" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold">
+                <option value="all" ${filter.type === 'all' ? 'selected' : ''}>Semua tipe</option>
+                ${Object.keys(MASTER_TYPE_META).map(type => `<option value="${escapeHtml(type)}" ${filter.type === type ? 'selected' : ''}>${escapeHtml(masterTypeLabel(type))}</option>`).join('')}
+              </select>
+              <select id="master-filter-status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold">
+                <option value="aktif" ${filter.status === 'aktif' ? 'selected' : ''}>Aktif</option>
+                <option value="all" ${filter.status === 'all' ? 'selected' : ''}>Semua status</option>
+                <option value="nonaktif" ${filter.status === 'nonaktif' ? 'selected' : ''}>Nonaktif</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr><th class="p-3">Tipe</th><th>Kode</th><th>Nama</th><th>Detail</th><th>Status</th><th class="text-right pr-3">Aksi</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${visibleRows.map(row => {
+                  const inactive = String(row.status || 'aktif').toLowerCase() === 'nonaktif';
+                  return `
+                  <tr class="hover:bg-slate-50/70">
+                    <td class="p-3">${masterTypeBadge(row.type || '-')}</td>
+                    <td class="font-mono text-xs font-bold text-slate-600">${escapeHtml(row.kode || '-')}</td>
+                    <td class="min-w-[180px] font-black text-slate-900">${escapeHtml(row.nama || '-')}</td>
+                    <td class="min-w-[260px]">${masterDetailChips(row)}</td>
+                    <td>${statusBadge(row.status || 'aktif')}</td>
+                    <td class="p-3 text-right">
+                      <div class="inline-flex items-center gap-1.5">
+                        <button type="button" class="master-edit-action rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-black text-slate-700 hover:bg-blue-50 hover:text-blue-700" data-type="${escapeHtml(row.type || '')}" data-kode="${escapeHtml(row.kode || '')}"><i data-lucide="pencil" class="h-3.5 w-3.5 inline"></i> Edit</button>
+                        <button type="button" class="master-status-action rounded-lg border ${inactive ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-amber-200 text-amber-700 hover:bg-amber-50'} bg-white px-2.5 py-1.5 text-xs font-black" data-type="${escapeHtml(row.type || '')}" data-kode="${escapeHtml(row.kode || '')}" data-next-status="${inactive ? 'aktif' : 'nonaktif'}">${inactive ? 'Aktifkan' : 'Nonaktifkan'}</button>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-500"><i data-lucide="database" class="mx-auto mb-2 h-10 w-10 text-slate-300"></i><p class="font-bold">Belum ada master data sesuai filter.</p></td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          ${filteredRows.length > visibleRows.length ? `<div class="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleRows.length}</b> dari <b>${filteredRows.length}</b> master data.</span><button type="button" onclick="loadMoreMasterRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
+        </div>
+      `;
+    }
+
     function renderMasterTable(rows) {
       const container = document.getElementById('master-table');
       if (!container) return;
       masterRowsCache = rows || [];
-      const visibleRows = masterRowsCache.slice(0, masterVisibleLimit);
-      container.innerHTML = `
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
-          <table class="w-full text-sm">
-            <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
-              <tr><th class="p-3">Tipe</th><th>Kode</th><th>Nama</th><th>Detail</th><th>Status</th></tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              ${visibleRows.map(row => `
-                <tr>
-                  <td class="p-3 font-bold uppercase">${escapeHtml(row.type || '-')}</td>
-                  <td class="font-mono text-xs">${escapeHtml(row.kode || '-')}</td>
-                  <td class="font-bold">${escapeHtml(row.nama || '-')}</td>
-                  <td class="text-xs text-slate-500">${escapeHtml(row.detail || '-')}</td>
-                  <td>${statusBadge(row.status || 'aktif')}</td>
-                </tr>
-              `).join('') || '<tr><td colspan="5" class="p-5 text-center text-slate-500">Belum ada master data.</td></tr>'}
-            </tbody>
-          </table>
-        </div>
-        ${masterRowsCache.length > visibleRows.length ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleRows.length}</b> dari <b>${masterRowsCache.length}</b> master data.</span><button type="button" onclick="loadMoreMasterRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
-      `;
+      container.innerHTML = renderMasterTableHtml(masterRowsCache);
+      bindMasterDataEvents();
+      refreshIcons();
     }
 
     function loadMoreMasterRows() {
       masterVisibleLimit += BIG_TABLE_RENDER_BATCH;
       renderMasterTable(masterRowsCache);
+    }
+
+    function bindMasterDataEvents() {
+      document.querySelectorAll('.master-step-btn').forEach(button => {
+        if (button.dataset.bound === '1') return;
+        button.dataset.bound = '1';
+        button.addEventListener('click', () => {
+          masterWizardStep = button.dataset.masterStep || 'ringkasan';
+          renderMasterDataSection(getMasterRowsForView());
+        });
+      });
+      document.querySelectorAll('.master-simple-form').forEach(form => {
+        if (form.dataset.bound === '1') return;
+        form.dataset.bound = '1';
+        form.addEventListener('submit', saveMasterSimpleData);
+      });
+      const mapelForm = document.getElementById('master-mapel-form');
+      if (mapelForm && mapelForm.dataset.bound !== '1') {
+        mapelForm.dataset.bound = '1';
+        mapelForm.addEventListener('submit', saveMasterMapelData);
+      }
+      const guruForm = document.getElementById('master-guru-form');
+      if (guruForm && guruForm.dataset.bound !== '1') {
+        guruForm.dataset.bound = '1';
+        guruForm.addEventListener('submit', saveMasterGuruData);
+      }
+      const advancedForm = document.getElementById('master-form');
+      if (advancedForm && advancedForm.dataset.bound !== '1') {
+        advancedForm.dataset.bound = '1';
+        advancedForm.addEventListener('submit', saveMasterData);
+      }
+      ['master-filter-query', 'master-filter-type', 'master-filter-status'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || el.dataset.bound === '1') return;
+        el.dataset.bound = '1';
+        const eventName = id === 'master-filter-query' ? 'input' : 'change';
+        el.addEventListener(eventName, () => {
+          const keepValue = el.value;
+          masterVisibleLimit = 300;
+          renderMasterTable(masterRowsCache.length ? masterRowsCache : getMasterRowsForView());
+          const nextEl = document.getElementById(id);
+          if (id === 'master-filter-query' && nextEl) {
+            nextEl.focus();
+            try { nextEl.setSelectionRange(keepValue.length, keepValue.length); } catch (error) {}
+          }
+        });
+      });
+      document.querySelectorAll('.master-edit-action').forEach(button => {
+        if (button.dataset.bound === '1') return;
+        button.dataset.bound = '1';
+        button.addEventListener('click', () => editMasterRow(button.dataset.type, button.dataset.kode));
+      });
+      document.querySelectorAll('.master-status-action').forEach(button => {
+        if (button.dataset.bound === '1') return;
+        button.dataset.bound = '1';
+        button.addEventListener('click', () => updateMasterRowStatus(button.dataset.type, button.dataset.kode, button.dataset.nextStatus, button));
+      });
+      const loadReview = document.getElementById('btn-load-master-review');
+      if (loadReview && loadReview.dataset.bound !== '1') {
+        loadReview.dataset.bound = '1';
+        loadReview.addEventListener('click', loadMasterData);
+      }
+      const loadMaster = document.getElementById('btn-load-master');
+      if (loadMaster && loadMaster.dataset.bound !== '1') {
+        loadMaster.dataset.bound = '1';
+        loadMaster.addEventListener('click', loadMasterData);
+      }
+      const seedMaster = document.getElementById('btn-seed-psat-master');
+      if (seedMaster && seedMaster.dataset.bound !== '1') {
+        seedMaster.dataset.bound = '1';
+        seedMaster.addEventListener('click', seedPsatMasterData);
+      }
+    }
+
+    function findMasterRow(type, kode) {
+      const t = String(type || '').toLowerCase();
+      const k = String(kode || '');
+      return getMasterRowsForView().find(row => String(row.type || '').toLowerCase() === t && String(row.kode || '') === k) || null;
+    }
+
+    function setFormField(form, name, value) {
+      const field = form && form.elements ? form.elements[name] : null;
+      if (field) field.value = value || '';
+    }
+
+    function editMasterRow(type, kode) {
+      const row = findMasterRow(type, kode);
+      if (!row) {
+        Swal.fire('Tidak ditemukan', 'Data master tidak ditemukan. Muat ulang master data lalu coba lagi.', 'warning');
+        return;
+      }
+      const rowType = String(row.type || '').toLowerCase();
+      if (rowType === 'mapel') masterWizardStep = 'mapel';
+      else if (rowType === 'guru') masterWizardStep = 'guru';
+      else masterWizardStep = 'struktur';
+      renderMasterDataSection(getMasterRowsForView());
+      window.setTimeout(() => {
+        const meta = parseMasterDetail(row.detail);
+        if (rowType === 'mapel') {
+          const form = document.getElementById('master-mapel-form');
+          setFormField(form, 'jenis', meta.jenis || 'PSAT');
+          setFormField(form, 'kelas', meta.kelas || '');
+          setFormField(form, 'mapel', row.nama || '');
+          setFormField(form, 'guru', meta.guru || '');
+          setFormField(form, 'kode', row.kode || '');
+          setFormField(form, 'status', row.status || 'aktif');
+          form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (rowType === 'guru') {
+          const form = document.getElementById('master-guru-form');
+          setFormField(form, 'nama', row.nama || '');
+          setFormField(form, 'kode', row.kode || '');
+          setFormField(form, 'kelas', meta.kelas || '');
+          setFormField(form, 'mapel', meta.mapel || '');
+          setFormField(form, 'status', row.status || 'aktif');
+          form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          const form = document.querySelector(`.master-simple-form[data-type="${rowType}"]`);
+          setFormField(form, 'nama', row.nama || '');
+          setFormField(form, 'kode', row.kode || '');
+          setFormField(form, 'detail', row.detail || '');
+          setFormField(form, 'status', row.status || 'aktif');
+          form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        showToast('Data dimuat ke form edit.', 'info');
+      }, 50);
+    }
+
+    async function updateMasterRowStatus(type, kode, nextStatus, button) {
+      const row = findMasterRow(type, kode);
+      if (!row) {
+        Swal.fire('Tidak ditemukan', 'Data master tidak ditemukan. Muat ulang master data lalu coba lagi.', 'warning');
+        return;
+      }
+      const label = String(nextStatus || '').toLowerCase() === 'nonaktif' ? 'nonaktifkan' : 'aktifkan';
+      const confirm = await Swal.fire({
+        title: `${label.charAt(0).toUpperCase() + label.slice(1)} data?`,
+        text: `${row.nama || row.kode} akan diset ${nextStatus}. Data tidak dihapus permanen.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, lanjutkan',
+        cancelButtonText: 'Batal'
+      });
+      if (!confirm.isConfirmed) return;
+      const parsedDetail = parseMasterDetail(row.detail);
+      const detailPayload = Object.keys(parsedDetail).length ? parsedDetail : (row.detail || '');
+      await persistMasterItem({ ...row, detail: detailPayload, status: nextStatus || 'aktif' }, button, { message: `Data berhasil di${label}.` });
     }
 
     /* (#38) State pagination untuk loader bertabel besar. */
