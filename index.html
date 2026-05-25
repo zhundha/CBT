@@ -2270,7 +2270,7 @@
 
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
-    const APP_VERSION = '20260522-11';
+    const APP_VERSION = '20260525-01';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -2327,6 +2327,7 @@
     let tabLeaveCount = 0;
     let fullscreenExitCount = 0;
     let screenshotAttemptCount = 0;
+    const EXAM_TAB_LOCK_THRESHOLD = 3;
     let lastScreenshotEventAt = 0;
     let fullscreenPromptOpen = false;
     let dirtyAnswers = false;
@@ -2336,6 +2337,7 @@
     let savingDraft = false;
     let submittingExam = false;
     let examEndAt = null;
+    let lastDraftSavedAt = null;
     let selectedLoginRole = 'peserta';
     let bootParticles = null;
     let loginParticles = null;
@@ -2359,6 +2361,7 @@
     let studentExamTab = 'aktif';
     let monitorViewMode = 'table';
     let isPermanentlyLocked = false;
+    let permanentLockSyncPending = false;
     let seatingZoom = 1;
     let seatingPanX = 0;
     let seatingPanY = 0;
@@ -4304,9 +4307,9 @@ ${dokToolbarHtml()}
       const value = String(status || '').toLowerCase();
       let color = 'bg-slate-100 text-slate-700 border-slate-200';
       if (value.includes('aktif') || value.includes('mengerjakan')) color = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      if (value.includes('submit') || value.includes('terkunci')) color = 'bg-blue-50 text-blue-700 border-blue-200';
+      if (value.includes('submit')) color = 'bg-blue-50 text-blue-700 border-blue-200';
       if (value.includes('belum') || value.includes('draft')) color = 'bg-amber-50 text-amber-700 border-amber-200';
-      if (value.includes('masalah') || value.includes('tutup')) color = 'bg-rose-50 text-rose-700 border-rose-200';
+      if (value.includes('masalah') || value.includes('tutup') || value.includes('kunci') || value.includes('lock')) color = 'bg-rose-50 text-rose-700 border-rose-200';
       if (value.includes('izin') || value.includes('sakit') || value.includes('dispensasi')) color = 'bg-purple-50 text-purple-700 border-purple-200';
       return `<span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${color}">${escapeHtml(status || '-')}</span>`;
     }
@@ -4474,7 +4477,6 @@ ${dokToolbarHtml()}
         tabKeluar: Number(tabLeaveCount || 0),
         fullscreenExit: Number(fullscreenExitCount || 0),
         screenshotAttempt: Number(screenshotAttemptCount || 0),
-        aiViolations: 0,
         answeredCount: answeredCount,
         totalCount: totalCount
       };
@@ -4484,10 +4486,21 @@ ${dokToolbarHtml()}
       const pill = document.getElementById('exam-security-status');
       if (!pill) return;
       const fullscreenActive = isExamFullscreenActive();
-      const hasIssue = Number(fullscreenExitCount || 0) > 0 || Number(screenshotAttemptCount || 0) > 0 || !fullscreenActive;
+      const tabCount = Number(tabLeaveCount || 0);
+      const hasIssue = tabCount > 0 || Number(fullscreenExitCount || 0) > 0 || Number(screenshotAttemptCount || 0) > 0 || !fullscreenActive;
+      const statusParts = [fullscreenActive ? 'Fullscreen aktif' : 'Fullscreen nonaktif'];
+      if (tabCount > 0) statusParts.push('Tab ' + Math.min(tabCount, EXAM_TAB_LOCK_THRESHOLD) + '/' + EXAM_TAB_LOCK_THRESHOLD);
+      if (Number(screenshotAttemptCount || 0)) statusParts.push(screenshotAttemptCount + ' screenshot');
       pill.className = `hidden md:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${hasIssue ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`;
-      pill.innerHTML = `<i data-lucide="${hasIssue ? 'shield-alert' : 'shield-check'}" class="w-3.5 h-3.5"></i>${fullscreenActive ? 'Fullscreen aktif' : 'Fullscreen nonaktif'}${Number(screenshotAttemptCount || 0) ? ` - ${screenshotAttemptCount} screenshot` : ''}`;
+      pill.innerHTML = `<i data-lucide="${hasIssue ? 'shield-alert' : 'shield-check'}" class="w-3.5 h-3.5"></i>${escapeHtml(statusParts.join(' - '))}`;
       refreshIcons();
+    }
+
+    function getLastDraftSavedText() {
+      if (lastDraftSavedAt) {
+        return 'Jawaban terakhir tersimpan pukul ' + lastDraftSavedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      }
+      return 'Jawaban terakhir yang berhasil tersimpan tetap aman di server.';
     }
 
     function logExamSecurityEvent(eventName, detail, extra) {
@@ -4499,6 +4512,32 @@ ${dokToolbarHtml()}
         detail: detail || '',
         status: 'Sedang mengerjakan'
       }, getExamSecurityPayload(), extra || {})).catch(() => {});
+    }
+
+    function getTabLimitLockReason() {
+      return 'Keluar tab ' + Number(tabLeaveCount || 0) + ' kali';
+    }
+
+    function enforceTabLeaveLimitLock(options) {
+      if (!isExamParticipantActive() || Number(tabLeaveCount || 0) < EXAM_TAB_LOCK_THRESHOLD) return false;
+      const opts = options || {};
+      const reason = getTabLimitLockReason();
+      const alreadyLocked = isPermanentlyLocked;
+      window.permanentLockReason = reason;
+      triggerPermanentLockScreen(reason);
+      if (!alreadyLocked) {
+        permanentLockSyncPending = true;
+        markSecurityDirty();
+        if (opts.logEvent) {
+          logExamSecurityEvent('AUTO_LOCK_TAB_LIMIT', reason, { status: 'DIKUNCI', lockedReason: reason });
+        }
+        if (opts.syncNow) {
+          saveDraft(true).catch(error => console.warn('Gagal menyimpan status lock:', error));
+        } else {
+          scheduleAutosave();
+        }
+      }
+      return true;
     }
 
     function promptReturnFullscreen() {
@@ -5699,7 +5738,7 @@ ${dokToolbarHtml()}
             else if (st.includes('mengerjakan')) rm.mengerjakan++;
             else if (st === 'belum login') rm.belum++;
             else rm.login++;
-            if (st.includes('masalah') || Number(p.tabKeluar || 0) >= 3 || Number(p.fullscreenExit || 0) > 0 || Number(p.screenshotAttempt || 0) > 0) rm.masalah++;
+            if (st.includes('masalah') || st.includes('kunci') || st.includes('lock') || Number(p.tabKeluar || 0) >= 3 || Number(p.fullscreenExit || 0) > 0 || Number(p.screenshotAttempt || 0) > 0) rm.masalah++;
           });
           const rooms = Object.entries(roomMap).sort((a,b) => a[0].localeCompare(b[0]));
           const donutData = [
@@ -5804,6 +5843,8 @@ ${dokToolbarHtml()}
                 </button>`;
               }).join('')}
             </div>` : ''}
+
+            ${renderMonitorActionPanel(participants, selectedExamId)}
 
             <!-- Participant Table / Grid Seating + Sidebar -->
             <div class="grid xl:grid-cols-[1.8fr_1fr] gap-4">
@@ -7564,6 +7605,145 @@ ${dokToolbarHtml()}
     }
 
 
+    function getParticipantSecurityInfo(item) {
+      const statusText = String(item?.status || '').toLowerCase();
+      const tabCount = Number(item?.tabKeluar || 0);
+      const fullscreenCount = Number(item?.fullscreenExit || 0);
+      const screenshotCount = Number(item?.screenshotAttempt || 0);
+      const locked = statusText.includes('kunci') || statusText.includes('lock') || tabCount >= EXAM_TAB_LOCK_THRESHOLD;
+      const hasStatusProblem = statusText.includes('masalah');
+      let key = 'aman';
+      let label = 'Aman';
+      let tone = 'emerald';
+      let icon = 'shield-check';
+      let score = 0;
+      if (locked) {
+        key = 'terkunci'; label = 'Dikunci'; tone = 'rose'; icon = 'lock'; score = 4;
+      } else if (screenshotCount > 0) {
+        key = 'screenshot'; label = 'Screenshot'; tone = 'fuchsia'; icon = 'camera-off'; score = 3;
+      } else if (fullscreenCount > 0) {
+        key = 'fullscreen'; label = 'Fullscreen'; tone = 'orange'; icon = 'scan-line'; score = 2;
+      } else if (tabCount > 0) {
+        key = 'tab'; label = 'Tab ' + tabCount + '/' + EXAM_TAB_LOCK_THRESHOLD; tone = 'amber'; icon = 'alert-triangle'; score = 1;
+      } else if (hasStatusProblem) {
+        key = 'bermasalah'; label = 'Bermasalah'; tone = 'rose'; icon = 'triangle-alert'; score = 2;
+      }
+      const reasons = [];
+      if (tabCount > 0) reasons.push('Tab ' + tabCount + '/' + EXAM_TAB_LOCK_THRESHOLD);
+      if (fullscreenCount > 0) reasons.push('Fullscreen keluar ' + fullscreenCount + 'x');
+      if (screenshotCount > 0) reasons.push('Screenshot ' + screenshotCount + 'x');
+      if (locked && item?.lockedReason) reasons.push(String(item.lockedReason));
+      return {
+        key, label, tone, icon, score, reasons,
+        tabCount, fullscreenCount, screenshotCount,
+        locked,
+        problem: locked || hasStatusProblem || tabCount > 0 || fullscreenCount > 0 || screenshotCount > 0
+      };
+    }
+
+    function getSecurityToneClasses(tone) {
+      const map = {
+        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        amber: 'bg-amber-50 text-amber-700 border-amber-200',
+        orange: 'bg-orange-50 text-orange-700 border-orange-200',
+        fuchsia: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+        rose: 'bg-rose-50 text-rose-700 border-rose-200',
+        slate: 'bg-slate-50 text-slate-600 border-slate-200'
+      };
+      return map[tone] || map.slate;
+    }
+
+    function securityBadgeHtml(info, compact) {
+      const cls = getSecurityToneClasses(info.tone);
+      const size = compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
+      return `<span class="inline-flex items-center gap-1 rounded-full border ${size} font-black ${cls}"><i data-lucide="${info.icon}" class="h-3 w-3"></i>${escapeHtml(info.label)}</span>`;
+    }
+
+    function setParticipantFilter(filter) {
+      participantFilter = filter || 'all';
+      participantVisibleLimit = PARTICIPANT_RENDER_BATCH;
+      rerenderParticipantTableView();
+    }
+
+    function renderMonitorActionPanel(participants, selectedExamId) {
+      const rows = (participants || []).map(item => ({ item, info: getParticipantSecurityInfo(item) }));
+      const needsAction = rows
+        .filter(row => row.info.problem)
+        .sort((a, b) => (b.info.score - a.info.score) || (b.info.tabCount - a.info.tabCount) || String(a.item.nama || '').localeCompare(String(b.item.nama || '')));
+      const lockedCount = rows.filter(row => row.info.locked).length;
+      const warningTabCount = rows.filter(row => row.info.tabCount > 0 && !row.info.locked).length;
+      const fullscreenCount = rows.filter(row => row.info.fullscreenCount > 0).length;
+      const screenshotCount = rows.filter(row => row.info.screenshotCount > 0).length;
+      const visibleRows = needsAction.slice(0, 6);
+      return `
+        <section class="surface-card p-5 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="shield-alert" class="h-5 w-5 text-rose-700"></i>
+                <h4 class="font-black text-slate-900">Butuh Tindakan</h4>
+              </div>
+              <p class="mt-1 text-xs font-semibold text-slate-500">Prioritas peserta dengan lock atau indikasi pelanggaran keamanan.</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-xs font-black">
+              <button type="button" onclick="setParticipantFilter('terkunci')" class="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-rose-700">Dikunci ${lockedCount}</button>
+              <button type="button" onclick="setParticipantFilter('tab')" class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-amber-700">Tab ${warningTabCount}</button>
+              <button type="button" onclick="setParticipantFilter('fullscreen')" class="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-orange-700">Fullscreen ${fullscreenCount}</button>
+              <button type="button" onclick="setParticipantFilter('screenshot')" class="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700">Screenshot ${screenshotCount}</button>
+            </div>
+          </div>
+          ${visibleRows.length ? `
+            <div class="mt-4 grid gap-2 lg:grid-cols-2 2xl:grid-cols-3">
+              ${visibleRows.map(row => `
+                <button type="button" onclick="openProctorControlModal('${escapeHtml(selectedExamId || '')}', '${escapeHtml(row.item.nisn || '')}')" class="rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-blue-200 hover:bg-blue-50/40">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-black text-slate-900">${escapeHtml(row.item.nama || '-')}</p>
+                      <p class="mt-0.5 truncate text-[11px] font-semibold text-slate-500">${escapeHtml(row.item.kelas || '-')} - ${escapeHtml(row.item.ruang || '-')} - ${escapeHtml(row.item.nisn || '-')}</p>
+                    </div>
+                    ${securityBadgeHtml(row.info, true)}
+                  </div>
+                  <p class="mt-2 line-clamp-1 text-xs font-semibold text-slate-500">${escapeHtml(row.info.reasons.join(' - ') || row.item.status || '-')}</p>
+                  <p class="mt-1 text-[11px] font-bold text-slate-400">Aktif ${escapeHtml(row.item.updatedAt ? timeAgo(row.item.updatedAt) : '-')}</p>
+                </button>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+              Tidak ada peserta yang butuh tindakan cepat.
+            </div>
+          `}
+        </section>
+      `;
+    }
+
+    function renderParticipantSecurityTimeline(student, info) {
+      const items = [];
+      if (student.updatedAt) items.push({ icon: 'activity', label: 'Aktivitas terakhir', value: timeAgo(student.updatedAt) });
+      if (info.tabCount > 0) items.push({ icon: 'panel-top-close', label: 'Keluar tab', value: info.tabCount + '/' + EXAM_TAB_LOCK_THRESHOLD });
+      if (info.fullscreenCount > 0) items.push({ icon: 'scan-line', label: 'Keluar fullscreen', value: info.fullscreenCount + 'x' });
+      if (info.screenshotCount > 0) items.push({ icon: 'camera-off', label: 'Screenshot', value: info.screenshotCount + 'x' });
+      if (info.locked) items.push({ icon: 'lock', label: 'Status lock', value: student.lockedReason || 'Batas keamanan tercapai' });
+      if (!items.length) items.push({ icon: 'shield-check', label: 'Keamanan', value: 'Belum ada pelanggaran tercatat' });
+      return `
+        <div class="rounded-xl border border-slate-150 p-3">
+          <div class="text-[11px] font-black uppercase text-slate-400">Timeline Ringkas</div>
+          <div class="mt-2 space-y-2">
+            ${items.map(item => `
+              <div class="flex items-start gap-2 text-xs">
+                <span class="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"><i data-lucide="${item.icon}" class="h-3.5 w-3.5"></i></span>
+                <div class="min-w-0">
+                  <p class="font-black text-slate-700">${escapeHtml(item.label)}</p>
+                  <p class="mt-0.5 text-slate-500">${escapeHtml(item.value)}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+
     function renderParticipantTable(participants, selectedExamId) {
       const canEditAttendance = currentUserData.role === 'admin' || currentUserData.role === 'pengawas';
       const canControlStudent = ['admin', 'proktor'].includes(currentUserData.role);
@@ -7591,17 +7771,36 @@ ${dokToolbarHtml()}
       }
       function statusKey(status) {
         const s = String(status).toLowerCase();
+        if (s.includes('kunci') || s.includes('lock')) return 'terkunci';
+        if (s.includes('masalah')) return 'bermasalah';
         if (s.includes('submit')) return 'submit';
         if (s.includes('mengerjakan')) return 'mengerjakan';
         if (s.includes('login') || !s.includes('belum')) return 'login';
         return 'belum';
       }
       const searchTerm = String(participantSearch || '').toLowerCase();
+      const countByStatus = (key) => participants.filter(p => statusKey(p.status) === key).length;
+      const countBySecurity = (key) => participants.filter(p => {
+        const info = getParticipantSecurityInfo(p);
+        if (key === 'bermasalah') return info.problem;
+        if (key === 'terkunci') return info.locked;
+        if (key === 'tab') return info.tabCount > 0;
+        if (key === 'fullscreen') return info.fullscreenCount > 0;
+        if (key === 'screenshot') return info.screenshotCount > 0;
+        return false;
+      }).length;
       const filteredParticipants = participants.filter(item => {
         const text = `${item.nama || ''} ${item.nisn || ''} ${item.kelas || ''} ${item.ruang || ''}`.toLowerCase();
         const matchSearch = !searchTerm || text.includes(searchTerm);
         const matchRoom = !participantRoomFilter || String(item.ruang || '').toLowerCase() === participantRoomFilter.toLowerCase();
-        const matchFilter = participantFilter === 'all' || statusKey(item.status) === participantFilter;
+        const info = getParticipantSecurityInfo(item);
+        const matchFilter = participantFilter === 'all'
+          || statusKey(item.status) === participantFilter
+          || (participantFilter === 'bermasalah' && info.problem)
+          || (participantFilter === 'terkunci' && info.locked)
+          || (participantFilter === 'tab' && info.tabCount > 0)
+          || (participantFilter === 'fullscreen' && info.fullscreenCount > 0)
+          || (participantFilter === 'screenshot' && info.screenshotCount > 0);
         return matchSearch && matchRoom && matchFilter;
       });
       const renderedParticipants = filteredParticipants.slice(0, Math.max(PARTICIPANT_RENDER_BATCH, participantVisibleLimit));
@@ -7619,10 +7818,15 @@ ${dokToolbarHtml()}
             </div>
             <div class="flex flex-wrap gap-1.5">
               <button class="filter-pill ${participantFilter==='all'?'active':''}" data-filter="all">Semua (${participants.length})</button>
-              <button class="filter-pill ${participantFilter==='belum'?'active':''}" data-filter="belum">Belum Login (${participants.filter(p=>statusKey(p.status)==='belum').length})</button>
-              <button class="filter-pill ${participantFilter==='login'?'active':''}" data-filter="login">Login (${participants.filter(p=>statusKey(p.status)==='login').length})</button>
-              <button class="filter-pill ${participantFilter==='mengerjakan'?'active':''}" data-filter="mengerjakan">Mengerjakan (${participants.filter(p=>statusKey(p.status)==='mengerjakan').length})</button>
-              <button class="filter-pill ${participantFilter==='submit'?'active':''}" data-filter="submit">Submit (${participants.filter(p=>statusKey(p.status)==='submit').length})</button>
+              <button class="filter-pill ${participantFilter==='belum'?'active':''}" data-filter="belum">Belum Login (${countByStatus('belum')})</button>
+              <button class="filter-pill ${participantFilter==='login'?'active':''}" data-filter="login">Login (${countByStatus('login')})</button>
+              <button class="filter-pill ${participantFilter==='mengerjakan'?'active':''}" data-filter="mengerjakan">Mengerjakan (${countByStatus('mengerjakan')})</button>
+              <button class="filter-pill ${participantFilter==='submit'?'active':''}" data-filter="submit">Submit (${countByStatus('submit')})</button>
+              <button class="filter-pill ${participantFilter==='bermasalah'?'active':''}" data-filter="bermasalah">Bermasalah (${countBySecurity('bermasalah')})</button>
+              <button class="filter-pill ${participantFilter==='terkunci'?'active':''}" data-filter="terkunci">Dikunci (${countBySecurity('terkunci')})</button>
+              <button class="filter-pill ${participantFilter==='tab'?'active':''}" data-filter="tab">Tab (${countBySecurity('tab')})</button>
+              <button class="filter-pill ${participantFilter==='fullscreen'?'active':''}" data-filter="fullscreen">Fullscreen (${countBySecurity('fullscreen')})</button>
+              <button class="filter-pill ${participantFilter==='screenshot'?'active':''}" data-filter="screenshot">Screenshot (${countBySecurity('screenshot')})</button>
             </div>
             <p id="filter-counter" class="text-xs font-semibold text-slate-400">Menampilkan ${renderedParticipants.length} dari ${filteredParticipants.length} hasil (${participants.length} peserta)</p>
           </div>
@@ -7636,7 +7840,8 @@ ${dokToolbarHtml()}
                   const tabCount = Number(item.tabKeluar || 0);
                   const fullscreenCount = Number(item.fullscreenExit || 0);
                   const screenshotCount = Number(item.screenshotAttempt || 0);
-                  const problem = tabCount >= 3 || fullscreenCount > 0 || screenshotCount > 0;
+                  const securityInfo = getParticipantSecurityInfo(item);
+                  const problem = securityInfo.problem;
                   const dot = problem ? '<span class="status-dot dot-problem"></span>' : statusDot(item.status);
                   const sisaDetik = Number(item.sisaDetik || 0);
                   const timerClass = sisaDetik > 0 && sisaDetik < 300 ? 'text-rose-600 font-bold animate-pulse' : sisaDetik > 0 ? 'text-slate-700' : 'text-slate-400';
@@ -7646,12 +7851,17 @@ ${dokToolbarHtml()}
                   const isIdle = idleSt.includes('mengerjakan') && item.updatedAt && (Date.now() - new Date(item.updatedAt).getTime()) > 180000;
                   const lastActiveClass = isIdle ? 'text-amber-600 font-bold' : 'text-slate-500';
                   return `
-                    <tr data-status="${statusKey(item.status)}" data-room="${escapeHtml(item.ruang || '')}">
+                    <tr data-status="${statusKey(item.status)}" data-security="${escapeHtml(securityInfo.key)}" data-room="${escapeHtml(item.ruang || '')}">
                       <td class="py-3 min-w-56">
                         <p class="font-bold">${dot}${escapeHtml(item.nama)}</p>
                         <p class="text-xs text-slate-500">${escapeHtml(item.nisn)} - ${escapeHtml(item.kelas)} - ${escapeHtml(item.ruang)}</p>
                       </td>
-                      <td>${statusBadge(item.status)}</td>
+                      <td>
+                        <div class="flex flex-col items-start gap-1">
+                          ${statusBadge(item.status)}
+                          ${securityInfo.problem ? securityBadgeHtml(securityInfo, true) : ''}
+                        </div>
+                      </td>
                       <td class="${timerClass} text-xs font-mono">${timerText}</td>
                       <td class="text-xs font-semibold">${escapeHtml(item.hadir || '-')}</td>
                       <td class="font-bold ${tabCount >= 3 ? 'text-rose-700' : 'text-slate-700'}">${tabCount}</td>
@@ -7673,6 +7883,9 @@ ${dokToolbarHtml()}
                             <button class="participant-action rounded-lg border px-2 py-1 text-xs font-bold hover:bg-slate-50" data-action="reset" data-exam-id="${escapeHtml(selectedExamId)}" data-nisn="${escapeHtml(item.nisn)}" data-nama="${escapeHtml(item.nama)}" data-kelas="${escapeHtml(item.kelas)}" data-ruang="${escapeHtml(item.ruang)}">Reset</button>
                             <button class="participant-action rounded-lg border px-2 py-1 text-xs font-bold hover:bg-slate-50" data-action="waktu" data-exam-id="${escapeHtml(selectedExamId)}" data-nisn="${escapeHtml(item.nisn)}" data-nama="${escapeHtml(item.nama)}" data-kelas="${escapeHtml(item.kelas)}" data-ruang="${escapeHtml(item.ruang)}">Waktu</button>
                             <button class="participant-action rounded-lg border px-2 py-1 text-xs font-bold hover:bg-slate-50" data-action="reopen" data-exam-id="${escapeHtml(selectedExamId)}" data-nisn="${escapeHtml(item.nisn)}" data-nama="${escapeHtml(item.nama)}" data-kelas="${escapeHtml(item.kelas)}" data-ruang="${escapeHtml(item.ruang)}">Buka Ulang</button>
+                          ` : ''}
+                          ${(canControlStudent || currentUserData.role === 'pengawas' || problem) ? `
+                            <button class="participant-action rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100" data-action="detail" data-exam-id="${escapeHtml(selectedExamId)}" data-nisn="${escapeHtml(item.nisn)}" data-nama="${escapeHtml(item.nama)}" data-kelas="${escapeHtml(item.kelas)}" data-ruang="${escapeHtml(item.ruang)}">Detail</button>
                           ` : ''}
                         </div>
                       </td>
@@ -8688,9 +8901,13 @@ ${dokToolbarHtml()}
       rows.forEach(row => {
         const text = (row.textContent || '').toLowerCase();
         const status = row.dataset.status || '';
+        const security = row.dataset.security || '';
         const matchSearch = !participantSearch || text.includes(participantSearch.toLowerCase());
         const matchRoom = !participantRoomFilter || (row.dataset.room || '').toLowerCase() === participantRoomFilter.toLowerCase();
-        const matchFilter = participantFilter === 'all' || status === participantFilter;
+        const matchFilter = participantFilter === 'all'
+          || status === participantFilter
+          || security === participantFilter
+          || (participantFilter === 'bermasalah' && security && security !== 'aman');
         const visible = matchSearch && matchFilter && matchRoom;
         row.style.display = visible ? '' : 'none';
         if (visible) shown++;
@@ -8746,16 +8963,12 @@ ${dokToolbarHtml()}
         const toggle = document.getElementById('auto-refresh-toggle');
         if (toggle) { toggle.checked = !toggle.checked; toggle.dispatchEvent(new Event('change')); }
       }
-      if (['1','2','3','4','5'].includes(e.key)) {
+      if (['1','2','3','4','5','6','7','8','9'].includes(e.key)) {
         e.preventDefault();
-        const filters = ['all','belum login','login','mengerjakan','submit'];
+        const filters = ['all','belum','login','mengerjakan','submit','bermasalah','terkunci','tab','screenshot'];
         const target = filters[parseInt(e.key) - 1];
         if (target) {
-          participantFilter = target;
-          document.querySelectorAll('.filter-pill[data-filter]').forEach(p => p.classList.remove('active'));
-          const pill = document.querySelector(`.filter-pill[data-filter="${target}"]`);
-          if (pill) pill.classList.add('active');
-          applyParticipantFilter();
+          setParticipantFilter(target);
         }
       }
     });
@@ -11536,7 +11749,6 @@ ${dokToolbarHtml()}
         html: `<div class="text-sm text-slate-600">${escapeHtml(detail)}</div>`,
         allowOutsideClick: false,
         allowEscapeKey: false,
-        showConfirmButton: false,
         didOpen: () => Swal.showLoading()
       });
     }
@@ -12913,6 +13125,10 @@ ${dokToolbarHtml()}
         kelas: button.dataset.kelas,
         ruang: button.dataset.ruang
       };
+      if (button.dataset.action === 'detail') {
+        openProctorControlModal(item.examId, item.nisn);
+        return;
+      }
       // (#2/#12) Disable tombol selama request agar tidak double-click pada baris peserta.
       setButtonBusy(button, '...');
       try {
@@ -13106,7 +13322,6 @@ ${dokToolbarHtml()}
                 <div class="p-3 bg-indigo-50 text-indigo-800 rounded-lg font-semibold border border-indigo-200 text-center">
                   Harap daftarkan Sidik Jari / Pemindai Wajah di perangkat ini.
                 </div>
-                <p class="text-xs text-slate-500">Proses pencocokan berjalan 100% offline di dalam chip keamanan fisik perangkat Anda. Tidak ada data biometrik yang dikirim ke internet.</p>
               </div>
             `,
             icon: 'info',
@@ -13235,7 +13450,7 @@ ${dokToolbarHtml()}
       document.querySelector('#app-section > nav').classList.add('hidden');
       renderExamView();
       updateExamSecurityStatus();
-      if (isFullscreenSupported() && !isExamFullscreenActive()) promptReturnFullscreen();
+      if (!enforceTabLeaveLimitLock({ syncNow: true }) && isFullscreenSupported() && !isExamFullscreenActive()) promptReturnFullscreen();
       startExamTimers();
     }
 
@@ -13548,8 +13763,8 @@ ${dokToolbarHtml()}
         partial: true,
         ...getExamSecurityPayload()
       };
-      payload.triggerLock = isPermanentlyLocked;
-      payload.lockReason = isPermanentlyLocked ? (window.permanentLockReason || 'Keluar batas keamanan') : '';
+      payload.triggerLock = permanentLockSyncPending;
+      payload.lockReason = permanentLockSyncPending ? (window.permanentLockReason || 'Keluar batas keamanan') : '';
 
       try {
         const response = await serverCall('saveAnswerBatch', payload);
@@ -13560,10 +13775,12 @@ ${dokToolbarHtml()}
         });
         if (securityDirtyVersion === securityVersionSnapshot) securityDirtyVersion = 0;
         dirtyAnswers = hasPendingDraftChanges();
-        setAutosaveStatus('Tersimpan ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), 'hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700');
+        lastDraftSavedAt = new Date();
+        setAutosaveStatus('Tersimpan ' + lastDraftSavedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), 'hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700');
         
         // Handle sync locked state from backend
         if (response.locked) {
+          permanentLockSyncPending = false;
           triggerPermanentLockScreen(response.lockedReason || 'Keamanan Terdeteksi');
         } else {
           dismissPermanentLockScreen();
@@ -13582,6 +13799,7 @@ ${dokToolbarHtml()}
             });
             if (securityDirtyVersion === securityVersionSnapshot) securityDirtyVersion = 0;
             dirtyAnswers = hasPendingDraftChanges();
+            lastDraftSavedAt = new Date();
             setAutosaveStatus('Offline - tersimpan lokal', 'hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700');
             if (!silent) showToast('Jawaban disimpan lokal dan akan dikirim saat online.', 'info');
             return;
@@ -13618,14 +13836,22 @@ ${dokToolbarHtml()}
     async function sendExamHeartbeat() {
       if (!activeExam) return;
       try {
-        const response = await serverCall('heartbeatExam', {
+        const heartbeatPayload = {
           user: currentUserData,
           examId: activeExam.examId,
           ...getExamSecurityPayload(),
-          status: 'Sedang mengerjakan'
-        });
+          status: permanentLockSyncPending ? 'DIKUNCI' : 'Sedang mengerjakan'
+        };
+        if (permanentLockSyncPending) heartbeatPayload.lockedReason = window.permanentLockReason || 'Keluar batas keamanan';
+        const response = await serverCall('heartbeatExam', heartbeatPayload);
         if (response.status === 'success' && response.timer && response.timer.endAt) {
           examEndAt = new Date(response.timer.endAt);
+        }
+        if (response.locked) {
+          permanentLockSyncPending = false;
+          triggerPermanentLockScreen(response.lockedReason || 'Keamanan Terdeteksi');
+        } else if (isPermanentlyLocked) {
+          dismissPermanentLockScreen();
         }
         if (response.submitted) {
           stopExamTimers();
@@ -13877,7 +14103,10 @@ ${dokToolbarHtml()}
       if (document.hidden) {
         tabLeaveCount += 1;
         markSecurityDirty();
-        logExamSecurityEvent('PINDAH_TAB', 'Tab browser tidak aktif');
+        const reachedTabLimit = Number(tabLeaveCount || 0) >= EXAM_TAB_LOCK_THRESHOLD;
+        const tabLimitReason = reachedTabLimit ? getTabLimitLockReason() : '';
+        logExamSecurityEvent('PINDAH_TAB', 'Tab browser tidak aktif', reachedTabLimit ? { status: 'DIKUNCI', lockedReason: tabLimitReason } : {});
+        if (reachedTabLimit) enforceTabLeaveLimitLock({ logEvent: true, syncNow: true });
         
         // 1. Jalankan Alarm Suara
         playLoudAlarm();
@@ -13888,6 +14117,10 @@ ${dokToolbarHtml()}
         }
       } else {
         updateExamSecurityStatus();
+        if (enforceTabLeaveLimitLock({ syncNow: true })) return;
+        const warningNo = Math.min(Number(tabLeaveCount || 0), EXAM_TAB_LOCK_THRESHOLD);
+        const remainingWarnings = Math.max(0, EXAM_TAB_LOCK_THRESHOLD - warningNo);
+        const isFinalWarning = remainingWarnings === 1;
         
         // 3. Pasang kedipan visual merah-putih (Strobe) pada overlay modal Swal
         const style = document.createElement('style');
@@ -13905,10 +14138,19 @@ ${dokToolbarHtml()}
         document.head.appendChild(style);
 
         Swal.fire({
-          icon: 'error',
-          title: 'Pelanggaran Keamanan!',
-          text: 'Perpindahan tab terdeteksi! Alarm suara, getaran perangkat, dan laporan otomatis telah diaktifkan ke server pengawas.',
-          confirmButtonText: 'Saya Mengerti & Matikan Alarm',
+          icon: isFinalWarning ? 'error' : 'warning',
+          title: isFinalWarning ? 'Peringatan Terakhir' : 'Pelanggaran Keamanan',
+          html: `
+            <div class="space-y-3 text-left text-sm text-slate-600">
+              <div class="rounded-xl border ${isFinalWarning ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-amber-200 bg-amber-50 text-amber-800'} px-4 py-3 text-center">
+                <p class="text-xs font-black uppercase tracking-wide">Keluar tab</p>
+                <p class="mt-1 text-2xl font-black">${warningNo}/${EXAM_TAB_LOCK_THRESHOLD}</p>
+              </div>
+              <p class="font-semibold">Perpindahan tab terdeteksi dan sudah dilaporkan otomatis ke pengawas.</p>
+              <p class="text-xs font-semibold text-slate-500">${remainingWarnings > 0 ? 'Jika mencapai ' + EXAM_TAB_LOCK_THRESHOLD + '/' + EXAM_TAB_LOCK_THRESHOLD + ', layar ujian akan dikunci dan hanya pengawas yang dapat membukanya.' : 'Layar ujian akan dikunci bila pelanggaran berikutnya tersinkron.'}</p>
+            </div>
+          `,
+          confirmButtonText: 'Kembali Mengerjakan',
           customClass: {
             container: 'strobe-alert'
           },
@@ -14343,8 +14585,10 @@ ${dokToolbarHtml()}
 
 
     function triggerPermanentLockScreen(reason) {
+      window.permanentLockReason = reason || window.permanentLockReason || 'Keluar batas keamanan';
       if (isPermanentlyLocked) return;
       isPermanentlyLocked = true;
+      const lockSavedText = getLastDraftSavedText();
       
       playLoudAlarm();
       if (navigator.vibrate) {
@@ -14369,15 +14613,24 @@ ${dokToolbarHtml()}
       
       Swal.fire({
         icon: 'error',
-        title: '🔒 UJIAN DIKUNCI OLEH SISTEM',
+        title: 'Ujian Dikunci Sistem',
         html: `
-          <div class="text-center space-y-3">
-            <p class="font-bold text-rose-700 text-base">Terdeteksi Pelanggaran: "${escapeHtml(reason)}"</p>
-            <p class="text-sm text-slate-600 leading-relaxed font-semibold">
-              Layar ujian Anda telah dibekukan. Silakan hubungi proktor di depan kelas untuk melakukan verifikasi fisik dan membuka kembali kunci ujian Anda secara jarak jauh.
+          <div class="text-left space-y-3">
+            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-center">
+              <p class="text-xs font-black uppercase tracking-wide text-rose-500">Alasan lock</p>
+              <p class="mt-1 font-black text-rose-800 text-base">"${escapeHtml(window.permanentLockReason)}"</p>
+            </div>
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <div class="flex items-start gap-2">
+                <i data-lucide="save" class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-700"></i>
+                <p class="text-sm font-bold text-emerald-800">${escapeHtml(lockSavedText)}</p>
+              </div>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed font-semibold text-center">
+              Jangan tutup halaman ini. Hubungi proktor atau pengawas untuk verifikasi dan buka kunci jarak jauh.
             </p>
-            <div class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 animate-pulse mt-4">
-              <i data-lucide="loader-2" class="w-4.5 h-4.5 animate-spin"></i> Menunggu persetujuan buka kunci jarak jauh dari proktor...
+            <div class="mx-auto inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 animate-pulse">
+              <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Menunggu persetujuan pengawas...
             </div>
           </div>
         `,
@@ -14389,11 +14642,13 @@ ${dokToolbarHtml()}
         }
       });
       refreshIcons();
+      return;
     }
 
     function dismissPermanentLockScreen() {
       if (!isPermanentlyLocked) return;
       isPermanentlyLocked = false;
+      permanentLockSyncPending = false;
       window.permanentLockReason = '';
       tabLeaveCount = 0; // Reset local counts!
       
@@ -14406,8 +14661,8 @@ ${dokToolbarHtml()}
       
       Swal.fire({
         icon: 'success',
-        title: '🔓 Ujian Dibuka',
-        text: 'Akses ujian dipulihkan. Selamat bekerja kembali dan harap tetap fokus!',
+        title: 'Ujian Dibuka',
+        text: 'Akses ujian dipulihkan. Selamat mengerjakan dan harap tetap fokus!',
         timer: 3500,
         showConfirmButton: false,
         toast: true,
@@ -14435,7 +14690,8 @@ ${dokToolbarHtml()}
       const cardsHtml = participants.map((p, index) => {
         const status = String(p.status || '').toLowerCase();
         const tabCount = Number(p.tabKeluar || 0);
-        const hasIssue = status.includes('kunci') || status.includes('masalah') || tabCount >= 3;
+        const securityInfo = getParticipantSecurityInfo(p);
+        const hasIssue = securityInfo.problem;
         
         let borderClass = 'border-slate-200 bg-slate-50 text-slate-400';
         let badgeClass = 'bg-slate-100 text-slate-500';
@@ -14449,7 +14705,7 @@ ${dokToolbarHtml()}
         } else if (hasIssue) {
           borderClass = 'border-rose-300 bg-rose-50/70 text-rose-700 shadow-md ring-2 ring-rose-500 animate-pulse';
           badgeClass = 'bg-rose-100 text-rose-700';
-          statusLabel = '🔒 LOCKED';
+          statusLabel = securityInfo.locked ? 'Dikunci' : securityInfo.label;
           glowClass = 'animate-ping absolute top-0.5 right-0.5 flex h-3 w-3 rounded-full bg-rose-500';
         } else if (status.includes('mengerjakan')) {
           borderClass = 'border-emerald-300 bg-emerald-50/30 text-emerald-700 shadow-sm border-2';
@@ -14475,7 +14731,7 @@ ${dokToolbarHtml()}
             
             <div class="flex items-center gap-1.5 mt-3 flex-wrap">
               <span class="rounded-full ${badgeClass} px-2 py-0.5 text-[9px] font-bold">${statusLabel}</span>
-              ${tabCount > 0 ? `<span class="rounded-full bg-amber-100 text-amber-800 px-1.5 py-0.5 text-[9px] font-extrabold">&#9888; Tab ${tabCount}</span>` : ''}
+              ${tabCount > 0 ? `<span class="rounded-full bg-amber-100 text-amber-800 px-1.5 py-0.5 text-[9px] font-extrabold">Tab ${tabCount}/${EXAM_TAB_LOCK_THRESHOLD}</span>` : ''}
 
             </div>
           </button>
@@ -14500,13 +14756,16 @@ ${dokToolbarHtml()}
       const student = participants.find(p => String(p.nisn) === String(nisn));
       if (!student) return;
       
-      const tabCount = Number(student.tabKeluar || 0);
-      const isLocked = String(student.status || '').toLowerCase().includes('kunci') || tabCount >= 3;
+      const securityInfo = getParticipantSecurityInfo(student);
+      const tabCount = securityInfo.tabCount;
+      const fullscreenCount = securityInfo.fullscreenCount;
+      const screenshotCount = securityInfo.screenshotCount;
+      const isLocked = securityInfo.locked;
       
       let badgeColor = 'bg-slate-100 text-slate-800';
       if (student.status === 'Submit') badgeColor = 'bg-indigo-100 text-indigo-800';
       else if (isLocked) badgeColor = 'bg-rose-100 text-rose-800';
-      else if (student.status.includes('mengerjakan')) badgeColor = 'bg-emerald-100 text-emerald-800';
+      else if (String(student.status || '').includes('mengerjakan')) badgeColor = 'bg-emerald-100 text-emerald-800';
       
       const modalContent = `
         <div class="text-left space-y-4 text-slate-700 text-sm">
@@ -14531,17 +14790,23 @@ ${dokToolbarHtml()}
           
           <div class="rounded-xl border border-slate-150 p-3 space-y-2">
             <div class="text-[11px] font-black uppercase text-slate-400">Rekap Pelanggaran Keamanan</div>
-            <div class="grid grid-cols-2 gap-2 text-center text-xs">
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
               <div class="rounded-lg p-2 ${tabCount >= 3 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
                 <p class="text-sm font-black">${tabCount}</p>
                 <p class="text-[9px] text-slate-400">Keluar Tab</p>
               </div>
-              <div class="rounded-lg p-2 ${Number(student.screenshotAttempt || 0) > 0 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
-                <p class="text-sm font-black">${Number(student.screenshotAttempt || 0)}</p>
+              <div class="rounded-lg p-2 ${fullscreenCount > 0 ? 'bg-orange-50 text-orange-700 font-bold' : 'bg-slate-50'}">
+                <p class="text-sm font-black">${fullscreenCount}</p>
+                <p class="text-[9px] text-slate-400">Fullscreen</p>
+              </div>
+              <div class="rounded-lg p-2 ${screenshotCount > 0 ? 'bg-rose-50 text-rose-700 font-bold' : 'bg-slate-50'}">
+                <p class="text-sm font-black">${screenshotCount}</p>
                 <p class="text-[9px] text-slate-400">Screenshot</p>
               </div>
             </div>
           </div>
+
+          ${renderParticipantSecurityTimeline(student, securityInfo)}
 
           ${isLocked ? `
             <div class="rounded-xl bg-rose-50 border border-rose-100 p-3">
@@ -14550,7 +14815,7 @@ ${dokToolbarHtml()}
                 <div>
                   <h5 class="font-extrabold text-rose-800 text-xs">UJIAN DIKUNCI SISTEM</h5>
                   <p class="text-[11px] text-rose-700 mt-1 leading-relaxed">
-                    Siswa terdeteksi melanggar sistem keamanan: "${escapeHtml(student.lockedReason || 'Keluar tab / AI detection')}". Layar ujiannya dibekukan.
+                    Siswa terdeteksi melanggar sistem keamanan: "${escapeHtml(student.lockedReason || 'Keluar tab / batas keamanan')}". Layar ujiannya dibekukan.
                   </p>
                 </div>
               </div>
@@ -14582,9 +14847,26 @@ ${dokToolbarHtml()}
 
     async function performRemoteUnlock(examId, nisn) {
       const btn = document.getElementById('btn-modal-remote-unlock');
+      const confirm = await Swal.fire({
+        title: 'Buka kunci peserta?',
+        input: 'textarea',
+        inputPlaceholder: 'Catatan verifikasi singkat, misalnya sudah dicek oleh pengawas ruang',
+        inputAttributes: { maxlength: 250 },
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Buka Kunci',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#059669'
+      });
+      if (!confirm.isConfirmed) return;
       if (btn) setButtonBusy(btn, 'Membuka...');
       try {
-        const response = await serverCall('remoteUnlockStudent', { actor: currentUserData, examId, nisn });
+        const response = await serverCall('remoteUnlockStudent', {
+          actor: currentUserData,
+          examId,
+          nisn,
+          reason: String(confirm.value || '').trim() || 'Dibuka setelah verifikasi pengawas'
+        });
         if (response.status !== 'success') throw new Error(response.message || 'Gagal membuka kunci.');
         
         Swal.fire('Berhasil', 'Akses ujian siswa telah dipulihkan. Layar ujian di perangkat siswa akan otomatis terbuka kembali.', 'success');

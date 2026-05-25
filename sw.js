@@ -11,7 +11,7 @@
  * Bump CACHE_VERSION to force update on all clients.
  */
 
-const CACHE_VERSION = 'cbt-v1.1.3';
+const CACHE_VERSION = 'cbt-v1.1.4';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
