@@ -2094,6 +2094,10 @@
               <i data-lucide="circle-help" class="w-3.5 h-3.5"></i>
               Bantuan
             </button>
+            <button id="btn-force-app-update" type="button" class="login-help-btn" onclick="forceAppUpdate({ manual: true })" title="Bersihkan cache dan muat versi terbaru">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              Update Aplikasi
+            </button>
           </div>
 
           <div>
@@ -2270,12 +2274,16 @@
 
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
-    const APP_VERSION = '20260525-01';
+    // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
+    const APP_VERSION = '20260525-03';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
     const BOOTSTRAP_CACHE_PREFIX = 'cbt_bootstrap_cache_';
     const BOOTSTRAP_CACHE_TTL_MS = 2 * 60 * 1000;
+    const APP_VERSION_STORAGE_KEY = 'cbt_gs4_app_version_v1';
+    const APP_VERSION_LAST_CHECK_KEY = 'cbt_gs4_app_version_last_check_v1';
+    const APP_VERSION_CHECK_INTERVAL_MS = 5 * 60 * 1000;
     const FRONTEND_TELEMETRY_KEY = 'cbt_frontend_perf_v1';
     const isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const lowPowerMode = isReducedMotion || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
@@ -2300,6 +2308,7 @@
       try { setupInstallPrompt(); } catch(e) {}
       try { setupOnlineIndicator(); } catch(e) {}
       try { updateAppVersionLabels(); } catch(e) {}
+      try { setupAppVersionUpdateWatcher(); } catch(e) {}
       try { setupLoginServerStatus(); } catch(e) {}
       try { loadTenantCodeIntoForm(); } catch(e) {}
       try { bindLoginInputUx(); } catch(e) {}
@@ -2568,7 +2577,7 @@
       }
       const perfStarted = performance.now();
       const tenantId = localStorage.getItem('cbt_tenant_id') || '';
-      const body = JSON.stringify({ action: functionName, args, tenantId });
+      const body = JSON.stringify({ action: functionName, args, tenantId, clientVersion: APP_VERSION });
       const payloadBytes = body.length;
       let lastError = null;
       for (let attempt = 0; attempt <= SERVER_CALL_MAX_RETRIES; attempt++) {
@@ -3350,6 +3359,210 @@ ${dokToolbarHtml()}
       }).catch(err => {
         console.warn('[PWA] SW register failed (kemungkinan sw.js belum di-upload):', err.message);
       });
+    }
+
+    function clearBootstrapCacheEntries() {
+      try {
+        Object.keys(localStorage)
+          .filter(key => key.startsWith(BOOTSTRAP_CACHE_PREFIX))
+          .forEach(key => localStorage.removeItem(key));
+      } catch (error) {}
+    }
+
+    function rememberCurrentAppVersion() {
+      try {
+        const previousVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY);
+        if (previousVersion && previousVersion !== APP_VERSION) {
+          clearBootstrapCacheEntries();
+        }
+        localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
+      } catch (error) {}
+    }
+
+    function extractAppVersionFromHtml(html) {
+      const match = String(html || '').match(/const\s+APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+      return match ? match[1] : '';
+    }
+
+    function appVersionCheckUrls() {
+      const urls = [];
+      try {
+        const shellUrl = new URL('./index.html', window.location.href);
+        shellUrl.searchParams.set('_cbt_version_check', String(Date.now()));
+        urls.push(shellUrl.toString());
+      } catch (error) {}
+      try {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.hash = '';
+        currentUrl.searchParams.set('_cbt_version_check', String(Date.now()));
+        urls.push(currentUrl.toString());
+      } catch (error) {}
+      return [...new Set(urls)];
+    }
+
+    async function fetchLatestAppVersion() {
+      if (!canUsePwaFeatures()) return '';
+      const urls = appVersionCheckUrls();
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          });
+          if (!response.ok) continue;
+          const html = await response.text();
+          const version = extractAppVersionFromHtml(html);
+          if (version) return version;
+        } catch (error) {}
+      }
+      return '';
+    }
+
+    function normalizeAppVersionInfo(info, source) {
+      const data = info && info.data ? info.data : (info && info.appVersionInfo ? info.appVersionInfo : info);
+      if (!data) return null;
+      const latestVersion = String(data.latestVersion || data.latest || '').trim();
+      const minRequiredVersion = String(data.minRequiredVersion || data.minimumVersion || '').trim();
+      const clientVersion = String(data.clientVersion || APP_VERSION).trim();
+      if (!latestVersion) return null;
+      return {
+        source: source || data.source || 'backend',
+        clientVersion,
+        latestVersion,
+        minRequiredVersion,
+        updateAvailable: Boolean(data.updateAvailable || data.forceUpdate || latestVersion !== APP_VERSION),
+        forceUpdate: Boolean(data.forceUpdate)
+      };
+    }
+
+    async function fetchBackendAppVersionInfo() {
+      try {
+        const response = await serverCall('getAppVersionInfo', { clientVersion: APP_VERSION });
+        if (response && response.status === 'success') {
+          return normalizeAppVersionInfo(response.data || response.appVersionInfo, 'backend');
+        }
+      } catch (error) {}
+      return null;
+    }
+
+    async function fetchLatestAppVersionInfo() {
+      const backendInfo = await fetchBackendAppVersionInfo();
+      if (backendInfo && backendInfo.latestVersion) return backendInfo;
+      const htmlVersion = await fetchLatestAppVersion();
+      if (!htmlVersion) return null;
+      return normalizeAppVersionInfo({
+        clientVersion: APP_VERSION,
+        latestVersion: htmlVersion,
+        minRequiredVersion: htmlVersion,
+        updateAvailable: htmlVersion !== APP_VERSION,
+        forceUpdate: false,
+        source: 'index'
+      }, 'index');
+    }
+
+    async function clearAppUpdateCaches() {
+      clearBootstrapCacheEntries();
+      try {
+        Object.keys(localStorage)
+          .filter(key => key.startsWith('cbt_sw_reloaded_') || key === APP_VERSION_LAST_CHECK_KEY)
+          .forEach(key => localStorage.removeItem(key));
+      } catch (error) {}
+      try {
+        Object.keys(sessionStorage)
+          .filter(key => key.startsWith('cbt_sw_reloaded_'))
+          .forEach(key => sessionStorage.removeItem(key));
+      } catch (error) {}
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+        } catch (error) {}
+      }
+      if ('serviceWorker' in navigator) {
+        try {
+          if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('clearCaches');
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(reg => reg.unregister()));
+        } catch (error) {}
+      }
+    }
+
+    function reloadAppWithCacheBust(targetVersion) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.hash = '';
+      nextUrl.searchParams.set('_cbt_app_update', `${targetVersion || APP_VERSION}_${Date.now()}`);
+      window.location.replace(nextUrl.toString());
+    }
+
+    async function forceAppUpdate(options) {
+      const opts = options || {};
+      const button = document.getElementById('btn-force-app-update');
+      if (button) setButtonBusy(button, 'Update...');
+      try {
+        let latestVersion = opts.version || '';
+        if (!latestVersion) {
+          const versionInfo = await fetchLatestAppVersionInfo();
+          latestVersion = versionInfo && versionInfo.latestVersion ? versionInfo.latestVersion : '';
+        }
+        if (!latestVersion) latestVersion = APP_VERSION;
+        await clearAppUpdateCaches();
+        try { localStorage.setItem(APP_VERSION_STORAGE_KEY, latestVersion); } catch (error) {}
+        if (opts.manual) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Update Disiapkan',
+            text: 'Cache aplikasi sudah dibersihkan. Halaman akan dimuat ulang untuk mengambil versi terbaru.',
+            timer: 1400,
+            showConfirmButton: false
+          });
+        }
+        reloadAppWithCacheBust(latestVersion);
+      } catch (error) {
+        if (opts.manual) Swal.fire('Update Gagal', error.message || 'Gagal menyiapkan update aplikasi.', 'error');
+      } finally {
+        if (button) restoreButton(button);
+      }
+    }
+
+    async function checkForAppUpdate(options) {
+      const opts = options || {};
+      if (!navigator.onLine && !opts.manual) return;
+      if (!opts.force) {
+        const lastCheck = Number(localStorage.getItem(APP_VERSION_LAST_CHECK_KEY) || 0);
+        if (Date.now() - lastCheck < APP_VERSION_CHECK_INTERVAL_MS) return;
+      }
+      try { localStorage.setItem(APP_VERSION_LAST_CHECK_KEY, String(Date.now())); } catch (error) {}
+      const versionInfo = await fetchLatestAppVersionInfo();
+      const latestVersion = versionInfo && versionInfo.latestVersion ? versionInfo.latestVersion : '';
+      if (!latestVersion || (!versionInfo.updateAvailable && latestVersion === APP_VERSION)) {
+        if (opts.manual) showToast('Aplikasi sudah memakai versi terbaru.', 'success');
+        return;
+      }
+      if (isExamParticipantActive()) {
+        showToast(`Versi baru ${latestVersion} tersedia. Update setelah ujian selesai.`, versionInfo.forceUpdate ? 'warning' : 'info');
+        return;
+      }
+      const result = await Swal.fire({
+        icon: versionInfo.forceUpdate ? 'warning' : 'info',
+        title: versionInfo.forceUpdate ? 'Update Aplikasi Wajib' : 'Versi Baru Tersedia',
+        html: `<div class="text-sm text-slate-600">Versi perangkat ini: <b>${escapeHtml(APP_VERSION)}</b><br>Versi terbaru: <b>${escapeHtml(latestVersion)}</b>${versionInfo.minRequiredVersion ? `<br>Minimal wajib: <b>${escapeHtml(versionInfo.minRequiredVersion)}</b>` : ''}<br><br>Aplikasi perlu dimuat ulang agar UI dan sistem anti-cheat terbaru aktif.</div>`,
+        showCancelButton: !versionInfo.forceUpdate,
+        confirmButtonText: versionInfo.forceUpdate ? 'Update Wajib' : 'Update Sekarang',
+        cancelButtonText: 'Nanti',
+        allowOutsideClick: !versionInfo.forceUpdate,
+        allowEscapeKey: !versionInfo.forceUpdate
+      });
+      if (result.isConfirmed) await forceAppUpdate({ version: latestVersion });
+    }
+
+    function setupAppVersionUpdateWatcher() {
+      rememberCurrentAppVersion();
+      setTimeout(() => checkForAppUpdate({ force: true }).catch(() => {}), 2500);
+      window.addEventListener('online', () => checkForAppUpdate({ force: true }).catch(() => {}));
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) checkForAppUpdate().catch(() => {});
+      });
+      window.setInterval(() => checkForAppUpdate().catch(() => {}), APP_VERSION_CHECK_INTERVAL_MS);
     }
 
     function setupInstallPrompt() {
@@ -4262,7 +4475,7 @@ ${dokToolbarHtml()}
         const response = await fetch(BACKEND_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'ping', args: [], tenantId }),
+          body: JSON.stringify({ action: 'ping', args: [], tenantId, clientVersion: APP_VERSION }),
           signal: controller.signal
         });
         clearTimeout(timer);
