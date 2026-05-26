@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>CBT SMK Ganesa Satria 4 Kedu</title>
 
-  <link rel="stylesheet" href="tailwind.generated.css?v=20260527-01">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+
+  <link rel="stylesheet" href="tailwind.generated.css?v=20260527-02">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -16237,153 +16245,6 @@ ${dokToolbarHtml()}
       }
     }
 
-    // Helper untuk konversi array buffer ke base64 (dan sebaliknya) untuk penyimpanan lokal
-    function bufferToBase64(buffer) {
-      return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
-    }
-
-    function base64ToBuffer(base64) {
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.buffer;
-    }
-
-    // Mendeteksi ketersediaan pemindai biometrik platform (TouchID/Windows Hello/FaceID)
-    async function isBiometricAvailable() {
-      if (!window.PublicKeyCredential || !window.isSecureContext) return false;
-      try {
-        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        return !!available;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    async function registerLocalBiometrics(username, displayName) {
-      const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-      const userId = new TextEncoder().encode(username);
-      
-      const options = {
-        publicKey: {
-          challenge: challenge,
-          rp: { name: "CBT Ganesa Satria 4", id: window.location.hostname || "localhost" },
-          user: {
-            id: userId,
-            name: username,
-            displayName: displayName || username
-          },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }], // ES256
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 60000
-        }
-      };
-
-      const credential = await navigator.credentials.create(options);
-      if (!credential) throw new Error("Gagal mendaftarkan kredensial biometrik.");
-      
-      const credentialIdB64 = bufferToBase64(credential.rawId);
-      localStorage.setItem('cbt_bio_id_' + username, credentialIdB64);
-      return true;
-    }
-
-    async function verifyLocalBiometrics(username) {
-      const credentialIdB64 = localStorage.getItem('cbt_bio_id_' + username);
-      if (!credentialIdB64) return false;
-
-      const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-      const credentialId = base64ToBuffer(credentialIdB64);
-
-      const options = {
-        publicKey: {
-          challenge: challenge,
-          allowCredentials: [{
-            id: credentialId,
-            type: "public-key"
-          }],
-          userVerification: "required",
-          timeout: 60000
-        }
-      };
-
-      const assertion = await navigator.credentials.get(options);
-      return !!assertion;
-    }
-
-    async function triggerBiometricGateway(username, displayName) {
-      const hasBio = await isBiometricAvailable();
-      if (!hasBio) {
-        console.log("Biometrik perangkat tidak tersedia atau tidak dalam secure context. Menggunakan login standar.");
-        return true; 
-      }
-
-      const isRegistered = !!localStorage.getItem('cbt_bio_id_' + username);
-
-      try {
-        if (!isRegistered) {
-          const result = await Swal.fire({
-            title: '🔒 Registrasi Biometrik',
-            html: `
-              <div class="text-left text-sm text-slate-600 space-y-2">
-                <p>Ujian ini mewajibkan otentikasi biometrik untuk keamanan tambahan.</p>
-                <div class="p-3 bg-indigo-50 text-indigo-800 rounded-lg font-semibold border border-indigo-200 text-center">
-                  Harap daftarkan Sidik Jari / Pemindai Wajah di perangkat ini.
-                </div>
-              </div>
-            `,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Daftarkan Sidik Jari/Wajah',
-            cancelButtonText: 'Batal',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-          });
-
-          if (!result.isConfirmed) return false;
-
-          await registerLocalBiometrics(username, displayName);
-          await Swal.fire('Registrasi Sukses', 'Perangkat biometrik Anda telah terdaftar secara lokal untuk ujian ini!', 'success');
-          return true;
-        } else {
-          const result = await Swal.fire({
-            title: '🔒 Verifikasi Identitas',
-            html: `
-              <div class="text-left text-sm text-slate-600 space-y-2">
-                <p>Silakan verifikasi biometrik Anda untuk membuka kunci soal ujian.</p>
-                <div class="p-3 bg-emerald-50 text-emerald-800 rounded-lg font-semibold border border-emerald-200 text-center">
-                  Tempelkan Sidik Jari / Gunakan FaceID Perangkat
-                </div>
-              </div>
-            `,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Verifikasi Sekarang',
-            cancelButtonText: 'Batal',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-          });
-
-          if (!result.isConfirmed) return false;
-
-          const verified = await verifyLocalBiometrics(username);
-          return verified;
-        }
-      } catch (error) {
-        console.error("Kesalahan otentikasi biometrik:", error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Otentikasi Gagal',
-          text: error.message || 'Verifikasi biometrik tidak berhasil atau dibatalkan.'
-        });
-        return false;
-      }
-    }
-
     async function startExam(examId, button) {
       const input = document.getElementById('token-' + safeId(examId));
       const token = input ? input.value.trim() : '';
@@ -16395,13 +16256,6 @@ ${dokToolbarHtml()}
         if (response.status !== 'success') {
           exitExamFullscreen();
           Swal.fire('Tidak dapat masuk', response.message || 'Token tidak valid.', 'warning');
-          return;
-        }
-
-        // PINTU GERBANG BIOMETRIK SEBELUM ENTER EXAM
-        const bioPassed = await triggerBiometricGateway(currentUserData.user, currentUserData.nama);
-        if (!bioPassed) {
-          exitExamFullscreen();
           return;
         }
 
@@ -16423,13 +16277,6 @@ ${dokToolbarHtml()}
         if (response.status !== 'success') {
           exitExamFullscreen();
           Swal.fire('Tidak dapat lanjut', response.message || 'Sesi ujian tidak tersedia.', 'warning');
-          return;
-        }
-
-        // PINTU GERBANG BIOMETRIK SEBELUM ENTER EXAM
-        const bioPassed = await triggerBiometricGateway(currentUserData.user, currentUserData.nama);
-        if (!bioPassed) {
-          exitExamFullscreen();
           return;
         }
 
@@ -16757,7 +16604,9 @@ ${dokToolbarHtml()}
 
     function scheduleAutosave() {
       window.clearTimeout(autosaveDebounce);
-      autosaveDebounce = window.setTimeout(() => saveDraft(true), 900);
+      // 2000 ms — cukup untuk batching saat peserta mengetik esai/klik beruntun,
+      // tetap aman karena interval 10s berjalan sebagai safety net dan submit selalu flush.
+      autosaveDebounce = window.setTimeout(() => saveDraft(true), 2000);
     }
 
     async function saveDraft(silent) {

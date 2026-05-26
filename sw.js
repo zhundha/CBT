@@ -2,8 +2,8 @@
  * Service Worker — CBT SMK Ganesa Satria 4 Kedu
  *
  * Strategy:
- *  - App shell navigation (index.html / /): network-first with cache fallback
- *  - Static app assets (generated CSS, manifest, logo): network-first with cache fallback
+ *  - App shell navigation (index.html / /): stale-while-revalidate (instant load, update in background)
+ *  - Static app assets (generated CSS, manifest, logo): stale-while-revalidate
  *  - CDN assets (Lucide, MathJax, SheetJS, SweetAlert2, fonts): stale-while-revalidate
  *  - Apps Script API (POST): network-only (writes must be online; offline queue handled in app via IndexedDB)
  *  - Other GET requests: network-first with cache fallback
@@ -11,7 +11,7 @@
  * Bump CACHE_VERSION to force update on all clients.
  */
 
-const CACHE_VERSION = 'cbt-v1.3.0';
+const CACHE_VERSION = 'cbt-v1.4.0';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -59,31 +59,36 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Shell — cache-first.
-  // HTML navigation: network-first.
+  // HTML navigation — stale-while-revalidate (instant from cache, refresh in background).
   if (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
     event.respondWith(
-      fetch(req, { cache: 'no-store' }).then(resp => {
-        if (resp && resp.status === 200) {
-          const copy = resp.clone();
-          caches.open(SHELL_CACHE).then(c => c.put('./index.html', copy));
-        }
-        return resp;
-      }).catch(() => caches.match('./index.html'))
+      caches.match('./index.html').then(cached => {
+        const fetchPromise = fetch(req, { cache: 'no-store' }).then(resp => {
+          if (resp && resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(SHELL_CACHE).then(c => c.put('./index.html', copy));
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || fetchPromise;
+      })
     );
     return;
   }
 
-  // Versioned app assets: network-first.
+  // Versioned app assets — stale-while-revalidate.
   if (SHELL_URLS.some(u => url.pathname.endsWith(u.replace('./', '')))) {
     event.respondWith(
-      fetch(req, { cache: 'no-store' }).then(resp => {
-        if (resp && resp.status === 200) {
-          const copy = resp.clone();
-          caches.open(SHELL_CACHE).then(c => c.put(req, copy));
-        }
-        return resp;
-      }).catch(() => caches.match(req))
+      caches.match(req).then(cached => {
+        const fetchPromise = fetch(req, { cache: 'no-store' }).then(resp => {
+          if (resp && resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(SHELL_CACHE).then(c => c.put(req, copy));
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || fetchPromise;
+      })
     );
     return;
   }
