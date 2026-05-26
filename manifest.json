@@ -1,7 +1,7 @@
 {
   "name": "CBT SMK Ganesa Satria 4 Kedu",
   "short_name": "CBT Ganesa",
-  "version": "20260526-06",
+  "version": "20260527-01",
   "description": "Portal Ujian Digital — CBT SMK Ganesa Satria 4 Kedu",
   "start_url": "./index.html",
   "scope": "./",
