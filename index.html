@@ -12047,10 +12047,29 @@ ${dokToolbarHtml()}
       };
     }
 
+    function escapeTsvCell(val) {
+      const str = String(val == null ? '' : val);
+      if (str.includes('\t') || str.includes('\n') || str.includes('\r') || str.includes('"')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
     function questionsToTsv(questions) {
       const header = 'nomor\ttipe\tpertanyaan\tpilihanA\tpilihanB\tpilihanC\tpilihanD\tpilihanE\tkunci\tskorMaks';
       const rows = questions.map(q =>
-        [q.nomor, q.tipe, q.pertanyaan, q.pilihanA||'', q.pilihanB||'', q.pilihanC||'', q.pilihanD||'', q.pilihanE||'', q.kunci||'', q.skorMaks||''].join('\t')
+        [
+          escapeTsvCell(q.nomor),
+          escapeTsvCell(q.tipe),
+          escapeTsvCell(q.pertanyaan),
+          escapeTsvCell(q.pilihanA || ''),
+          escapeTsvCell(q.pilihanB || ''),
+          escapeTsvCell(q.pilihanC || ''),
+          escapeTsvCell(q.pilihanD || ''),
+          escapeTsvCell(q.pilihanE || ''),
+          escapeTsvCell(q.kunci || ''),
+          escapeTsvCell(q.skorMaks || '')
+        ].join('\t')
       );
       return [header, ...rows].join('\n');
     }
