@@ -2783,6 +2783,9 @@
     // Firebase Real-time Global Variables
     let firebaseApp = null;
     let firebaseDb = null;
+    let isFirebaseErrorActive = false;
+    let isFallbackPollingActive = false;
+    let fallbackPollingTimer = null;
     let fbMonitoringRef = null;
     let fbStudentStatusRef = null;
     let fbBroadcastRef = null;
@@ -6192,12 +6195,24 @@ ${dokToolbarHtml()}
       fbMonitoringExamId = examKey;
       fbMonitoringRef = firebaseDb.ref("status_public/" + examKey);
       const handleStatusChild = function(snapshot) {
+        if (isFirebaseErrorActive) {
+          isFirebaseErrorActive = false;
+          stopAutoRefreshFallback();
+          updateFirebaseStatusBadge();
+        }
         if (applyFirebaseStatusRowToMonitoring(snapshot.key, snapshot.val())) {
           scheduleFirebaseMonitoringRender();
         }
       };
       const handleFirebaseError = function(error) {
-        console.warn("Firebase monitoring listener blocked or failed:", error);
+        console.warn("Firebase monitoring listener blocked or failed, starting fallback polling:", error);
+        isFirebaseErrorActive = true;
+        updateFirebaseStatusBadge();
+        
+        if (!isFallbackPollingActive) {
+          startAutoRefreshFallback(15000);
+          showToast("Koneksi real-time Firebase terhambat. Mengaktifkan polling cadangan...", "warning");
+        }
       };
       fbMonitoringRef.on("child_added", handleStatusChild, handleFirebaseError);
       fbMonitoringRef.on("child_changed", handleStatusChild, handleFirebaseError);
@@ -6303,6 +6318,14 @@ ${dokToolbarHtml()}
           fbOperationsRef = null;
           fbOperationsExamId = '';
         }
+        
+        // Fallback: If Firebase is disabled or not connected, but we are a staff/proctor with an exam, start fallback polling
+        const selectedExamId = (appData && appData.monitoring && appData.monitoring.selectedExamId)
+          || (document.getElementById('monitor-exam-select') && document.getElementById('monitor-exam-select').value)
+          || '';
+        if (selectedExamId && currentUserData && !isParticipantRole(currentUserData.role)) {
+          startAutoRefreshFallback(15000);
+        }
         return;
       }
       const selectedExamId = (appData && appData.monitoring && appData.monitoring.selectedExamId)
@@ -6311,6 +6334,87 @@ ${dokToolbarHtml()}
       if (selectedExamId) {
         bindFirebaseMonitoring(selectedExamId);
         bindFirebaseOperations(selectedExamId);
+        
+        if (!isFirebaseErrorActive) {
+          stopAutoRefreshFallback();
+        }
+      }
+    }
+
+    function startAutoRefreshFallback(intervalMs) {
+      if (isFallbackPollingActive) return;
+      isFallbackPollingActive = true;
+      console.log("🔄 Fallback polling started (interval:", intervalMs, "ms)");
+      updateFirebaseStatusBadge();
+      
+      fallbackPollingTimer = setInterval(() => {
+        if (document.hidden) return;
+        const sel = document.getElementById('monitor-exam-select');
+        const examId = sel ? sel.value : '';
+        if (examId) {
+          refreshMonitoring(examId, true); // silent refresh
+        }
+      }, intervalMs || 15000);
+    }
+
+    function stopAutoRefreshFallback() {
+      if (!isFallbackPollingActive) return;
+      isFallbackPollingActive = false;
+      clearInterval(fallbackPollingTimer);
+      fallbackPollingTimer = null;
+      console.log("🔄 Fallback polling stopped");
+      updateFirebaseStatusBadge();
+    }
+
+    function renderFirebaseStatusBadge() {
+      if (!appData || !appData.firebaseUrl) {
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200" title="Firebase URL tidak aktif. Polling otomatis aktif.">
+            <span class="relative flex h-1.5 w-1.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+            </span>
+            🔄 POLLING ACTIVE
+          </span>
+        `;
+      }
+      if (isFirebaseErrorActive) {
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Firebase terhambat. Fallback polling otomatis aktif.">
+            <span class="relative flex h-1.5 w-1.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+            </span>
+            🔄 POLLING ACTIVE
+          </span>
+        `;
+      }
+      if (isFallbackPollingActive) {
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Koneksi real-time terhambat. Fallback polling otomatis aktif.">
+            <span class="relative flex h-1.5 w-1.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+            </span>
+            🔄 POLLING ACTIVE
+          </span>
+        `;
+      }
+      return `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Koneksi real-time Firebase aktif dan bekerja dengan sempurna.">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+          </span>
+          ⚡ LIVE
+        </span>
+      `;
+    }
+
+    function updateFirebaseStatusBadge() {
+      const container = document.getElementById('firebase-status-badge-container');
+      if (container) {
+        container.innerHTML = renderFirebaseStatusBadge();
       }
     }
 
@@ -7392,7 +7496,10 @@ ${dokToolbarHtml()}
                     <i data-lucide="monitor-check" class="w-5 h-5"></i>
                   </div>
                   <div>
-                    <h3 class="font-bold text-slate-900 text-lg">Monitoring CBT</h3>
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-bold text-slate-900 text-lg">Monitoring CBT</h3>
+                      <div id="firebase-status-badge-container">${renderFirebaseStatusBadge()}</div>
+                    </div>
                     <p class="text-xs text-slate-500">Pantau seluruh peserta secara real-time</p>
                   </div>
                 </div>
@@ -11281,7 +11388,7 @@ ${dokToolbarHtml()}
       if (autoRefreshEnabled) setTimeout(updateRefreshAgo, 1000);
     }
 
-    async function refreshMonitoring(examId) {
+    async function refreshMonitoring(examId, isSilent) {
       try {
         const oldSummary = appData.monitoring ? appData.monitoring.summary || {} : {};
         ['total','belumlogin','login','mengerjakan','submit','bermasalah'].forEach(k => {
@@ -11297,6 +11404,12 @@ ${dokToolbarHtml()}
         if (response.status !== 'success') throw new Error(response.message || 'Gagal refresh monitoring.');
         appData.monitoring = response.data;
         if (isSupervisorUser()) await loadSupervisorRoomContext(response.data?.selectedExamId || examId, true);
+        
+        // If Firebase is active and healthy, we can safely stop the fallback polling
+        if (firebaseDb && fbMonitoringRef && !isFirebaseErrorActive) {
+          stopAutoRefreshFallback();
+        }
+        
         syncFirebaseMonitoringBinding();
         try { checkMonitoringAlerts(appData.monitoring); } catch(e){}
         lastRefreshAt = Date.now();
@@ -11310,7 +11423,7 @@ ${dokToolbarHtml()}
         } else {
           renderDashboard();
         }
-        showToast('Data monitoring diperbarui', 'info');
+        if (!isSilent) showToast('Data monitoring diperbarui', 'info');
         // Sound alert for new problems
         const newBermasalah = response.data?.summary?.bermasalah || 0;
         if (monitorSoundEnabled && newBermasalah > previousBermasalah && previousBermasalah >= 0) {
@@ -11319,7 +11432,8 @@ ${dokToolbarHtml()}
         }
         previousBermasalah = newBermasalah;
       } catch (error) {
-        Swal.fire('Error', error.message, 'error');
+        if (!isSilent) Swal.fire('Error', error.message, 'error');
+        else console.warn("Background refresh monitoring failed:", error);
       }
     }
 
@@ -14449,7 +14563,7 @@ ${dokToolbarHtml()}
                   <td class="p-3 text-xs text-slate-600 whitespace-nowrap">${escapeHtml(kelas || '-')}</td>
                   <td class="p-3 text-xs text-slate-600 whitespace-nowrap">${escapeHtml(ruang || '-')}</td>
                   <td class="p-3 whitespace-nowrap"><span class="inline-flex items-center gap-1.5 text-xs font-bold ${isActive ? 'text-green-700' : 'text-slate-400'}"><span class="w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-slate-300'}"></span>${isActive ? 'Aktif' : 'Nonaktif'}</span></td>
-                  ${currentUserData.role === 'admin' ? `<td class="p-3 text-right sticky right-0 bg-white group-hover:bg-slate-50 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] z-10 w-[155px] min-w-[155px]"><div class="flex items-center justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity duration-200"><button onclick="promptAdminChangeUserPassword(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-600 transition-all"><i data-lucide="key-round" class="w-3 h-3"></i>Sandi</button><button onclick="showUserQrCodeModal(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 transition-all"><i data-lucide="qr-code" class="w-3 h-3"></i>QR</button></div></td>` : ''}
+                  ${currentUserData.role === 'admin' ? `<td class="p-3 text-right sticky right-0 bg-white group-hover:bg-slate-50 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] z-10 w-[155px] min-w-[155px]"><div class="flex items-center justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity duration-200"><button onclick="promptAdminChangeUserPassword(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-600 transition-all"><i data-lucide="key-round" class="w-3 h-3"></i>Sandi</button><button onclick="showUserQrCodeModal(this.dataset.user, this.dataset.role, this.dataset.nama, this.dataset.pass)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" data-pass="${escapeHtml(user.password || '')}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 transition-all"><i data-lucide="qr-code" class="w-3 h-3"></i>QR</button></div></td>` : ''}
                 </tr>`;
               }).join('') || '<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="users" class="w-10 h-10 mx-auto mb-2 opacity-30"></i><p class="font-bold">Belum ada data</p><p class="text-xs mt-1">Klik "Muat Data" untuk memuat akun pengguna.</p></td></tr>'}
             </tbody>
@@ -18316,9 +18430,9 @@ ${dokToolbarHtml()}
       }
     }
 
-    function showUserQrCodeModal(username, role, name) {
-      const defaultPassword = username;
-      const qrData = `CBT-QR:${username}:${defaultPassword}:${role}`;
+    function showUserQrCodeModal(username, role, name, userPassword) {
+      const plainPassword = userPassword || username;
+      const qrData = `CBT-QR:${username}:${plainPassword}:${role}`;
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}`;
       
       Swal.fire({
@@ -18332,8 +18446,8 @@ ${dokToolbarHtml()}
             <p class="text-xs text-slate-400 mt-4 leading-relaxed">Kartu ini berisi kredensial login otomatis.<br>Simpan berkas ini atau cetak untuk dibagikan ke peserta.</p>
             <div class="mt-4 p-3 bg-amber-50 border border-amber-100 text-[10px] text-amber-800 rounded-xl text-left leading-normal">
               <b>ℹ️ Informasi Penting:</b><br>
-              Secara default, QR Code ini digenerate menggunakan password = <u>username/NISN</u>.<br>
-              Jika peserta telah mengubah passwordnya secara mandiri, mereka tidak dapat menggunakan QR Code default ini dan wajib login manual.
+              QR Code ini menyimpan data login otomatis. Sandi yang tersemat: <span class="font-mono font-bold">${escapeHtml(plainPassword)}</span>.<br>
+              Jika peserta mengubah sandinya secara mandiri di kemudian hari, mereka harus login manual menggunakan sandi yang baru.
             </div>
           </div>
         `,
@@ -18559,6 +18673,7 @@ ${dokToolbarHtml()}
                   <div class="student-info">
                     <div class="info-row"><span class="info-label">Nama</span>: <span class="info-val font-bold">${escapeHtml(name)}</span></div>
                     <div class="info-row"><span class="info-label">Username</span>: <span class="info-val font-mono font-bold" style="color: ${design.themeColor};">${escapeHtml(username)}</span></div>
+                    <div class="info-row"><span class="info-label">Sandi</span>: <span class="info-val font-mono font-bold">${escapeHtml(plainPassword)}</span></div>
                     ${role === 'peserta' ? `
                       <div class="info-row"><span class="info-label">Kelas</span>: <span class="info-val">Peserta Ujian</span></div>
                     ` : `
@@ -18818,8 +18933,8 @@ ${dokToolbarHtml()}
         const username = textValue(u.user);
         const name = textValue(u.nama);
         const roleKey = normalizeRoleKey(u.role);
-        const defaultPassword = username;
-        const qrData = `CBT-QR:${username}:${defaultPassword}:${roleKey}`;
+        const plainPassword = textValue(u.password) || username;
+        const qrData = `CBT-QR:${username}:${plainPassword}:${roleKey}`;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=5&data=${encodeURIComponent(qrData)}`;
         const kls = textValue(u.kelas) || '-';
         const rng = textValue(u.ruang) || '-';
@@ -18842,6 +18957,7 @@ ${dokToolbarHtml()}
               <div class="student-info">
                 <div class="info-row"><span class="info-label">Nama</span>: <span class="info-val font-bold">${escapeHtml(name)}</span></div>
                 <div class="info-row"><span class="info-label">Username</span>: <span class="info-val font-mono font-bold" style="color: ${design.themeColor};">${escapeHtml(username)}</span></div>
+                <div class="info-row"><span class="info-label">Sandi</span>: <span class="info-val font-mono font-bold">${escapeHtml(plainPassword)}</span></div>
                 ${roleKey === 'peserta' ? `
                   <div class="info-row"><span class="info-label">No Ujian</span>: <span class="info-val font-mono">${escapeHtml(noUjian)}</span></div>
                   <div class="info-row"><span class="info-label">Kelas</span>: <span class="info-val">${escapeHtml(kls)}</span></div>
