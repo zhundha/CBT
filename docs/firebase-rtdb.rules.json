@@ -1,0 +1,59 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "status": {
+      ".read": false,
+      ".write": false
+    },
+    "status_public": {
+      "$examId": {
+        ".read": true,
+        ".indexOn": ["nisn", "status", "updatedAtMs"],
+        "$nisn": {
+          ".write": false
+        }
+      }
+    },
+    "broadcasts": {
+      "$examId": {
+        ".read": true,
+        ".write": false
+      }
+    },
+    "operations": {
+      "$examId": {
+        ".read": true,
+        ".write": false
+      }
+    },
+    "draft_answers": {
+      ".read": false,
+      ".write": false
+    },
+    "submissions": {
+      ".read": false,
+      ".write": false
+    },
+    "roster": {
+      ".read": false,
+      ".write": false
+    },
+    "sessions": {
+      ".read": false,
+      ".write": false
+    },
+    "active_sessions": {
+      ".read": false,
+      ".write": false
+    },
+    "devices": {
+      ".read": false,
+      ".write": false
+    },
+    "logs": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

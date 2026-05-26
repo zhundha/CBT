@@ -1,0 +1,11 @@
+nomor	tipe	pertanyaan	pilihanA	pilihanB	pilihanC	pilihanD	pilihanE	kunci	skorMaks
+1	PG	Contoh pertanyaan pilihan ganda nomor 1.	Pilihan A	Pilihan B	Pilihan C	Pilihan D	Pilihan E	A	1
+2	PG	Contoh pertanyaan pilihan ganda nomor 2.	Pilihan A	Pilihan B	Pilihan C	Pilihan D	Pilihan E	B	1
+3	PG	Contoh pertanyaan pilihan ganda nomor 3.	Pilihan A	Pilihan B	Pilihan C	Pilihan D	Pilihan E	C	1
+4	PG	Contoh pertanyaan pilihan ganda nomor 4.	Pilihan A	Pilihan B	Pilihan C	Pilihan D	Pilihan E	D	1
+5	PG	Contoh pertanyaan pilihan ganda nomor 5.	Pilihan A	Pilihan B	Pilihan C	Pilihan D	Pilihan E	E	1
+51	ESAI	Contoh pertanyaan esai nomor 51.							10
+52	ESAI	Contoh pertanyaan esai nomor 52.							10
+53	ESAI	Contoh pertanyaan esai nomor 53.							10
+54	ESAI	Contoh pertanyaan esai nomor 54.							10
+55	ESAI	Contoh pertanyaan esai nomor 55.							10

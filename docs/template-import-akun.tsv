@@ -1,0 +1,6 @@
+nama	user	password	kelas	role	ruang	status
+Peserta Contoh 1	0090000001	Rahasia123	XI PH	peserta	Ruang 1	aktif
+Peserta Contoh 2	0090000002	Rahasia123	XI TAV	peserta	Ruang 2	aktif
+Pengawas/Penguji Ruang 1	pengawas1	Rahasia123	Pengawas	pengawas	Ruang 1	aktif
+Guru Mapel	guru1	Rahasia123	Guru	guru	Semua	aktif
+Proktor Utama	proktor	Rahasia123	Proktor	proktor	Semua	aktif

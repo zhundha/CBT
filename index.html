@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>CBT SMK Ganesa Satria 4 Kedu</title>
 
-  <link rel="stylesheet" href="tailwind.generated.css?v=20260522-11">
+  <link rel="stylesheet" href="tailwind.generated.css?v=20260526-06">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -389,6 +389,13 @@
     }
     .sidebar-item.active i { color: #3b82f6; }
     .sidebar-divider { height: 1px; background: #e2e8f0; margin: 0.5rem 0; }
+    .staff-mobile-only { display: none; }
+    .staff-desktop-table { display: block; }
+    .staff-mobile-card,
+    .staff-mobile-summary,
+    .staff-mobile-actions {
+      box-sizing: border-box;
+    }
 
     /* ============================================
        EXAM IMMERSIVE MODE
@@ -2018,6 +2025,394 @@
       }
     }
 
+    @media (max-width: 768px) {
+      body.dashboard-active {
+        overflow-x: hidden;
+      }
+      #dashboard-view,
+      #staff-section-content {
+        min-width: 0;
+        overflow-x: clip;
+      }
+      .staff-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        min-height: auto;
+      }
+      .staff-content {
+        width: 100%;
+        min-width: 0;
+        padding-bottom: calc(6.25rem + env(safe-area-inset-bottom));
+      }
+      .staff-sidebar {
+        position: fixed;
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 45;
+        width: 100%;
+        min-height: 72px;
+        max-height: none;
+        padding: 0.45rem 0.55rem;
+        padding-bottom: max(0.45rem, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(148,163,184,0.28);
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(18px) saturate(1.45);
+        -webkit-backdrop-filter: blur(18px) saturate(1.45);
+        box-shadow: 0 -12px 32px rgba(15,23,42,0.10);
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .staff-sidebar::-webkit-scrollbar { display: none; }
+      .staff-sidebar > div {
+        display: flex;
+        gap: 0.35rem;
+        min-width: 100%;
+        width: max-content;
+      }
+      .sidebar-item {
+        flex: 1 0 72px;
+        min-width: 72px;
+        min-height: 54px;
+        justify-content: center;
+        align-items: center;
+        gap: 0.2rem;
+        padding: 0.42rem 0.38rem;
+        border-radius: 15px;
+        text-align: center;
+        white-space: normal;
+      }
+      .sidebar-item span {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 72px;
+        line-height: 1.15;
+        font-size: 0.58rem;
+      }
+      .sidebar-item i {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+      .welcome-card.staff-welcome-card {
+        margin-bottom: 0.75rem;
+        padding: 0.95rem !important;
+      }
+      .staff-welcome-card h2 {
+        max-width: 100%;
+        font-size: 1rem;
+        line-height: 1.25;
+      }
+      .staff-welcome-card .staff-welcome-meta {
+        font-size: 0.72rem;
+        line-height: 1.35;
+      }
+      .staff-welcome-card .staff-refresh-row {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid rgba(148,163,184,0.18);
+        padding-top: 0.65rem;
+      }
+      .staff-mobile-only { display: block; }
+      .staff-desktop-table { display: none !important; }
+      .staff-mobile-summary {
+        margin-bottom: 0.85rem;
+        border: 1px solid rgba(255,255,255,0.62);
+        border-radius: 18px;
+        background: rgba(255,255,255,0.82);
+        box-shadow: var(--shadow-card), var(--glass-highlight);
+        padding: 0.9rem;
+      }
+      .staff-mobile-summary-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+      .staff-mobile-summary-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+      .staff-mobile-summary-exam {
+        margin-top: 0.2rem;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.25;
+      }
+      .staff-mobile-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .staff-mobile-stat {
+        min-width: 0;
+        border: 1px solid rgba(148,163,184,0.20);
+        border-radius: 14px;
+        background: rgba(248,250,252,0.86);
+        padding: 0.55rem;
+      }
+      .staff-mobile-stat span {
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 800;
+        color: #64748b;
+        line-height: 1.15;
+      }
+      .staff-mobile-stat b {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 1.18rem;
+        line-height: 1;
+        color: #0f172a;
+      }
+      .staff-mobile-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.45rem;
+        margin-top: 0.75rem;
+      }
+      .staff-mobile-action {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        border-radius: 14px;
+        border: 1px solid rgba(148,163,184,0.24);
+        background: #fff;
+        padding: 0.55rem 0.45rem;
+        color: #334155;
+        font-size: 0.68rem;
+        font-weight: 800;
+        line-height: 1.1;
+        text-align: center;
+      }
+      .staff-mobile-action.primary {
+        border-color: rgba(59,130,246,0.24);
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .staff-monitor-controls,
+      .staff-toolbar-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+      }
+      .staff-monitor-controls select,
+      .staff-toolbar-actions select {
+        width: 100%;
+        min-height: 44px;
+      }
+      .staff-monitor-controls > *,
+      .staff-toolbar-actions > * {
+        width: 100%;
+      }
+      .staff-monitor-controls button,
+      .staff-toolbar-actions button {
+        justify-content: center;
+        min-height: 44px;
+      }
+      .staff-monitor-view-toggle {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+      .staff-monitor-view-toggle button {
+        min-height: 40px;
+      }
+      #monitor-panel .flex.flex-wrap.items-center.gap-6 {
+        align-items: stretch;
+        gap: 0.8rem;
+      }
+      #monitor-panel .flex-shrink-0 {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+      #monitor-panel .grid.grid-cols-2 {
+        gap: 0.5rem;
+      }
+      .room-filter-card {
+        min-height: 84px;
+      }
+      .filter-scroll {
+        display: flex;
+        gap: 0.45rem;
+        overflow-x: auto;
+        padding-bottom: 0.2rem;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important;
+      }
+      .filter-scroll::-webkit-scrollbar { display: none; }
+      .filter-scroll .filter-pill {
+        flex: 0 0 auto;
+        min-height: 36px;
+      }
+      .staff-mobile-card-list {
+        display: grid;
+        gap: 0.7rem;
+      }
+      .staff-mobile-card {
+        border: 1px solid rgba(148,163,184,0.22);
+        border-radius: 17px;
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 22px rgba(15,23,42,0.05);
+        padding: 0.82rem;
+        overflow: hidden;
+      }
+      .staff-mobile-card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.7rem;
+      }
+      .staff-mobile-card-title {
+        min-width: 0;
+        font-size: 0.88rem;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.22;
+      }
+      .staff-mobile-card-subtitle {
+        margin-top: 0.18rem;
+        color: #64748b;
+        font-size: 0.68rem;
+        font-weight: 650;
+        line-height: 1.3;
+      }
+      .staff-mobile-card-meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.42rem;
+        margin-top: 0.7rem;
+      }
+      .staff-mobile-meta-cell {
+        min-width: 0;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 0.48rem;
+      }
+      .staff-mobile-meta-cell span {
+        display: block;
+        color: #64748b;
+        font-size: 0.55rem;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0;
+        line-height: 1.1;
+      }
+      .staff-mobile-meta-cell b {
+        display: block;
+        margin-top: 0.18rem;
+        color: #0f172a;
+        font-size: 0.72rem;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .staff-card-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+        margin-top: 0.7rem;
+      }
+      .staff-card-action {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        border-radius: 13px;
+        border: 1px solid rgba(148,163,184,0.28);
+        background: #fff;
+        padding: 0.55rem 0.5rem;
+        color: #334155;
+        font-size: 0.68rem;
+        font-weight: 850;
+        line-height: 1.1;
+        text-align: center;
+      }
+      .staff-card-action.primary {
+        border-color: rgba(59,130,246,0.25);
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .staff-card-action.success {
+        border-color: rgba(16,185,129,0.24);
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .staff-card-action.warning {
+        border-color: rgba(245,158,11,0.28);
+        background: #fffbeb;
+        color: #b45309;
+      }
+      .staff-card-action.danger {
+        border-color: rgba(244,63,94,0.24);
+        background: #fff1f2;
+        color: #be123c;
+      }
+      .staff-practical-note,
+      .staff-mobile-card textarea,
+      .staff-mobile-card input,
+      .staff-mobile-card select {
+        width: 100%;
+        min-height: 44px;
+        border-radius: 13px;
+      }
+      .staff-essay-list {
+        max-height: none !important;
+        overflow: visible !important;
+        padding-right: 0 !important;
+      }
+      .staff-essay-card {
+        padding: 0.85rem !important;
+      }
+      .staff-essay-actions {
+        display: grid !important;
+        grid-template-columns: minmax(84px, 0.42fr) 1fr;
+      }
+      .staff-report-card-grid {
+        display: grid;
+        gap: 0.65rem;
+      }
+      .staff-report-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.35rem;
+        margin-top: 0.6rem;
+      }
+      .staff-report-metric {
+        border-radius: 11px;
+        background: #f8fafc;
+        padding: 0.42rem;
+        text-align: center;
+      }
+      .staff-report-metric span {
+        display: block;
+        color: #64748b;
+        font-size: 0.52rem;
+        font-weight: 850;
+        line-height: 1.1;
+      }
+      .staff-report-metric b {
+        display: block;
+        margin-top: 0.16rem;
+        color: #0f172a;
+        font-size: 0.92rem;
+        line-height: 1;
+      }
+    }
+
     @media (max-width: 390px) {
       #loginForm [role="tablist"] {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2040,6 +2435,9 @@
     }
 
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="min-h-screen text-slate-800">
   <div class="ambient-blob b1"></div>
@@ -2190,9 +2588,46 @@
             <i data-lucide="log-in" class="w-5 h-5"></i>
           </button>
 
+          <button id="btn-qr-scan" type="button" class="w-full mt-2 inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-xl border border-slate-700 transition shadow-lg">
+            <i data-lucide="qr-code" class="w-5 h-5"></i>
+            <span>Masuk dengan QR Code</span>
+          </button>
+
+          <!-- QR Scanner Overlay Modal -->
+          <div id="qr-scan-modal" class="fixed inset-0 z-50 hidden bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-slate-100 relative">
+              <button id="btn-close-qr" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+              <div class="text-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Scan Kartu QR CBT</h3>
+                <p class="text-xs text-slate-500 mt-1">Arahkan kartu QR Anda ke kamera untuk masuk secara otomatis.</p>
+              </div>
+              <!-- Camera Viewport -->
+              <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 aspect-video relative flex items-center justify-center">
+                <div id="qr-scanner-viewport" class="w-full h-full"></div>
+                <!-- Overlay Guide Box -->
+                <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div class="w-40 h-40 border-2 border-indigo-500 rounded-2xl shadow-[0_0_0_9999px_rgba(15,23,42,0.6)] relative">
+                    <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-indigo-400"></div>
+                    <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-indigo-400"></div>
+                    <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-indigo-400"></div>
+                    <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-indigo-400"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 flex justify-center">
+                <button id="btn-switch-camera" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  <span>Ganti Kamera</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260525-07</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260526-06</span></div>
           </div>
         </form>
       </div>
@@ -2289,7 +2724,7 @@
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260525-07';
+    const APP_VERSION = '20260526-06';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -2338,10 +2773,24 @@
       }
     });
     let practicalData = null;
+    let operationsCommandCenterCache = null;
+    let teacherWorkQueueCache = null;
     let activeExam = null;
     let loadedUsersData = null;
     let activeQuestions = [];
     let answers = {};
+    
+    // Firebase Real-time Global Variables
+    let firebaseApp = null;
+    let firebaseDb = null;
+    let fbMonitoringRef = null;
+    let fbStudentStatusRef = null;
+    let fbBroadcastRef = null;
+    let fbOperationsRef = null;
+    let fbMonitoringExamId = '';
+    let fbOperationsExamId = '';
+    let fbLastOperationsEvent = '';
+    let fbMonitoringRenderTimer = null;
     let currentQuestionIndex = 0;
     let visitedQuestions = new Set();
     let autosaveInterval = null;
@@ -2367,6 +2816,11 @@
     let loginParticles = null;
     const BOOT_TOTAL_STEPS = 7;
     let activeStaffSection = 'overview';
+    let supervisorWizardCompleted = false;
+    let supervisorWizardActive = false;
+    let supervisorSelectedExamId = '';
+    let supervisorRoomContext = null;
+    const SUPERVISOR_SELECTED_EXAM_KEY = 'cbt_supervisor_selected_exam_v1';
     let previousMetrics = {};
     let autoRefreshEnabled = false;
     let autoRefreshTimer = null;
@@ -2379,6 +2833,7 @@
     let masterVisibleLimit = 300;
     let qbankVisibleLimit = 120;
     let essayVisibleLimit = 80;
+    let essayClassFilter = '';
     const BIG_TABLE_RENDER_BATCH = 200;
     const QBANK_RENDER_BATCH = 120;
     let participantSort = { col: '', asc: true };
@@ -2468,6 +2923,58 @@
       ]);
     }
 
+    const DEFAULT_EXAM_ROOMS = [
+      'Ruang 1', 'Ruang 2', 'Ruang 3', 'Ruang 4', 'Ruang 5', 'Ruang 6',
+      'Ruang 7', 'Ruang 8', 'Ruang 9', 'Ruang 10', 'Ruang 11', 'Ruang 12'
+    ];
+    const DEFAULT_CLASS_ROOMS = ['Ruang Kelas X', 'Ruang Kelas XI', 'Ruang Kelas XII'];
+    const DEFAULT_WORKSHOP_ROOMS = ['Bengkel Perhotelan', 'Bengkel TAV', 'Bengkel TKR', 'Bengkel TSM'];
+
+    function getMasterRoomValues() {
+      return activeMasterRows('ruang').map(row => row.nama || row.kode).filter(Boolean);
+    }
+
+    function getScheduleRuangGroups() {
+      const masterRooms = getMasterRoomValues();
+      const isExamRoom = value => /^Ruang\s+\d+$/i.test(textValue(value));
+      const isClassRoom = value => /^Ruang\s+Kelas\b/i.test(textValue(value));
+      const isWorkshopRoom = value => /^Bengkel\b/i.test(textValue(value)) || DEFAULT_WORKSHOP_ROOMS.includes(textValue(value));
+      const grouped = new Set([...DEFAULT_EXAM_ROOMS, ...DEFAULT_CLASS_ROOMS, ...DEFAULT_WORKSHOP_ROOMS]);
+      const groups = [
+        { label: 'Ruang Ujian', icon: 'door-open', rooms: uniqueSorted([...DEFAULT_EXAM_ROOMS, ...masterRooms.filter(isExamRoom)]) },
+        { label: 'Ruang Kelas', icon: 'school', rooms: uniqueSorted([...DEFAULT_CLASS_ROOMS, ...masterRooms.filter(isClassRoom)]) },
+        { label: 'Ruang Bengkel', icon: 'wrench', rooms: uniqueSorted([...DEFAULT_WORKSHOP_ROOMS, ...masterRooms.filter(isWorkshopRoom)]) }
+      ];
+      const otherRooms = uniqueSorted(masterRooms.filter(room => {
+        const value = textValue(room);
+        return !grouped.has(value) && !isExamRoom(value) && !isClassRoom(value) && !isWorkshopRoom(value);
+      }));
+      if (otherRooms.length) groups.push({ label: 'Ruang Lainnya', icon: 'map-pin', rooms: otherRooms });
+      return groups.filter(group => group.rooms.length);
+    }
+
+    function getScheduleRuangOptions() {
+      return uniqueSorted(getScheduleRuangGroups().flatMap(group => group.rooms));
+    }
+
+    function renderScheduleRoomCheckboxGroups(groups) {
+      return groups.map(group => `
+        <div class="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+          <div class="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-black uppercase tracking-wide text-slate-500">
+            <i data-lucide="${escapeHtml(group.icon)}" class="h-3.5 w-3.5"></i>${escapeHtml(group.label)}
+          </div>
+          <div class="space-y-0.5">
+            ${group.rooms.map(room => `
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer transition-colors">
+                <input type="checkbox" value="${escapeHtml(room)}" class="schedule-ruang-cb rounded text-blue-600" onchange="document.querySelector('.schedule-ruang-cb[value=Semua]').checked=false;syncRuangCheckboxes()">
+                <span class="text-sm">${escapeHtml(room)}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
     function getScheduleGuruOptions() {
       return uniqueSorted([
         ...activeMasterRows('guru').map(masterDisplayValue),
@@ -2518,6 +3025,7 @@
     function getMasterOptionValues(type, fallbackValues = []) {
       const fromMaster = activeMasterRows(type).map(row => {
         if (String(type).toLowerCase() === 'guru') return masterDisplayValue(row);
+        if (String(type).toLowerCase() === 'ruang') return row.nama || row.kode;
         return row.kode || row.nama;
       });
       return uniqueSorted([...fromMaster, ...fallbackValues]);
@@ -5346,6 +5854,7 @@ ${dokToolbarHtml()}
       updateBootProgress(2, 'Loading UI...');
       addBootLog('UI', 'Binding interface components...');
       bindLoginRoleTabs();
+      bindLoginQrScanner();
       bindPasswordToggle();
       bindLoginInputUx();
       updateAppVersionLabels();
@@ -5383,6 +5892,7 @@ ${dokToolbarHtml()}
             updateBootProgress(6, 'Connecting to server...');
             addBootLog('NET', 'Establishing backend handshake...');
             currentUserData = stored.user;
+            resetSupervisorWizardForLogin();
             const cachedBootstrap = readBootstrapCache();
             if (cachedBootstrap) {
               appData = cachedBootstrap;
@@ -5490,6 +6000,7 @@ ${dokToolbarHtml()}
         setLoginServerStatus('online', 'Login berhasil');
         showLoginFeedback('success', 'Login berhasil', 'Menyiapkan dashboard...', null);
         currentUserData = response.data;
+        resetSupervisorWizardForLogin();
         persistSession();
         setScreenVisibility('login-section', false);
         
@@ -5535,6 +6046,274 @@ ${dokToolbarHtml()}
       renderShell();
     }
 
+    
+    // ====================================================================
+    // FIREBASE EVENT-DRIVEN REAL-TIME FUNCTIONS (OPTI 1 POTENTIALS)
+    // ====================================================================
+
+    function firebasePathKey(value) {
+      return String(value || '').replace(/[.#$/\[\]]/g, '_');
+    }
+
+    function initFirebase(url) {
+      if (!url || firebaseDb) return;
+      try {
+        firebaseApp = firebase.initializeApp({ databaseURL: url });
+        firebaseDb = firebase.database();
+        console.log("🔥 Firebase Realtime Database initialized successfully at:", url);
+      } catch (err) {
+        console.warn("Failed to initialize Firebase:", err);
+      }
+    }
+
+    function unbindFirebaseStudentRealtime() {
+      if (fbStudentStatusRef) {
+        fbStudentStatusRef.off();
+        fbStudentStatusRef = null;
+      }
+      if (fbBroadcastRef) {
+        fbBroadcastRef.off();
+        fbBroadcastRef = null;
+      }
+    }
+
+    function unbindFirebaseRealtime() {
+      if (fbMonitoringRef) {
+        fbMonitoringRef.off();
+        fbMonitoringRef = null;
+      }
+      if (fbOperationsRef) {
+        fbOperationsRef.off();
+        fbOperationsRef = null;
+      }
+      fbMonitoringExamId = '';
+      fbOperationsExamId = '';
+      window.clearTimeout(fbMonitoringRenderTimer);
+      fbMonitoringRenderTimer = null;
+      unbindFirebaseStudentRealtime();
+    }
+
+    function playBroadcastAlertChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playTone = (freq, startTime, duration) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime);
+          gain.gain.setValueAtTime(0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + duration);
+        };
+        // Sweet luxury doorbell chime (G5 -> C6)
+        playTone(784, ctx.currentTime, 1.2);
+        playTone(1046, ctx.currentTime + 0.25, 1.5);
+      } catch (err) {
+        console.warn("Audio chime failed:", err);
+      }
+    }
+
+    function recalculateMonitoringSummary() {
+      if (!appData.monitoring || !appData.monitoring.participants) return;
+      const participants = appData.monitoring.participants;
+      const summary = { total: participants.length, belumLogin: 0, login: 0, mengerjakan: 0, submit: 0, bermasalah: 0 };
+      
+      participants.forEach(function(item) {
+        var status = String(item.status || "").toLowerCase();
+        if (status === "belum login") summary.belumLogin++;
+        else if (status === "submit") summary.submit++;
+        else if (status.indexOf("masalah") !== -1 || status.indexOf("kunci") !== -1 || status.indexOf("lock") !== -1 || item.lockedReason || item.tabKeluar >= 3 || item.fullscreenExit > 0 || item.screenshotAttempt > 0) summary.bermasalah++;
+        else if (status.indexOf("mengerjakan") !== -1 || status.indexOf("aktif") !== -1) {
+          summary.mengerjakan++;
+          summary.login++;
+        } else {
+          summary.login++;
+        }
+      });
+      appData.monitoring.summary = summary;
+    }
+
+    function applyFirebaseStatusRowToMonitoring(childKey, fbRow) {
+      if (!fbRow || !appData.monitoring || !Array.isArray(appData.monitoring.participants)) return false;
+      const lookupKey = firebasePathKey(fbRow.nisn || childKey);
+      const participant = appData.monitoring.participants.find(p => firebasePathKey(p.nisn) === lookupKey || String(p.nisn || '') === String(fbRow.nisn || ''));
+      if (!participant) return false;
+
+      const totalCount = Number(fbRow.totalCount || participant.totalCount || 0);
+      const answeredCount = Number(fbRow.answeredCount || participant.answeredCount || 0);
+      const next = {
+        status: fbRow.status || participant.status || 'Sedang mengerjakan',
+        progress: Number(fbRow.progress !== undefined ? fbRow.progress : (totalCount ? Math.round((answeredCount / totalCount) * 100) : participant.progress || 0)),
+        sisaDetik: Number(fbRow.sisaDetik || participant.sisaDetik || 0),
+        tabKeluar: Number(fbRow.tabKeluar || fbRow.tab_keluar || 0),
+        fullscreenExit: Number(fbRow.fullscreenExit || fbRow.fullscreen_exit || 0),
+        screenshotAttempt: Number(fbRow.screenshotAttempt || fbRow.screenshot_attempt || 0),
+        lockedReason: fbRow.lockedReason || fbRow.locked_reason || '',
+        answeredCount: answeredCount,
+        totalCount: totalCount,
+        updatedAt: fbRow.updatedAt || fbRow.updatedAtMs || participant.updatedAt || ''
+      };
+
+      let changed = false;
+      Object.keys(next).forEach(key => {
+        if (participant[key] !== next[key]) {
+          participant[key] = next[key];
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
+    function scheduleFirebaseMonitoringRender() {
+      recalculateMonitoringSummary();
+      if (activeStaffSection !== 'monitor') return;
+      window.clearTimeout(fbMonitoringRenderTimer);
+      fbMonitoringRenderTimer = window.setTimeout(() => {
+        const contentEl = document.getElementById('staff-section-content');
+        if (!contentEl || activeStaffSection !== 'monitor') return;
+        contentEl.innerHTML = renderStaffSection('monitor');
+        bindDashboardEvents();
+        refreshIcons();
+      }, 250);
+    }
+
+    function bindFirebaseMonitoring(examId) {
+      if (!firebaseDb || !examId) return;
+      const examKey = firebasePathKey(examId);
+      if (fbMonitoringRef && fbMonitoringExamId === examKey) return;
+      if (fbMonitoringRef) {
+        fbMonitoringRef.off();
+      }
+      
+      console.log("📡 Subscribing to real-time status in Firebase for exam:", examId);
+      fbMonitoringExamId = examKey;
+      fbMonitoringRef = firebaseDb.ref("status_public/" + examKey);
+      const handleStatusChild = function(snapshot) {
+        if (applyFirebaseStatusRowToMonitoring(snapshot.key, snapshot.val())) {
+          scheduleFirebaseMonitoringRender();
+        }
+      };
+      const handleFirebaseError = function(error) {
+        console.warn("Firebase monitoring listener blocked or failed:", error);
+      };
+      fbMonitoringRef.on("child_added", handleStatusChild, handleFirebaseError);
+      fbMonitoringRef.on("child_changed", handleStatusChild, handleFirebaseError);
+    }
+
+    function bindFirebaseOperations(examId) {
+      const role = normalizeRoleKey(currentUserData && currentUserData.role);
+      if (!firebaseDb || !examId || !['admin', 'proktor', 'executive', 'pengawas'].includes(role)) return;
+      const examKey = firebasePathKey(examId);
+      if (fbOperationsRef && fbOperationsExamId === examKey) return;
+      if (fbOperationsRef) fbOperationsRef.off();
+      fbOperationsExamId = examKey;
+      fbOperationsRef = firebaseDb.ref("operations/" + examKey + "/latest");
+      fbOperationsRef.on("value", snapshot => {
+        const eventData = snapshot.val();
+        if (!eventData || !eventData.timestamp) return;
+        const eventKey = String(eventData.timestamp) + "_" + String(eventData.type || "");
+        if (eventKey === fbLastOperationsEvent) return;
+        fbLastOperationsEvent = eventKey;
+        const payload = eventData.payload || {};
+        if (role === 'pengawas' && payload.ruang && String(payload.ruang) !== String(currentUserData.ruang || '')) return;
+        if (eventData.type === 'kendala' || eventData.type === 'kendala_status') {
+          showToast(role === 'pengawas' ? 'Keputusan/ update kendala ruang diterima' : 'Update kendala operasional diterima', 'warning');
+        } else if (eventData.type === 'supervisor_session') {
+          showToast('Update sesi pengawas diterima', 'info');
+        }
+        if (activeStaffSection === 'overview') {
+          loadOperationsCommandCenter(true).catch(() => {});
+        }
+        if (role === 'pengawas') {
+          loadSupervisorRoomContext(examId, true).then(() => {
+            if (activeStaffSection === 'monitor' || activeStaffSection === 'praktik') rerenderActiveStaffSection();
+          }).catch(() => {});
+        }
+      }, error => console.warn("Firebase operations listener blocked or failed:", error));
+    }
+
+    function bindFirebaseStudentStatus(examId, nisn) {
+      if (!firebaseDb || !examId || !nisn) return;
+      if (fbStudentStatusRef) fbStudentStatusRef.off();
+      
+      console.log("📡 Subscribing to student lock status in Firebase for:", nisn);
+      fbStudentStatusRef = firebaseDb.ref("status_public/" + firebasePathKey(examId) + "/" + firebasePathKey(nisn));
+      fbStudentStatusRef.on("value", function(snapshot) {
+        const statusData = snapshot.val();
+        if (!statusData) return;
+        
+        const isLocked = String(statusData.status || "").toLowerCase().includes("kunci") || !!statusData.lockedReason || !!statusData.locked_reason;
+        const reason = statusData.lockedReason || statusData.locked_reason || "Ujian dikunci";
+        
+        if (isLocked) {
+          if (!isPermanentlyLocked) {
+            triggerPermanentLockScreen(reason);
+          }
+        } else {
+          if (isPermanentlyLocked) {
+            dismissPermanentLockScreen();
+            showToast("🔓 Ujian Anda telah dibuka oleh pengawas!", "success");
+          }
+        }
+      });
+    }
+
+    function bindFirebaseBroadcast(examId) {
+      if (!firebaseDb || !examId) return;
+      if (fbBroadcastRef) fbBroadcastRef.off();
+      
+      console.log("📡 Subscribing to exam broadcasts in Firebase for exam:", examId);
+      fbBroadcastRef = firebaseDb.ref("broadcasts/" + firebasePathKey(examId));
+      fbBroadcastRef.on("value", function(snapshot) {
+        const broadcastData = snapshot.val();
+        if (!broadcastData || !broadcastData.message) return;
+        
+        const lastBroadcastTime = localStorage.getItem("cbt_last_broadcast_" + examId) || "";
+        const currentBroadcastTime = String(broadcastData.timestamp || "");
+        
+        if (currentBroadcastTime && currentBroadcastTime !== lastBroadcastTime) {
+          localStorage.setItem("cbt_last_broadcast_" + examId, currentBroadcastTime);
+          playBroadcastAlertChime();
+          Swal.fire({
+            title: '📢 PENGUMUMAN PENTING',
+            html: `<div class="text-left text-sm text-slate-700 bg-blue-50/80 p-4 rounded-xl border border-blue-200">${escapeHtml(broadcastData.message)}</div>`,
+            icon: 'info',
+            confirmButtonText: 'Saya Mengerti',
+            customClass: {
+              confirmButton: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition',
+              popup: 'rounded-2xl border border-slate-100 shadow-2xl'
+            }
+          });
+        }
+      });
+    }
+
+    function syncFirebaseMonitoringBinding() {
+      if (!firebaseDb || !currentUserData || isParticipantRole(currentUserData.role)) {
+        if (fbMonitoringRef) {
+          fbMonitoringRef.off();
+          fbMonitoringRef = null;
+          fbMonitoringExamId = '';
+        }
+        if (fbOperationsRef) {
+          fbOperationsRef.off();
+          fbOperationsRef = null;
+          fbOperationsExamId = '';
+        }
+        return;
+      }
+      const selectedExamId = (appData && appData.monitoring && appData.monitoring.selectedExamId)
+        || (document.getElementById('monitor-exam-select') && document.getElementById('monitor-exam-select').value)
+        || '';
+      if (selectedExamId) {
+        bindFirebaseMonitoring(selectedExamId);
+        bindFirebaseOperations(selectedExamId);
+      }
+    }
+
     function renderShell() {
       document.getElementById('display-nama').textContent = currentUserData.nama;
       document.getElementById('display-role').textContent = roleLabel(currentUserData.role);
@@ -5547,12 +6326,19 @@ ${dokToolbarHtml()}
         changePasswordBtn.classList.add('hidden');
       }
 
+      // Inisialisasi Firebase secara dinamis jika dikonfigurasi di backend
+      if (appData && appData.firebaseUrl) {
+        initFirebase(appData.firebaseUrl);
+      }
+
       renderDashboard();
       refreshIcons();
+      queueSupervisorWizard();
     }
 
     function showDashboard() {
       stopExamTimers();
+      unbindFirebaseStudentRealtime();
       activeExam = null;
       disableExamLockdown();
       document.getElementById('exam-view').classList.add('hidden');
@@ -5568,6 +6354,7 @@ ${dokToolbarHtml()}
         bindDashboardEvents();
         refreshIcons();
       });
+      syncFirebaseMonitoringBinding();
     }
 
     function renderStudentDashboard() {
@@ -6097,6 +6884,7 @@ ${dokToolbarHtml()}
       const monitoring = appData.monitoring || { exams: appData.exams || [], participants: [], summary: {} };
       const summary = monitoring.summary || {};
       const menuItems = getStaffMenuItems();
+      const roleKey = normalizeRoleKey(currentUserData.role);
       if (!menuItems.find(m => m.key === activeStaffSection)) activeStaffSection = menuItems[0]?.key || 'monitor';
       const sidebarHtml = `
         <nav class="staff-sidebar" role="navigation" aria-label="Staff navigation">
@@ -6105,13 +6893,13 @@ ${dokToolbarHtml()}
           </div>
         </nav>`;
       const welcomeHtml = `
-        <div class="welcome-card fade-slide-in mb-5">
+        <div class="welcome-card staff-welcome-card fade-slide-in mb-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-xl font-bold text-slate-800">${getGreeting()} ${escapeHtml(currentUserData.nama)}</h2>
-              <p class="text-sm text-slate-500 mt-0.5">${escapeHtml(roleLabel(currentUserData.role))} ${escapeHtml(currentUserData.ruang || '')} &middot; ${formatDate()}</p>
+              <p class="staff-welcome-meta text-sm text-slate-500 mt-0.5">${escapeHtml(roleLabel(currentUserData.role))} ${escapeHtml(currentUserData.ruang || '')} &middot; ${formatDate()}</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="staff-refresh-row flex items-center gap-2">
               <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 cursor-pointer">
                 <input type="checkbox" id="auto-refresh-toggle" ${autoRefreshEnabled ? 'checked' : ''} class="rounded"> Auto-refresh
               </label>
@@ -6119,16 +6907,422 @@ ${dokToolbarHtml()}
             </div>
           </div>
         </div>`;
+      const mobileSummaryHtml = renderStaffMobileDashboardSummary(monitoring);
       const contentHtml = renderStaffSection(activeStaffSection, monitoring);
       return `
-        <div class="staff-layout">
+        <div class="staff-layout staff-role-${escapeHtml(roleKey)}">
           ${sidebarHtml}
           <div class="staff-content">
             ${welcomeHtml}
+            ${mobileSummaryHtml}
             <div id="staff-section-content" class="fade-slide-in">${contentHtml}</div>
           </div>
         </div>
       `;
+    }
+
+    function renderStaffMobileDashboardSummary(monitoring) {
+      const role = normalizeRoleKey(currentUserData && currentUserData.role);
+      if (!['pengawas', 'guru', 'proktor'].includes(role)) return '';
+      const summary = monitoring?.summary || {};
+      const exams = monitoring?.exams || appData?.exams || [];
+      const selectedExam = exams.find(exam => exam.examId === monitoring?.selectedExamId) || exams[0] || {};
+      const title = role === 'pengawas' ? 'Panel Pengawas Mobile' : role === 'proktor' ? 'Panel Proktor Mobile' : 'Panel Guru Mobile';
+      const examTitle = selectedExam.mapel ? examOptionLabel(selectedExam) : 'Belum ada jadwal aktif';
+      const actions = role === 'pengawas'
+        ? [
+            { section: 'monitor', label: 'Pantau', icon: 'monitor-check', primary: true },
+            { section: 'praktik', label: 'Praktik', icon: 'clipboard-list' },
+            { section: 'laporan', label: 'Laporan', icon: 'file-text' }
+          ]
+        : role === 'proktor'
+        ? [
+            { section: 'overview', label: 'Kendali', icon: 'layout-dashboard', primary: true },
+            { section: 'monitor', label: 'Pantau', icon: 'monitor-check' },
+            { section: 'audit', label: 'Kendala', icon: 'message-square-warning' }
+          ]
+        : [
+            { section: 'monitor', label: 'Pantau', icon: 'monitor-check', primary: true },
+            { section: 'nilai', label: 'Nilai', icon: 'table-2' },
+            { section: 'laporan', label: 'Laporan', icon: 'file-text' }
+          ];
+      return `
+        <section class="staff-mobile-only staff-mobile-summary">
+          <div class="staff-mobile-summary-head">
+            <div class="min-w-0">
+              <p class="staff-mobile-summary-title">${escapeHtml(title)}</p>
+              <p class="staff-mobile-summary-exam">${escapeHtml(examTitle)}</p>
+            </div>
+            <button type="button" id="btn-refresh-monitor-mobile" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700" onclick="refreshMonitoring(document.getElementById('monitor-exam-select')?.value || '${escapeHtml(monitoring?.selectedExamId || '')}')">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="staff-mobile-stat-grid">
+            <div class="staff-mobile-stat"><span>Total</span><b>${Number(summary.total || 0)}</b></div>
+            <div class="staff-mobile-stat"><span>Aktif</span><b>${Number(summary.login || 0) + Number(summary.mengerjakan || 0)}</b></div>
+            <div class="staff-mobile-stat"><span>Submit</span><b>${Number(summary.submit || 0)}</b></div>
+            <div class="staff-mobile-stat"><span>Belum</span><b>${Number(summary.belumLogin || 0)}</b></div>
+            <div class="staff-mobile-stat"><span>Masalah</span><b>${Number(summary.bermasalah || 0)}</b></div>
+            <div class="staff-mobile-stat"><span>Ujian</span><b>${Number(exams.length || 0)}</b></div>
+          </div>
+          <div class="staff-mobile-actions">
+            ${actions.map(action => `<button type="button" class="staff-mobile-action admin-nav-action ${action.primary ? 'primary' : ''}" data-section="${escapeHtml(action.section)}"><i data-lucide="${escapeHtml(action.icon)}" class="w-4 h-4"></i>${escapeHtml(action.label)}</button>`).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function isSupervisorUser() {
+      return normalizeRoleKey(currentUserData && currentUserData.role) === 'pengawas';
+    }
+
+    function getSupervisorStoredExamId() {
+      try {
+        const key = `${SUPERVISOR_SELECTED_EXAM_KEY}_${currentUserData?.user || 'user'}`;
+        return sessionStorage.getItem(key) || '';
+      } catch (error) {
+        return '';
+      }
+    }
+
+    function setSupervisorStoredExamId(examId) {
+      supervisorSelectedExamId = examId || '';
+      try {
+        const key = `${SUPERVISOR_SELECTED_EXAM_KEY}_${currentUserData?.user || 'user'}`;
+        if (examId) sessionStorage.setItem(key, examId);
+        else sessionStorage.removeItem(key);
+      } catch (error) {}
+    }
+
+    function resetSupervisorWizardForLogin() {
+      supervisorWizardCompleted = false;
+      supervisorWizardActive = false;
+      supervisorRoomContext = null;
+      supervisorSelectedExamId = getSupervisorStoredExamId();
+    }
+
+    function getSupervisorExamOptions() {
+      return (appData?.monitoring?.exams || appData?.exams || []).filter(exam => {
+        if (!isSupervisorUser()) return false;
+        return listMatchesText(exam.ruang, currentUserData.ruang);
+      });
+    }
+
+    function listMatchesText(listText, value) {
+      const target = textValue(value).trim();
+      if (!target) return false;
+      const list = textValue(listText).split(',').map(item => item.trim()).filter(Boolean);
+      const targetKey = target.toLowerCase();
+      return !list.length || list.some(item => {
+        const key = item.toLowerCase();
+        return key === targetKey || key === 'semua';
+      });
+    }
+
+    function getDefaultSupervisorExamId() {
+      const exams = getSupervisorExamOptions();
+      const stored = supervisorSelectedExamId || getSupervisorStoredExamId();
+      if (stored && exams.some(exam => exam.examId === stored)) return stored;
+      const selected = appData?.monitoring?.selectedExamId || '';
+      if (selected && exams.some(exam => exam.examId === selected)) return selected;
+      const openExam = exams.find(exam => exam.isOpen);
+      return (openExam || exams[0] || {}).examId || '';
+    }
+
+    function shouldShowSupervisorWizard() {
+      return isSupervisorUser() && !!appData && !supervisorWizardCompleted && !supervisorWizardActive;
+    }
+
+    function queueSupervisorWizard() {
+      if (!shouldShowSupervisorWizard()) return;
+      window.setTimeout(() => {
+        if (shouldShowSupervisorWizard()) openSupervisorWizard();
+      }, 350);
+    }
+
+    async function loadSupervisorRoomContext(examId, silent) {
+      if (!isSupervisorUser()) return null;
+      const response = await serverCall('getSupervisorRoomContext', { actor: currentUserData, examId: examId || getDefaultSupervisorExamId() });
+      if (response.status !== 'success') throw new Error(response.message || 'Konteks ruang pengawas gagal dimuat.');
+      supervisorRoomContext = response.data || null;
+      if (supervisorRoomContext && supervisorRoomContext.selectedExamId) setSupervisorStoredExamId(supervisorRoomContext.selectedExamId);
+      if (!silent) showToast('Konteks ruang pengawas diperbarui', 'info');
+      return supervisorRoomContext;
+    }
+
+    function getSupervisorAttendanceSummary(source) {
+      const ctx = source || supervisorRoomContext || {};
+      if (ctx.attendanceSummary) {
+        return {
+          total: Number(ctx.attendanceSummary.total || 0),
+          marked: Number(ctx.attendanceSummary.marked || 0),
+          belum: Number(ctx.attendanceSummary.belum || 0),
+          hadir: Number(ctx.attendanceSummary.hadir || 0),
+          tidakHadir: Number(ctx.attendanceSummary.tidakHadir || 0),
+          izin: Number(ctx.attendanceSummary.izin || 0),
+          sakit: Number(ctx.attendanceSummary.sakit || 0),
+          dispensasi: Number(ctx.attendanceSummary.dispensasi || 0)
+        };
+      }
+      const participants = ctx.participants || [];
+      const summary = { total: participants.length, marked: 0, belum: 0, hadir: 0, tidakHadir: 0, izin: 0, sakit: 0, dispensasi: 0 };
+      participants.forEach(item => {
+        const status = textValue(item.hadir).toLowerCase();
+        if (!status || status.includes('belum')) { summary.belum++; return; }
+        summary.marked++;
+        if (status === 'hadir') summary.hadir++;
+        else if (status === 'tidak hadir') summary.tidakHadir++;
+        else if (status === 'izin') summary.izin++;
+        else if (status === 'sakit') summary.sakit++;
+        else if (status === 'dispensasi') summary.dispensasi++;
+      });
+      return summary;
+    }
+
+    function renderSupervisorWizardSummary(ctx) {
+      const summary = getSupervisorAttendanceSummary(ctx);
+      const exam = ctx?.exam || {};
+      const isPraktik = isPracticalExam(exam);
+      return `
+        <div class="grid grid-cols-2 gap-2 text-left">
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Ujian</p>
+            <p class="mt-1 text-sm font-black text-slate-900">${escapeHtml(exam.mapel || 'Belum ada jadwal')}</p>
+            <p class="mt-0.5 text-xs font-semibold text-slate-500">${escapeHtml(isPraktik ? 'Ujian Praktik' : 'CBT Reguler')}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Ruang</p>
+            <p class="mt-1 text-sm font-black text-slate-900">${escapeHtml(ctx?.room || currentUserData?.ruang || '-')}</p>
+            <p class="mt-0.5 text-xs font-semibold text-slate-500">${Number(summary.total || 0)} peserta</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Presensi</p>
+            <p class="mt-1 text-sm font-black ${summary.belum ? 'text-amber-700' : 'text-emerald-700'}">${Number(summary.marked || 0)}/${Number(summary.total || 0)} ditandai</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Kendala</p>
+            <p class="mt-1 text-sm font-black ${Number(ctx?.kendalaOpenCount || 0) ? 'text-rose-700' : 'text-slate-900'}">${Number(ctx?.kendalaOpenCount || 0)} aktif</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSupervisorWizard(ctx) {
+      const exams = ctx?.exams || getSupervisorExamOptions();
+      const selectedId = ctx?.selectedExamId || getDefaultSupervisorExamId();
+      return `
+        <div class="text-left space-y-4">
+          <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Step 1 - Konfirmasi Ruang</p>
+            <h3 class="mt-1 text-lg font-black text-slate-900">${escapeHtml(currentUserData?.nama || '-')}</h3>
+            <p class="text-sm font-semibold text-slate-600">Bertugas di <b>${escapeHtml(currentUserData?.ruang || '-')}</b>. Ruang dikunci dari akun pengawas.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Step 2 - Pilih Jadwal</p>
+            <select id="supervisor-wizard-exam" class="mt-2 min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold">
+              ${exams.map(exam => `<option value="${escapeHtml(exam.examId)}" ${exam.examId === selectedId ? 'selected' : ''}>${escapeHtml(examOptionLabel(exam))}</option>`).join('')}
+            </select>
+            ${exams.length ? '' : '<p class="mt-2 text-sm font-semibold text-rose-600">Tidak ada jadwal untuk ruang pengawas ini.</p>'}
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Step 3 - Tugas Wajib</p>
+            <div id="supervisor-wizard-summary" class="mt-3">${renderSupervisorWizardSummary(ctx || {})}</div>
+            <p class="mt-3 text-xs font-semibold leading-relaxed text-slate-500">Monitoring dan laporan kendala tetap bisa dipakai kapan saja. Pengawasan baru bisa diselesaikan setelah seluruh peserta ditandai hadir dan berita acara tersimpan.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    async function openSupervisorWizard() {
+      supervisorWizardActive = true;
+      try {
+        const initialContext = await loadSupervisorRoomContext(getDefaultSupervisorExamId(), true);
+        const result = await Swal.fire({
+          title: 'Mulai Pengawasan Ruang',
+          html: renderSupervisorWizard(initialContext),
+          width: 640,
+          showCancelButton: true,
+          confirmButtonText: 'Mulai Pengawasan',
+          cancelButtonText: 'Kembali Login',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          customClass: {
+            confirmButton: 'bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-5 rounded-xl',
+            cancelButton: 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-xl ml-2'
+          },
+          didOpen: () => {
+            const select = document.getElementById('supervisor-wizard-exam');
+            if (!select) return;
+            select.addEventListener('change', async () => {
+              const summaryEl = document.getElementById('supervisor-wizard-summary');
+              if (summaryEl) summaryEl.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-500">Memuat ringkasan ruang...</div>';
+              try {
+                const nextContext = await loadSupervisorRoomContext(select.value, true);
+                if (summaryEl) summaryEl.innerHTML = renderSupervisorWizardSummary(nextContext);
+              } catch (error) {
+                if (summaryEl) summaryEl.innerHTML = `<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">${escapeHtml(error.message)}</div>`;
+              }
+            });
+          },
+          preConfirm: () => {
+            const examId = document.getElementById('supervisor-wizard-exam')?.value || '';
+            if (!examId) {
+              Swal.showValidationMessage('Tidak ada jadwal ujian yang bisa dipilih untuk ruang ini.');
+              return false;
+            }
+            return examId;
+          }
+        });
+        if (result.isConfirmed) await startSupervisorRoomSession(result.value);
+        else forceSupervisorWizardLogout();
+      } catch (error) {
+        Swal.fire('Wizard Pengawas', error.message || 'Gagal memuat wizard pengawas.', 'error');
+      } finally {
+        supervisorWizardActive = false;
+      }
+    }
+
+    async function startSupervisorRoomSession(examId) {
+      const startResponse = await serverCall('startSupervisorSession', { actor: currentUserData, examId });
+      if (startResponse.status !== 'success') throw new Error(startResponse.message || 'Gagal memulai sesi pengawas.');
+      const context = startResponse.context || await loadSupervisorRoomContext(examId, true);
+      supervisorRoomContext = context;
+      supervisorWizardCompleted = true;
+      const exam = context?.exam || {};
+      if (isPracticalExam(exam)) {
+        activeStaffSection = 'praktik';
+        await loadPracticalExamData(context.selectedExamId);
+      } else {
+        activeStaffSection = 'monitor';
+        await refreshMonitoring(context.selectedExamId);
+      }
+      showToast(`Pengawasan ${context.room || currentUserData.ruang} dimulai`, 'success');
+    }
+
+    function forceSupervisorWizardLogout() {
+      if (currentUserData) serverCall('logoutCbt', { user: currentUserData }).catch(() => {});
+      stopExamTimers();
+      unbindFirebaseRealtime();
+      currentUserData = null;
+      appData = null;
+      practicalData = null;
+      supervisorWizardCompleted = false;
+      supervisorWizardActive = false;
+      supervisorRoomContext = null;
+      clearPersistedSession();
+      showLoginScreen();
+    }
+
+    function renderSupervisorTaskPanel(selectedExamId) {
+      if (!isSupervisorUser()) return '';
+      const contextMatches = supervisorRoomContext && (!selectedExamId || supervisorRoomContext.selectedExamId === selectedExamId);
+      const ctx = contextMatches ? supervisorRoomContext : null;
+      const summary = getSupervisorAttendanceSummary(ctx || {});
+      const beritaSaved = !!ctx?.beritaSaved;
+      const missing = Number(summary.belum || 0);
+      const complete = !missing && beritaSaved && Number(summary.total || 0) > 0;
+      const missingRows = ctx?.missingAttendance || [];
+      const sessionStatus = textValue(ctx?.session?.status || '').toLowerCase();
+      const sessionStarted = sessionStatus === 'berjalan' || sessionStatus === 'selesai';
+      const sessionDone = sessionStatus === 'selesai';
+      const stepItems = [
+        { label: 'Mulai', done: sessionStarted },
+        { label: 'Monitoring', done: Number(summary.total || 0) > 0 },
+        { label: 'Daftar Hadir', done: !missing && Number(summary.total || 0) > 0 },
+        { label: 'Kendala', done: Number(ctx?.kendalaOpenCount || 0) === 0 },
+        { label: 'Berita Acara', done: beritaSaved },
+        { label: 'Selesai', done: sessionDone }
+      ];
+      return `
+        <section class="surface-card border ${complete ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-200 bg-amber-50/40'} p-4 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.18em] ${complete ? 'text-emerald-700' : 'text-amber-700'}">Tugas Ruang Pengawas</p>
+              <h3 class="mt-1 text-lg font-black text-slate-900">${escapeHtml(currentUserData.ruang || '-')}</h3>
+              <p class="text-sm font-semibold text-slate-600">${ctx ? escapeHtml(ctx.exam?.mapel || selectedExamId || '-') : 'Klik refresh untuk memuat status terbaru.'}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${!sessionStarted ? `<button type="button" class="supervisor-session-start inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-blue-700 px-3 py-2 text-xs font-bold text-white hover:bg-blue-800" data-exam-id="${escapeHtml(selectedExamId || '')}"><i data-lucide="play" class="w-4 h-4"></i>Mulai Pengawasan</button>` : ''}
+              <button type="button" class="supervisor-task-refresh inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50" data-exam-id="${escapeHtml(selectedExamId || '')}"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Refresh</button>
+              <button type="button" class="supervisor-complete-action inline-flex min-h-[44px] items-center gap-2 rounded-xl ${complete ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'} px-3 py-2 text-xs font-bold text-white" data-exam-id="${escapeHtml(selectedExamId || '')}"><i data-lucide="${complete ? 'check-circle-2' : 'list-checks'}" class="w-4 h-4"></i>Selesaikan Pengawasan</button>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+            ${stepItems.map((step, index) => `
+              <div class="rounded-xl border ${step.done ? 'border-emerald-200 bg-white text-emerald-700' : 'border-slate-200 bg-white/70 text-slate-500'} p-2">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full ${step.done ? 'bg-emerald-100' : 'bg-slate-100'} text-xs font-black">${step.done ? '&#10003;' : index + 1}</span>
+                <b class="ml-1 text-xs">${escapeHtml(step.label)}</b>
+              </div>
+            `).join('')}
+          </div>
+          <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="rounded-xl bg-white p-3 border border-slate-200"><span class="text-[10px] font-black uppercase text-slate-400">Presensi</span><b class="mt-1 block text-lg text-slate-900">${Number(summary.marked || 0)}/${Number(summary.total || 0)}</b></div>
+            <div class="rounded-xl bg-white p-3 border border-slate-200"><span class="text-[10px] font-black uppercase text-slate-400">Belum</span><b class="mt-1 block text-lg ${missing ? 'text-amber-700' : 'text-emerald-700'}">${missing}</b></div>
+            <div class="rounded-xl bg-white p-3 border border-slate-200"><span class="text-[10px] font-black uppercase text-slate-400">Berita</span><b class="mt-1 block text-sm ${beritaSaved ? 'text-emerald-700' : 'text-amber-700'}">${beritaSaved ? 'Tersimpan' : 'Belum'}</b></div>
+            <div class="rounded-xl bg-white p-3 border border-slate-200"><span class="text-[10px] font-black uppercase text-slate-400">Kendala</span><b class="mt-1 block text-lg ${Number(ctx?.kendalaOpenCount || 0) ? 'text-rose-700' : 'text-slate-900'}">${Number(ctx?.kendalaOpenCount || 0)}</b></div>
+          </div>
+          ${missingRows.length ? `<div class="mt-3 rounded-xl border border-amber-200 bg-white p-3 text-xs font-semibold text-amber-800">Belum ditandai: ${missingRows.slice(0, 5).map(item => escapeHtml(item.nama || item.nisn)).join(', ')}${missingRows.length > 5 ? ` dan ${missingRows.length - 5} lainnya` : ''}.</div>` : ''}
+        </section>
+      `;
+    }
+
+    function rerenderActiveStaffSection() {
+      const contentEl = document.getElementById('staff-section-content');
+      if (contentEl) {
+        contentEl.innerHTML = renderStaffSection(activeStaffSection);
+        bindDashboardEvents();
+        refreshIcons();
+      } else {
+        renderDashboard();
+      }
+    }
+
+    async function validateSupervisorCompletion(examId) {
+      try {
+        const context = await loadSupervisorRoomContext(examId, true);
+        const summary = getSupervisorAttendanceSummary(context);
+        if (Number(summary.belum || 0) > 0) {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Daftar Hadir Belum Lengkap',
+            html: `<div class="text-left text-sm text-slate-600">Masih ada <b>${Number(summary.belum || 0)}</b> peserta ruang yang belum ditandai.<br><br>${(context.missingAttendance || []).slice(0, 8).map(item => `- ${escapeHtml(item.nama || item.nisn)} (${escapeHtml(item.kelas || '-')})`).join('<br>')}</div>`,
+            confirmButtonText: 'Lengkapi Presensi'
+          });
+          activeStaffSection = isPracticalExam(context.exam) ? 'praktik' : 'monitor';
+          rerenderActiveStaffSection();
+          return;
+        }
+        if (!context.beritaSaved) {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Berita Acara Belum Tersimpan',
+            text: 'Isi catatan pelaksanaan lalu simpan berita acara sebelum menyelesaikan pengawasan.',
+            confirmButtonText: 'Isi Berita Acara'
+          });
+          rerenderActiveStaffSection();
+          return;
+        }
+        const finalNote = await Swal.fire({
+          title: 'Selesaikan Pengawasan?',
+          input: 'textarea',
+          inputPlaceholder: 'Catatan akhir opsional',
+          showCancelButton: true,
+          confirmButtonText: 'Simpan Sesi Selesai',
+          cancelButtonText: 'Batal'
+        });
+        if (!finalNote.isConfirmed) return;
+        const completeResponse = await serverCall('completeSupervisorSession', {
+          actor: currentUserData,
+          examId: context.selectedExamId || examId,
+          catatan: finalNote.value || ''
+        });
+        if (completeResponse.status !== 'success') throw new Error(completeResponse.message || 'Gagal menyelesaikan sesi pengawas.');
+        supervisorRoomContext = completeResponse.context || await loadSupervisorRoomContext(context.selectedExamId || examId, true);
+        await Swal.fire('Pengawasan Lengkap', 'Daftar hadir lengkap dan berita acara sudah tersimpan untuk ruang ini.', 'success');
+        rerenderActiveStaffSection();
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
     }
 
     function renderStaffSection(key, monitoring) {
@@ -6192,7 +7386,7 @@ ${dokToolbarHtml()}
           <div class="space-y-4" id="monitor-panel">
             <!-- Header -->
             <div class="surface-card p-5 shadow-sm">
-              <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div class="staff-section-header flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div class="flex items-center gap-3">
                   <div class="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl text-white shadow-lg shadow-blue-200">
                     <i data-lucide="monitor-check" class="w-5 h-5"></i>
@@ -6202,11 +7396,11 @@ ${dokToolbarHtml()}
                     <p class="text-xs text-slate-500">Pantau seluruh peserta secara real-time</p>
                   </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="staff-monitor-controls flex flex-wrap items-center gap-2">
                   <select id="monitor-exam-select" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none">
                     ${exams.map(e => `<option value="${escapeHtml(e.examId)}" ${e.examId === selectedExamId ? 'selected' : ''}>${escapeHtml(examOptionLabel(e))}</option>`).join('')}
                   </select>
-                  <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold border border-black/[0.04]">
+                  <div class="staff-monitor-view-toggle flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold border border-black/[0.04]">
                     <button type="button" onclick="setMonitorViewMode('table')" class="rounded-lg px-2.5 py-1.5 ${monitorViewMode === 'table' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}">
                       <i data-lucide="list" class="w-3.5 h-3.5 inline mr-1"></i> Tabel
                     </button>
@@ -6262,6 +7456,7 @@ ${dokToolbarHtml()}
             </div>` : ''}
 
             ${renderMonitorActionPanel(participants, selectedExamId)}
+            ${renderSupervisorTaskPanel(selectedExamId)}
 
             <!-- Participant Table / Grid Seating + Sidebar -->
             <div class="grid xl:grid-cols-[1.8fr_1fr] gap-4">
@@ -6311,6 +7506,8 @@ ${dokToolbarHtml()}
             ${renderAdminOverviewMetric('Submit', model.summary.submit || 0, 'check-circle-2', 'indigo')}
             ${renderAdminOverviewMetric('Bermasalah', model.summary.bermasalah || 0, 'triangle-alert', 'rose')}
           </div>
+
+          ${renderOperationsCommandCenterPanel(model)}
 
           ${renderAdminQuickActions(model)}
 
@@ -6519,6 +7716,110 @@ ${dokToolbarHtml()}
               <i data-lucide="${escapeHtml(icon)}" class="h-5 w-5"></i>
             </span>
           </div>
+        </section>
+      `;
+    }
+
+    function renderOperationsCommandCenterPanel(model) {
+      const role = normalizeRoleKey(currentUserData && currentUserData.role);
+      if (!['admin', 'proktor', 'executive'].includes(role)) return '';
+      const data = operationsCommandCenterCache;
+      const selectedId = data?.selectedExamId || model.selectedExamId || '';
+      const examOptions = (data?.exams || model.exams || []).map(exam => `<option value="${escapeHtml(exam.examId)}" ${exam.examId === selectedId ? 'selected' : ''}>${escapeHtml(examOptionLabel(exam))}</option>`).join('');
+      const actionItems = data?.actionItems || [];
+      const rooms = data?.rooms || [];
+      const pending = data?.pendingRequests || [];
+      const queue = data?.kendalaQueue || [];
+      return `
+        <section id="operations-command-center" class="surface-card p-5 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-indigo-700">Command Center Proktor</p>
+              <h3 class="mt-1 text-lg font-black text-slate-900">Butuh Tindakan Hari Ini</h3>
+              <p class="mt-1 text-sm font-semibold text-slate-500">${data ? `Update ${escapeHtml(timeAgo(data.generatedAt))}` : 'Muat data operasional lintas ruang.'}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select id="operations-exam-select" class="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold">
+                ${examOptions}
+              </select>
+              <button type="button" id="btn-load-operations" class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-indigo-700 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-800">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>Muat
+              </button>
+            </div>
+          </div>
+          ${data ? `
+            <div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+              ${(actionItems.length ? actionItems : [{ label: 'Tidak ada tindakan kritis', count: 0, tone: 'success' }]).map(item => `
+                <div class="rounded-xl border ${adminToneClasses(item.tone || 'success')} p-3">
+                  <span class="text-[10px] font-black uppercase">${escapeHtml(item.label)}</span>
+                  <b class="mt-1 block text-2xl text-slate-900">${Number(item.count || 0)}</b>
+                </div>
+              `).join('')}
+            </div>
+            <div class="mt-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <h4 class="text-sm font-black text-slate-900">Kesehatan Ruang</h4>
+                  <span class="text-xs font-bold text-slate-400">${rooms.length} ruang</span>
+                </div>
+                <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  ${rooms.map(room => {
+                    const tone = room.health === 'critical' ? 'rose' : room.health === 'warning' ? 'amber' : 'emerald';
+                    return `
+                      <button type="button" class="ops-room-detail rounded-xl border border-${tone}-100 bg-${tone}-50/60 p-3 text-left hover:shadow-sm" data-room="${escapeHtml(room.ruang)}">
+                        <div class="flex items-center justify-between gap-2">
+                          <b class="truncate text-sm text-slate-900">${escapeHtml(room.ruang || '-')}</b>
+                          <span class="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-${tone}-700">${escapeHtml(room.health === 'critical' ? 'Awas' : room.health === 'warning' ? 'Cek' : 'Aman')}</span>
+                        </div>
+                        <div class="mt-3 grid grid-cols-3 gap-1 text-center">
+                          <span class="rounded-lg bg-white p-2"><small class="block text-[10px] font-bold text-slate-400">Peserta</small><b>${Number(room.total || 0)}</b></span>
+                          <span class="rounded-lg bg-white p-2"><small class="block text-[10px] font-bold text-slate-400">Masalah</small><b>${Number(room.bermasalah || 0)}</b></span>
+                          <span class="rounded-lg bg-white p-2"><small class="block text-[10px] font-bold text-slate-400">Kendala</small><b>${Number(room.kendalaOpen || 0)}</b></span>
+                        </div>
+                        <p class="mt-2 text-xs font-semibold text-slate-500">Presensi ${Number(room.attendanceMarked || 0)}/${Number(room.total || 0)} · Berita ${room.beritaSaved ? 'masuk' : 'belum'}</p>
+                      </button>`;
+                  }).join('') || '<div class="rounded-xl border border-slate-200 p-4 text-sm font-semibold text-slate-500">Belum ada data ruang untuk ujian ini.</div>'}
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+                  <h4 class="text-sm font-black text-slate-900">Permintaan Reset/Buka Ulang</h4>
+                  <div class="mt-2 space-y-2">
+                    ${pending.slice(0, 5).map(row => `
+                      <article class="rounded-lg bg-white p-3">
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="min-w-0">
+                            <b class="block truncate text-sm text-slate-900">${escapeHtml(row.nama || '-')}</b>
+                            <span class="text-xs font-semibold text-slate-500">${escapeHtml(row.ruang || '-')} · ${escapeHtml(row.status || '-')}</span>
+                          </div>
+                        </div>
+                        <p class="mt-2 text-xs text-slate-600">${escapeHtml(row.kendala || '-')}</p>
+                        <div class="mt-2 flex gap-2">
+                          <button type="button" class="ops-kendala-approve inline-flex min-h-[36px] flex-1 items-center justify-center rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white" data-row="${Number(row.rowNumber || 0)}">Setujui</button>
+                          <button type="button" class="ops-kendala-reject inline-flex min-h-[36px] flex-1 items-center justify-center rounded-lg border border-rose-200 bg-white px-2 text-xs font-bold text-rose-700" data-row="${Number(row.rowNumber || 0)}">Tolak</button>
+                        </div>
+                      </article>
+                    `).join('') || '<p class="rounded-lg bg-white p-3 text-sm font-semibold text-slate-500">Tidak ada permintaan aktif.</p>'}
+                  </div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-white p-3">
+                  <h4 class="text-sm font-black text-slate-900">Kendala Aktif</h4>
+                  <div class="mt-2 space-y-2">
+                    ${queue.slice(0, 4).map(row => `
+                      <article class="rounded-lg border border-slate-100 p-3">
+                        <b class="block text-sm text-slate-900">${escapeHtml(row.ruang || '-')} · ${escapeHtml(row.nama || '-')}</b>
+                        <p class="mt-1 text-xs text-slate-600">${escapeHtml(row.kendala || '-')}</p>
+                      </article>
+                    `).join('') || '<p class="text-sm font-semibold text-slate-500">Belum ada kendala aktif.</p>'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm font-semibold text-slate-500">
+              Command center belum dimuat. Tekan Muat untuk melihat kondisi ruang, kendala, dan sesi pengawas.
+            </div>
+          `}
         </section>
       `;
     }
@@ -6859,10 +8160,7 @@ ${dokToolbarHtml()}
       const kelasOptions = getScheduleKelasOptions();
       const mapelEntries = getPsatMapelEntries();
       const guruOptions = getScheduleGuruOptions();
-      const ruangOptions = uniqueSorted([
-        ...activeMasterRows('ruang').map(r => r.kode || r.nama),
-        'Ruang 1', 'Ruang 2', 'Ruang 3'
-      ]);
+      const ruangGroups = getScheduleRuangGroups();
 
       // Stats
       const total = exams.length;
@@ -7011,16 +8309,13 @@ ${dokToolbarHtml()}
                     </select>
                   </div>
                   <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Ruang Ujian <span class="text-slate-400 font-normal">(pilih satu atau lebih)</span></label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Ruang <span class="text-slate-400 font-normal">(ujian, kelas, atau bengkel)</span></label>
                     <input type="hidden" name="ruang" id="schedule-ruang-hidden">
-                    <div class="rounded-xl border border-slate-300 p-2.5 max-h-36 overflow-y-auto space-y-0.5">
+                    <div class="rounded-xl border border-slate-300 p-2.5 max-h-56 overflow-y-auto space-y-2">
                       <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
                         <input type="checkbox" value="Semua" class="schedule-ruang-cb rounded text-blue-600" onchange="if(this.checked){document.querySelectorAll('.schedule-ruang-cb').forEach(c=>c.checked=false);this.checked=true}syncRuangCheckboxes()"> <span class="text-sm font-semibold text-blue-700">Semua Ruang</span>
                       </label>
-                      ${ruangOptions.map(r => `
-                      <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                        <input type="checkbox" value="${escapeHtml(r)}" class="schedule-ruang-cb rounded text-blue-600" onchange="document.querySelector('.schedule-ruang-cb[value=Semua]').checked=false;syncRuangCheckboxes()"> <span class="text-sm">${escapeHtml(r)}</span>
-                      </label>`).join('')}
+                      ${renderScheduleRoomCheckboxGroups(ruangGroups)}
                     </div>
                     <div class="flex gap-2 mt-1.5">
                       <button type="button" onclick="document.querySelectorAll('.schedule-ruang-cb').forEach(c=>c.checked=true);document.querySelector('.schedule-ruang-cb[value=Semua]').checked=false;syncRuangCheckboxes()" class="text-[10px] font-bold text-blue-600 hover:underline">Pilih Semua</button>
@@ -7669,13 +8964,17 @@ ${dokToolbarHtml()}
       const byRole = { admin: 0, proktor: 0, pengawas: 0, guru: 0, peserta: 0 };
       const aktif = users.filter(u => lowerText((u && u.status) || 'aktif') === 'aktif').length;
       const kelasSet = new Set();
+      const ruangSet = new Set();
       users.forEach(u => {
         const roleKey = normalizeRoleKey(u && u.role);
         byRole[roleKey] = (byRole[roleKey] || 0) + 1;
         const kelas = textValue(u && u.kelas).trim();
         if (kelas) kelasSet.add(kelas);
+        const ruang = textValue(u && u.ruang).trim();
+        if (ruang) ruangSet.add(ruang);
       });
       const kelasList = [...kelasSet].sort();
+      const ruangList = [...ruangSet].sort();
       const statCards = [
         { label: 'Total', count: total, icon: 'users-round', bg: 'bg-blue-50', text: 'text-blue-700', iconBg: 'bg-blue-100' },
         { label: 'Admin', count: byRole.admin, icon: 'shield', bg: 'bg-rose-50', text: 'text-rose-700', iconBg: 'bg-rose-100' },
@@ -7690,6 +8989,7 @@ ${dokToolbarHtml()}
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 mb-4">
           ${statCards.map(c => `<div class="${c.bg} rounded-xl p-3 border border-slate-100"><div class="flex items-center gap-2 mb-1"><div class="${c.iconBg} rounded-lg p-1"><i data-lucide="${c.icon}" class="w-3.5 h-3.5 ${c.text}"></i></div><span class="text-[10px] font-bold uppercase tracking-wider ${c.text}">${c.label}</span></div><p class="text-xl font-black ${c.text}" data-stat="${c.label.toLowerCase()}">${c.count}</p></div>`).join('')}
         </div>
+        ${renderMasterDatalists()}
         <section class="surface-card overflow-hidden">
           <div class="px-5 pt-5 pb-3">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -7697,7 +8997,7 @@ ${dokToolbarHtml()}
                 <div class="p-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl text-white shadow-lg shadow-blue-200"><i data-lucide="users-round" class="w-5 h-5"></i></div>
                 <div><h3 class="font-bold text-slate-900 text-lg">Manajemen Akun</h3><p class="text-xs text-slate-500">${total > 0 ? total + ' pengguna terdaftar' : 'Klik "Muat Data" untuk memulai'}</p></div>
               </div>
-              <div class="flex flex-wrap gap-2">
+              <div class="staff-toolbar-actions flex flex-wrap gap-2">
                 <button id="btn-load-users" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-2 text-sm font-bold text-white hover:from-blue-700 hover:to-indigo-800 shadow-md shadow-blue-200/50 transition-all" type="button"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Muat Data</button>
                 <button id="btn-admin-tools-toggle" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"><i data-lucide="wrench" class="w-3.5 h-3.5"></i> Admin Tools <i data-lucide="chevron-down" class="w-3 h-3"></i></button>
               </div>
@@ -7727,6 +9027,8 @@ ${dokToolbarHtml()}
                 <div class="search-bar flex-grow"><i data-lucide="search" class="w-4 h-4 text-slate-400"></i><input id="search-users" oninput="filterUserTable()" type="text" placeholder="Cari nama, NISN, atau kelas..."></div>
                 <select id="filter-user-status" onchange="filterUserTable()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-600 focus:border-blue-500 focus:outline-none"><option value="all">Semua Status</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
                 <select id="filter-user-kelas" onchange="filterUserTable()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-600 focus:border-blue-500 focus:outline-none"><option value="all">Semua Kelas</option>${kelasList.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('')}</select>
+                <select id="filter-user-ruang" onchange="filterUserTable()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-600 focus:border-blue-500 focus:outline-none"><option value="all">Semua Ruang</option>${ruangList.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('')}</select>
+                <button type="button" onclick="showMassPrintCardsModal()" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors shadow-sm"><i data-lucide="printer" class="w-4 h-4 text-slate-500"></i> Cetak Kartu Massal</button>
               </div>
               <p id="user-filter-counter" class="text-xs font-semibold text-slate-400">Menampilkan ${total} dari ${total} akun</p>
             </div>
@@ -7752,7 +9054,7 @@ ${dokToolbarHtml()}
                   <div class="grid sm:grid-cols-2 gap-3">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Kelas</label><input name="kelas" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="Contoh: XII RPL"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Jurusan</label><input name="jurusan" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="Contoh: Perhotelan"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Ruang</label><input name="ruang" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="Contoh: Ruang 1"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Ruang</label><input name="ruang" list="master-ruang-datalist" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="Contoh: Bengkel TKR"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Nomor Ujian</label><input name="nomorUjian" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="Opsional"></div>
                   </div>
                 </div>
@@ -7827,7 +9129,7 @@ ${dokToolbarHtml()}
                 <p class="mt-0.5 text-sm font-semibold text-slate-500">Kelola struktur ujian tanpa menulis JSON manual.</p>
               </div>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="staff-toolbar-actions flex flex-wrap gap-2">
               <button id="btn-seed-psat-master" class="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800" type="button"><i data-lucide="database" class="w-4 h-4"></i> Isi PSAT</button>
               <button id="btn-load-master" class="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" type="button"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Muat Master</button>
             </div>
@@ -7940,7 +9242,7 @@ ${dokToolbarHtml()}
         <div class="grid gap-4 xl:grid-cols-3">
           ${renderMasterSimpleForm('jenis', 'Jenis Ujian', 'Contoh: PSAT', 'Penilaian Sumatif Akhir Tahun', 'badge-check')}
           ${renderMasterSimpleForm('kelas', 'Kelas', 'Contoh: X', 'Jenjang atau rombel', 'graduation-cap')}
-          ${renderMasterSimpleForm('ruang', 'Ruang', 'Contoh: Ruang 1', 'Lokasi/ruang ujian', 'door-open')}
+          ${renderMasterSimpleForm('ruang', 'Ruang', 'Contoh: Bengkel TKR', 'Kategori: Ruang Ujian / Ruang Kelas / Ruang Bengkel', 'door-open')}
         </div>
       `;
     }
@@ -8053,14 +9355,71 @@ ${dokToolbarHtml()}
     function renderMasterDatalists() {
       const guruOptions = getMasterOptionValues('guru', getScheduleGuruOptions());
       const subjectOptions = getUploadMapelOptions();
+      const roomOptions = getScheduleRuangOptions();
       return `
         <datalist id="master-guru-datalist">${renderMasterOptions(guruOptions)}</datalist>
         <datalist id="master-mapel-datalist">${renderMasterOptions(subjectOptions)}</datalist>
+        <datalist id="master-ruang-datalist">${renderMasterOptions(roomOptions)}</datalist>
+      `;
+    }
+
+    function renderTeacherWorkQueuePanel() {
+      const role = normalizeRoleKey(currentUserData && currentUserData.role);
+      if (!['guru', 'admin', 'proktor'].includes(role)) return '';
+      const data = teacherWorkQueueCache;
+      const summary = data?.summary || {};
+      const exams = data?.exams || [];
+      return `
+        <section id="teacher-work-queue" class="surface-card mb-4 p-5 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Mapel Saya</p>
+              <h3 class="mt-1 text-lg font-black text-slate-900">Antrean Koreksi & Rekap Nilai</h3>
+              <p class="mt-1 text-sm font-semibold text-slate-500">${data ? `Update ${escapeHtml(timeAgo(data.generatedAt))}` : 'Muat ringkasan ujian dan nilai.'}</p>
+            </div>
+            <button id="btn-load-teacher-work" type="button" class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>Muat
+            </button>
+          </div>
+          ${data ? `
+            <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <div class="rounded-xl border border-slate-200 bg-white p-3"><span class="text-[10px] font-black uppercase text-slate-400">Ujian</span><b class="mt-1 block text-2xl">${Number(summary.total || 0)}</b></div>
+              <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><span class="text-[10px] font-black uppercase text-emerald-700">Aktif</span><b class="mt-1 block text-2xl">${Number(summary.aktif || 0)}</b></div>
+              <div class="rounded-xl border border-amber-100 bg-amber-50 p-3"><span class="text-[10px] font-black uppercase text-amber-700">Esai Pending</span><b class="mt-1 block text-2xl">${Number(summary.essayPending || 0)}</b></div>
+              <div class="rounded-xl border border-blue-100 bg-blue-50 p-3"><span class="text-[10px] font-black uppercase text-blue-700">Siap Ekspor</span><b class="mt-1 block text-2xl">${Number(summary.readyExport || 0)}</b></div>
+              <div class="rounded-xl border border-rose-100 bg-rose-50 p-3"><span class="text-[10px] font-black uppercase text-rose-700">Belum Submit</span><b class="mt-1 block text-2xl">${Number(summary.missingSubmit || 0)}</b></div>
+            </div>
+            <div class="mt-4 grid gap-3 lg:grid-cols-2">
+              ${exams.slice(0, 8).map(item => `
+                <article class="rounded-xl border border-slate-200 bg-white p-4">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <h4 class="truncate text-sm font-black text-slate-900">${escapeHtml(item.mapel || item.examId || '-')}</h4>
+                      <p class="text-xs font-semibold text-slate-500">${escapeHtml(item.kelas || '-')} · ${escapeHtml(item.jenis || 'CBT')} · ${escapeHtml(item.status || '-')}</p>
+                    </div>
+                    ${item.readyExport ? statusBadge('Siap ekspor') : item.essayPending ? statusBadge('Perlu koreksi') : statusBadge('Pantau')}
+                  </div>
+                  <div class="mt-3 grid grid-cols-4 gap-2 text-center">
+                    <span class="rounded-lg bg-slate-50 p-2"><small class="block text-[10px] font-bold text-slate-400">Submit</small><b>${Number(item.submitCount || 0)}/${Number(item.participantTotal || 0)}</b></span>
+                    <span class="rounded-lg bg-slate-50 p-2"><small class="block text-[10px] font-bold text-slate-400">Esai</small><b>${Number(item.essayScored || 0)}/${Number(item.essayAnswerCount || 0)}</b></span>
+                    <span class="rounded-lg bg-slate-50 p-2"><small class="block text-[10px] font-bold text-slate-400">Kosong</small><b>${Number(item.nilaiKosong || 0)}</b></span>
+                    <span class="rounded-lg bg-slate-50 p-2"><small class="block text-[10px] font-bold text-slate-400">Ekstrem</small><b>${Number(item.nilaiEkstrem || 0)}</b></span>
+                  </div>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button type="button" class="teacher-open-essays inline-flex min-h-[38px] flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50" data-exam-id="${escapeHtml(item.examId || '')}">Koreksi</button>
+                    <button type="button" class="teacher-open-gradebook inline-flex min-h-[38px] flex-1 items-center justify-center rounded-xl bg-blue-700 px-3 text-xs font-bold text-white hover:bg-blue-800" data-exam-id="${escapeHtml(item.examId || '')}">Rekap</button>
+                  </div>
+                </article>
+              `).join('') || '<div class="rounded-xl border border-slate-200 p-4 text-sm font-semibold text-slate-500">Belum ada ujian yang diampu.</div>'}
+            </div>
+          ` : '<div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm font-semibold text-slate-500">Ringkasan guru belum dimuat.</div>'}
+        </section>
       `;
     }
 
     function renderGradeTools(exams) {
       return `
+        ${renderTeacherWorkQueuePanel()}
         <section class="grid xl:grid-cols-2 gap-4">
           <section class="surface-card p-5 shadow-sm">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -8068,7 +9427,7 @@ ${dokToolbarHtml()}
                 <i data-lucide="table-2" class="w-5 h-5 text-blue-700"></i>
                 <h3 class="font-bold text-slate-900">Rekap Nilai</h3>
               </div>
-              <div class="flex gap-2">
+              <div class="staff-toolbar-actions flex gap-2">
                 <select id="grade-exam-select" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
                   <option value="">Semua ujian</option>
                   ${exams.map(exam => `<option value="${escapeHtml(exam.examId)}">${escapeHtml(exam.mapel)}</option>`).join('')}
@@ -8085,7 +9444,7 @@ ${dokToolbarHtml()}
                 <i data-lucide="pen-line" class="w-5 h-5 text-blue-700"></i>
                 <h3 class="font-bold text-slate-900">Koreksi Esai</h3>
               </div>
-              <div class="flex gap-2">
+              <div class="staff-toolbar-actions flex gap-2">
                 <select id="essay-exam-select" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
                   <option value="">Semua ujian</option>
                   ${exams.map(exam => `<option value="${escapeHtml(exam.examId)}">${escapeHtml(exam.mapel)}</option>`).join('')}
@@ -8097,6 +9456,40 @@ ${dokToolbarHtml()}
           </section>
           ` : ''}
         </section>
+      `;
+    }
+
+    function renderPracticalAttendanceMobileCards(participants, selectedId) {
+      const rows = participants || [];
+      if (!rows.length) {
+        return `<div class="staff-mobile-only staff-mobile-card rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-500">Tidak ada peserta sesuai kelas/ruang jadwal praktik.</div>`;
+      }
+      return `
+        <div class="staff-mobile-only staff-mobile-card-list">
+          ${rows.map(item => {
+            const currentStatus = item.hadir || 'Belum ditandai';
+            return `
+              <article class="staff-mobile-card">
+                <div class="staff-mobile-card-head">
+                  <div class="min-w-0">
+                    <h4 class="staff-mobile-card-title">${escapeHtml(item.nama || '-')}</h4>
+                    <p class="staff-mobile-card-subtitle">${escapeHtml(item.nisn || '-')} - ${escapeHtml(item.kelas || '-')} - ${escapeHtml(item.ruang || '-')}</p>
+                  </div>
+                  ${statusBadge(currentStatus)}
+                </div>
+                <div class="mt-3">
+                  <input class="practical-note staff-practical-note rounded-xl border border-slate-300 px-3 py-2 text-sm" data-nisn="${escapeHtml(item.nisn)}" value="${escapeHtml(item.keterangan || '')}" placeholder="Keterangan opsional">
+                </div>
+                <div class="staff-card-actions">
+                  ${PRACTICAL_ATTENDANCE_STATUSES.map(status => {
+                    const tone = status === currentStatus ? ' primary' : status === 'Hadir' ? ' success' : status === 'Tidak Hadir' ? ' danger' : ' warning';
+                    return `<button type="button" class="practical-attendance-action staff-card-action${tone}" data-exam-id="${escapeHtml(selectedId)}" data-nisn="${escapeHtml(item.nisn)}" data-nama="${escapeHtml(item.nama)}" data-kelas="${escapeHtml(item.kelas)}" data-ruang="${escapeHtml(item.ruang)}" data-status="${escapeHtml(status)}">${escapeHtml(status)}</button>`;
+                  }).join('')}
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
       `;
     }
 
@@ -8181,13 +9574,16 @@ ${dokToolbarHtml()}
               ${statCards.map(([label, count, icon, color]) => `<div class="${colorMap[color]} rounded-xl border p-3"><div class="flex items-center justify-between gap-2"><span class="text-[10px] font-bold uppercase tracking-wide">${label}</span><i data-lucide="${icon}" class="w-4 h-4"></i></div><p class="mt-1 text-2xl font-black">${count}</p></div>`).join('')}
             </div>
 
+            ${renderSupervisorTaskPanel(selectedId)}
+
             <div class="grid xl:grid-cols-[1.7fr_0.8fr] gap-4">
               <section class="surface-card p-5 shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 mb-4">
                   <i data-lucide="list-checks" class="w-5 h-5 text-blue-700"></i>
                   <h3 class="font-bold text-slate-900">Daftar Hadir Praktik</h3>
                 </div>
-                <div class="overflow-x-auto">
+                ${renderPracticalAttendanceMobileCards(participants, selectedId)}
+                <div class="staff-desktop-table overflow-x-auto">
                   <table class="w-full text-sm">
                     <thead class="text-left text-xs uppercase text-slate-500 border-b">
                       <tr><th class="py-2">Peserta</th><th>Kelas/Ruang</th><th>Status</th><th>Keterangan</th><th class="text-right">Aksi</th></tr>
@@ -8222,10 +9618,17 @@ ${dokToolbarHtml()}
                   <h3 class="font-bold text-slate-900">Berita Acara Praktik</h3>
                 </div>
                 <input type="hidden" name="examId" value="${escapeHtml(selectedId)}">
-                <div class="grid grid-cols-2 gap-3">
-                  <input name="jumlahHadir" type="number" min="0" value="${Number(summary.hadir || 0)}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Hadir">
-                  <input name="jumlahTidakHadir" type="number" min="0" value="${Number(summary.tidakHadir || 0)}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Tidak hadir">
-                </div>
+                ${isSupervisorUser() ? `
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Hadir otomatis</span><b class="mt-1 block text-lg text-slate-900">${Number(summary.hadir || 0)}</b></div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Tidak hadir otomatis</span><b class="mt-1 block text-lg text-slate-900">${Math.max(0, Number(summary.total || 0) - Number(summary.hadir || 0))}</b></div>
+                  </div>
+                ` : `
+                  <div class="grid grid-cols-2 gap-3">
+                    <input name="jumlahHadir" type="number" min="0" value="${Number(summary.hadir || 0)}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Hadir">
+                    <input name="jumlahTidakHadir" type="number" min="0" value="${Number(summary.tidakHadir || 0)}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Tidak hadir">
+                  </div>
+                `}
                 <textarea name="catatan" rows="5" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Catatan pelaksanaan praktik. Izin: ${Number(summary.izin || 0)}, sakit: ${Number(summary.sakit || 0)}, dispensasi: ${Number(summary.dispensasi || 0)}."></textarea>
                 <button class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white hover:bg-blue-800">
                   <i data-lucide="send" class="w-4 h-4"></i> Kirim Berita Acara
@@ -8359,6 +9762,91 @@ ${dokToolbarHtml()}
       const cls = getSecurityToneClasses(info.tone);
       const size = compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
       return `<span class="inline-flex items-center gap-1 rounded-full border ${size} font-black ${cls}"><i data-lucide="${info.icon}" class="h-3 w-3"></i>${escapeHtml(info.label)}</span>`;
+    }
+
+    function participantStatusKey(status) {
+      const s = String(status || '').toLowerCase();
+      if (s.includes('kunci') || s.includes('lock')) return 'terkunci';
+      if (s.includes('masalah')) return 'bermasalah';
+      if (s.includes('submit')) return 'submit';
+      if (s.includes('mengerjakan')) return 'mengerjakan';
+      if (s.includes('login') || !s.includes('belum')) return 'login';
+      return 'belum';
+    }
+
+    function participantStatusDotHtml(status, problem) {
+      const s = String(status || '').toLowerCase();
+      if (problem) return '<span class="status-dot dot-problem"></span>';
+      if (s.includes('submit')) return '<span class="status-dot dot-offline"></span>';
+      if (s.includes('mengerjakan')) return '<span class="status-dot dot-online"></span>';
+      if (s.includes('login') || s.includes('idle')) return '<span class="status-dot dot-idle"></span>';
+      return '<span class="status-dot dot-offline"></span>';
+    }
+
+    function participantActionButton(action, item, label, tone) {
+      const toneClass = tone ? ` ${tone}` : '';
+      return `<button class="participant-action staff-card-action${toneClass}" data-action="${escapeHtml(action)}" data-exam-id="${escapeHtml(item.examId || '')}" data-nisn="${escapeHtml(item.nisn || '')}" data-nama="${escapeHtml(item.nama || '')}" data-kelas="${escapeHtml(item.kelas || '')}" data-ruang="${escapeHtml(item.ruang || '')}" type="button">${escapeHtml(label)}</button>`;
+    }
+
+    function renderParticipantMobileCards(participants, selectedExamId, options) {
+      options = options || {};
+      const rows = participants || [];
+      if (!rows.length) {
+        return `<div class="staff-mobile-only staff-mobile-card rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-500">Belum ada peserta sesuai filter.</div>`;
+      }
+      return `
+        <div class="staff-mobile-only staff-mobile-card-list">
+          ${rows.map(item => {
+            const securityInfo = getParticipantSecurityInfo(item);
+            const problem = securityInfo.problem;
+            const sisaDetik = Number(item.sisaDetik || 0);
+            const timerText = sisaDetik > 0 ? formatTimer(sisaDetik) : '-';
+            const lastActive = item.updatedAt ? timeAgo(item.updatedAt) : '-';
+            const actionItem = { ...item, examId: selectedExamId };
+            const actions = [];
+            if (options.canEditAttendance) {
+              actions.push(participantActionButton('hadir', actionItem, 'Hadir', 'success'));
+              actions.push(participantActionButton('tidak-hadir', actionItem, 'Tidak Hadir', 'warning'));
+            }
+            actions.push(participantActionButton('kendala', actionItem, 'Kendala', 'danger'));
+            if (currentUserData.role === 'pengawas') {
+              actions.push(participantActionButton('reset', actionItem, 'Ajukan Reset', 'warning'));
+              actions.push(participantActionButton('request-reopen', actionItem, 'Ajukan Buka Ulang', 'primary'));
+            }
+            if (options.canControlStudent) {
+              actions.push(participantActionButton('reset', actionItem, 'Reset', 'warning'));
+              actions.push(participantActionButton('waktu', actionItem, 'Tambah Waktu', 'primary'));
+              actions.push(participantActionButton('reopen', actionItem, 'Buka Ulang', 'success'));
+            }
+            if (options.canControlStudent || currentUserData.role === 'pengawas' || problem) {
+              actions.unshift(participantActionButton('detail', actionItem, 'Detail', 'primary'));
+            }
+            return `
+              <article class="staff-mobile-card" data-status="${participantStatusKey(item.status)}" data-security="${escapeHtml(securityInfo.key)}" data-room="${escapeHtml(item.ruang || '')}">
+                <div class="staff-mobile-card-head">
+                  <div class="min-w-0">
+                    <h4 class="staff-mobile-card-title">${participantStatusDotHtml(item.status, problem)}${escapeHtml(item.nama || '-')}</h4>
+                    <p class="staff-mobile-card-subtitle">${escapeHtml(item.nisn || '-')} - ${escapeHtml(item.kelas || '-')} - ${escapeHtml(item.ruang || '-')}</p>
+                  </div>
+                  <div class="flex flex-col items-end gap-1">
+                    ${statusBadge(item.status || '-')}
+                    ${problem ? securityBadgeHtml(securityInfo, true) : ''}
+                  </div>
+                </div>
+                <div class="staff-mobile-card-meta">
+                  <div class="staff-mobile-meta-cell"><span>Waktu</span><b>${escapeHtml(timerText)}</b></div>
+                  <div class="staff-mobile-meta-cell"><span>Hadir</span><b>${escapeHtml(item.hadir || '-')}</b></div>
+                  <div class="staff-mobile-meta-cell"><span>Aktif</span><b>${escapeHtml(lastActive)}</b></div>
+                  <div class="staff-mobile-meta-cell"><span>Tab</span><b>${Number(item.tabKeluar || 0)}/${EXAM_TAB_LOCK_THRESHOLD}</b></div>
+                  <div class="staff-mobile-meta-cell"><span>Fullscreen</span><b>${Number(item.fullscreenExit || 0)}x</b></div>
+                  <div class="staff-mobile-meta-cell"><span>Screenshot</span><b>${Number(item.screenshotAttempt || 0)}x</b></div>
+                </div>
+                <div class="staff-card-actions">${actions.join('')}</div>
+              </article>
+            `;
+          }).join('')}
+        </div>
+      `;
     }
 
     function setParticipantFilter(filter) {
@@ -8506,6 +9994,7 @@ ${dokToolbarHtml()}
         return matchSearch && matchRoom && matchFilter;
       });
       const renderedParticipants = filteredParticipants.slice(0, Math.max(PARTICIPANT_RENDER_BATCH, participantVisibleLimit));
+      const mobileCardsHtml = renderParticipantMobileCards(renderedParticipants, selectedExamId, { canEditAttendance, canControlStudent });
       return `
         <section class="surface-card p-5 shadow-sm overflow-hidden">
           <div class="flex items-center gap-2 mb-3">
@@ -8518,7 +10007,7 @@ ${dokToolbarHtml()}
               <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
               <input id="participant-search" type="text" placeholder="Cari nama atau NISN" value="${escapeHtml(participantSearch)}">
             </div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="filter-scroll flex flex-wrap gap-1.5">
               <button class="filter-pill ${participantFilter==='all'?'active':''}" data-filter="all">Semua (${participants.length})</button>
               <button class="filter-pill ${participantFilter==='belum'?'active':''}" data-filter="belum">Belum Login (${countByStatus('belum')})</button>
               <button class="filter-pill ${participantFilter==='login'?'active':''}" data-filter="login">Login (${countByStatus('login')})</button>
@@ -8532,7 +10021,8 @@ ${dokToolbarHtml()}
             </div>
             <p id="filter-counter" class="text-xs font-semibold text-slate-400">Menampilkan ${renderedParticipants.length} dari ${filteredParticipants.length} hasil (${participants.length} peserta)</p>
           </div>
-          <div class="overflow-x-auto">
+          ${mobileCardsHtml}
+          <div class="staff-desktop-table overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="text-left text-xs uppercase text-slate-500 border-b">
                 <tr><th class="py-2">Peserta</th><th>Status</th><th>Sisa Waktu</th><th>Hadir</th><th>Tab</th><th>Fullscreen</th><th>Screenshot</th><th>Last Active</th><th class="text-right">Aksi</th></tr>
@@ -8991,6 +10481,7 @@ ${dokToolbarHtml()}
       const canWriteReport = ['admin', 'proktor', 'pengawas', 'executive'].includes(currentUserData.role);
       const canBroadcast = ['admin', 'proktor', 'pengawas'].includes(currentUserData.role);
       const canRunUtilities = ['admin', 'proktor'].includes(currentUserData.role);
+      const supervisorSummary = getSupervisorAttendanceSummary();
       return `
         <aside class="space-y-4">
           ${canBroadcast ? `
@@ -9083,10 +10574,18 @@ ${dokToolbarHtml()}
               <h3 class="font-bold text-slate-900">Berita Acara</h3>
             </div>
             <input type="hidden" name="examId" value="${escapeHtml(selectedExamId || '')}">
-            <div class="grid grid-cols-2 gap-3">
-              <input name="jumlahHadir" type="number" min="0" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Hadir">
-              <input name="jumlahTidakHadir" type="number" min="0" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Tidak hadir">
-            </div>
+            ${isSupervisorUser() ? `
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Hadir otomatis</span><b class="mt-1 block text-lg text-slate-900">${Number(supervisorSummary.hadir || 0)}</b></div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Tidak hadir otomatis</span><b class="mt-1 block text-lg text-slate-900">${Math.max(0, Number(supervisorSummary.total || 0) - Number(supervisorSummary.hadir || 0))}</b></div>
+              </div>
+              <p class="text-[11px] font-semibold text-slate-500">Jumlah berita acara dihitung dari daftar hadir ruang. Lengkapi presensi sebelum mengirim.</p>
+            ` : `
+              <div class="grid grid-cols-2 gap-3">
+                <input name="jumlahHadir" type="number" min="0" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Hadir">
+                <input name="jumlahTidakHadir" type="number" min="0" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Tidak hadir">
+              </div>
+            `}
             <textarea name="catatan" rows="4" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Catatan pelaksanaan"></textarea>
             <button class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white hover:bg-blue-800">
               <i data-lucide="send" class="w-4 h-4"></i> Kirim Berita Acara
@@ -9100,6 +10599,11 @@ ${dokToolbarHtml()}
             </div>
             <input type="hidden" name="examId" value="${escapeHtml(selectedExamId || '')}">
             <input name="nisn" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="NISN (opsional)">
+            ${isSupervisorUser() ? `
+              <div class="grid grid-cols-2 gap-2">
+                ${['Jaringan bermasalah', 'Perangkat bermasalah', 'Login/token bermasalah', 'Layar terkunci', 'Peserta sakit/izin', 'Listrik bermasalah', 'Kendala lainnya'].map(text => `<button type="button" class="kendala-template inline-flex min-h-[40px] items-center justify-center rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700" data-template="${escapeHtml(text)}">${escapeHtml(text)}</button>`).join('')}
+              </div>
+            ` : ''}
             <textarea name="kendala" required rows="4" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Kendala"></textarea>
             <button class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 font-bold text-white hover:bg-rose-700">
               <i data-lucide="send" class="w-4 h-4"></i> Laporkan
@@ -9284,6 +10788,29 @@ ${dokToolbarHtml()}
       document.querySelectorAll('.admin-quick-action, .admin-nav-action').forEach(button => {
         button.addEventListener('click', () => navigateStaffSectionFromAction(button.dataset.section, button.dataset.after));
       });
+      const operationsPanel = document.getElementById('operations-command-center');
+      const loadOperations = document.getElementById('btn-load-operations');
+      if (loadOperations) loadOperations.addEventListener('click', () => loadOperationsCommandCenter(false));
+      const operationsSelect = document.getElementById('operations-exam-select');
+      if (operationsSelect) operationsSelect.addEventListener('change', () => loadOperationsCommandCenter(false));
+      document.querySelectorAll('.ops-room-detail').forEach(button => {
+        button.addEventListener('click', () => openOperationsRoomDetail(button.dataset.room || ''));
+      });
+      document.querySelectorAll('.ops-kendala-approve').forEach(button => {
+        button.addEventListener('click', async () => {
+          await approveKendala(button.dataset.row);
+          await loadOperationsCommandCenter(true);
+        });
+      });
+      document.querySelectorAll('.ops-kendala-reject').forEach(button => {
+        button.addEventListener('click', async () => {
+          await rejectKendala(button.dataset.row);
+          await loadOperationsCommandCenter(true);
+        });
+      });
+      if (operationsPanel && !operationsCommandCenterCache) {
+        window.setTimeout(() => loadOperationsCommandCenter(true), 150);
+      }
       document.querySelectorAll('.token-reveal').forEach(button => {
         button.addEventListener('click', () => toggleTokenReveal(button));
       });
@@ -9311,6 +10838,39 @@ ${dokToolbarHtml()}
       if (monitorSelect) monitorSelect.addEventListener('change', () => { refreshMonitoring(monitorSelect.value); });
       const refreshMonitor = document.getElementById('btn-refresh-monitor');
       if (refreshMonitor) refreshMonitor.addEventListener('click', () => { refreshMonitoring(monitorSelect ? monitorSelect.value : ''); });
+      document.querySelectorAll('.supervisor-session-start').forEach(button => {
+        button.addEventListener('click', async () => {
+          setButtonBusy(button, 'Memulai...');
+          try {
+            const response = await serverCall('startSupervisorSession', { actor: currentUserData, examId: button.dataset.examId || getDefaultSupervisorExamId() });
+            if (response.status !== 'success') throw new Error(response.message || 'Gagal memulai sesi pengawas.');
+            supervisorRoomContext = response.context || await loadSupervisorRoomContext(button.dataset.examId || getDefaultSupervisorExamId(), true);
+            rerenderActiveStaffSection();
+            showToast('Sesi pengawasan dimulai', 'success');
+          } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+          } finally {
+            restoreButton(button);
+          }
+        });
+      });
+      document.querySelectorAll('.supervisor-task-refresh').forEach(button => {
+        button.addEventListener('click', async () => {
+          setButtonBusy(button, 'Memuat...');
+          try {
+            await loadSupervisorRoomContext(button.dataset.examId || getDefaultSupervisorExamId(), true);
+            rerenderActiveStaffSection();
+            showToast('Tugas ruang diperbarui', 'info');
+          } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+          } finally {
+            restoreButton(button);
+          }
+        });
+      });
+      document.querySelectorAll('.supervisor-complete-action').forEach(button => {
+        button.addEventListener('click', () => validateSupervisorCompletion(button.dataset.examId || getDefaultSupervisorExamId()));
+      });
 
     /* ============================================
        Sidebar navigation
@@ -9532,6 +11092,27 @@ ${dokToolbarHtml()}
       if (loadGradebook) loadGradebook.addEventListener('click', loadGradebookData);
       const loadEssays = document.getElementById('btn-load-essays');
       if (loadEssays) loadEssays.addEventListener('click', loadEssayQueue);
+      const loadTeacherWork = document.getElementById('btn-load-teacher-work');
+      if (loadTeacherWork) loadTeacherWork.addEventListener('click', () => loadTeacherWorkQueue(false));
+      if (document.getElementById('teacher-work-queue') && !teacherWorkQueueCache) {
+        window.setTimeout(() => loadTeacherWorkQueue(true), 150);
+      }
+      document.querySelectorAll('.teacher-open-essays').forEach(button => {
+        button.addEventListener('click', async () => {
+          const select = document.getElementById('essay-exam-select');
+          if (select) select.value = button.dataset.examId || '';
+          await loadEssayQueue();
+          document.getElementById('essay-queue')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+      document.querySelectorAll('.teacher-open-gradebook').forEach(button => {
+        button.addEventListener('click', async () => {
+          const select = document.getElementById('grade-exam-select');
+          if (select) select.value = button.dataset.examId || '';
+          await loadGradebookData(false);
+          document.getElementById('gradebook-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
       const loadRoomReport = document.getElementById('btn-load-room-report');
       if (loadRoomReport) loadRoomReport.addEventListener('click', loadRoomReportData);
       const exportAttendance = document.getElementById('btn-export-attendance');
@@ -9573,6 +11154,16 @@ ${dokToolbarHtml()}
       if (practicalBeritaForm) practicalBeritaForm.addEventListener('submit', submitPracticalBerita);
       const kendalaForm = document.getElementById('kendala-form');
       if (kendalaForm) kendalaForm.addEventListener('submit', submitKendala);
+      document.querySelectorAll('.kendala-template').forEach(button => {
+        button.addEventListener('click', () => {
+          const form = button.closest('form');
+          const textarea = form ? form.querySelector('textarea[name="kendala"]') : null;
+          if (!textarea) return;
+          const prefix = button.dataset.template || '';
+          textarea.value = textarea.value ? `${prefix}: ${textarea.value}` : `${prefix}: `;
+          textarea.focus();
+        });
+      });
       const exportBtn = document.getElementById('btn-export');
       if (exportBtn) exportBtn.addEventListener('click', exportData);
     }
@@ -9705,6 +11296,8 @@ ${dokToolbarHtml()}
         const response = await serverCall('getMonitoringData', { actor: currentUserData, examId });
         if (response.status !== 'success') throw new Error(response.message || 'Gagal refresh monitoring.');
         appData.monitoring = response.data;
+        if (isSupervisorUser()) await loadSupervisorRoomContext(response.data?.selectedExamId || examId, true);
+        syncFirebaseMonitoringBinding();
         try { checkMonitoringAlerts(appData.monitoring); } catch(e){}
         lastRefreshAt = Date.now();
         if (activeStaffSection === 'monitor') {
@@ -9735,6 +11328,7 @@ ${dokToolbarHtml()}
         const response = await serverCall('getPracticalExamData', { actor: currentUserData, examId });
         if (response.status !== 'success') throw new Error(response.message || 'Data ujian praktik gagal dimuat.');
         practicalData = response.data;
+        if (isSupervisorUser()) await loadSupervisorRoomContext(practicalData.selectedExamId || examId, true);
         const contentEl = document.getElementById('staff-section-content');
         if (contentEl && activeStaffSection === 'praktik') {
           contentEl.innerHTML = renderStaffSection('praktik');
@@ -9751,7 +11345,7 @@ ${dokToolbarHtml()}
 
     async function handlePracticalAttendanceAction(button) {
       const nisn = button.dataset.nisn || '';
-      const note = document.querySelector(`.practical-note[data-nisn="${nisn}"]`);
+      const note = button.closest('.staff-mobile-card')?.querySelector(`.practical-note[data-nisn="${nisn}"]`) || document.querySelector(`.practical-note[data-nisn="${nisn}"]`);
       const item = {
         examId: button.dataset.examId,
         nisn,
@@ -9783,6 +11377,7 @@ ${dokToolbarHtml()}
         item.ruang = currentUserData.ruang;
         const response = await serverCall('submitBeritaAcara', { actor: currentUserData, item });
         if (response.status !== 'success') throw new Error(response.message || 'Berita acara praktik gagal dikirim.');
+        if (isSupervisorUser()) await loadSupervisorRoomContext(item.examId, true);
         showToast('Berita acara praktik tersimpan', 'success');
         await loadPracticalExamData(item.examId);
       } catch (error) {
@@ -12722,11 +14317,13 @@ ${dokToolbarHtml()}
       const searchInput = document.getElementById('search-users');
       const statusFilter = document.getElementById('filter-user-status');
       const kelasFilter = document.getElementById('filter-user-kelas');
+      const ruangFilter = document.getElementById('filter-user-ruang');
       
       const query = searchInput ? lowerText(searchInput.value).trim() : '';
       const role = acctActiveRole;
       const status = statusFilter ? statusFilter.value : 'all';
       const kelas = kelasFilter ? kelasFilter.value : 'all';
+      const ruang = ruangFilter ? ruangFilter.value : 'all';
       
       const filtered = loadedUsersData.filter(user => {
         const matchesQuery = !query
@@ -12737,7 +14334,8 @@ ${dokToolbarHtml()}
         const matchesRole = role === 'all' || normalizeRoleKey(user && user.role) === role;
         const matchesStatus = status === 'all' || lowerText((user && user.status) || 'aktif') === status;
         const matchesKelas = kelas === 'all' || textValue(user && user.kelas) === kelas;
-        return matchesQuery && matchesRole && matchesStatus && matchesKelas;
+        const matchesRuang = ruang === 'all' || textValue(user && user.ruang) === ruang;
+        return matchesQuery && matchesRole && matchesStatus && matchesKelas && matchesRuang;
       });
       
       const counter = document.getElementById('user-filter-counter');
@@ -12763,8 +14361,7 @@ ${dokToolbarHtml()}
               <td class="p-3"><div class="h-4 w-28 bg-slate-200 rounded animate-pulse"></div></td>
               <td class="p-3"><div class="h-4 w-20 bg-slate-200 rounded animate-pulse"></div></td>
               <td class="p-3"><div class="h-6 w-16 bg-slate-200 rounded-full animate-pulse"></div></td>
-              <td class="p-3"><div class="h-4 w-12 bg-slate-200 rounded animate-pulse"></div></td>
-              ${currentUserData.role === 'admin' ? '<td class="p-3 text-right"><div class="h-6 w-16 bg-slate-200 rounded inline-block animate-pulse"></div></td>' : ''}
+              ${currentUserData.role === 'admin' ? '<td class="p-3 text-right sticky right-0 bg-white z-10 w-[155px] min-w-[155px]"><div class="h-6 w-16 bg-slate-200 rounded inline-block animate-pulse"></div></td>' : ''}
             </tr>
           `;
         }
@@ -12772,7 +14369,7 @@ ${dokToolbarHtml()}
           <div class="overflow-x-auto rounded-xl border border-slate-200 max-h-[600px]">
             <table class="w-full text-sm">
               <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500 sticky top-0 z-10 shadow-sm">
-                <tr><th class="p-3 whitespace-nowrap">Nama</th><th class="p-3 whitespace-nowrap">NISN</th><th class="p-3 whitespace-nowrap">No Ujian</th><th class="p-3 whitespace-nowrap">Role</th><th class="p-3 whitespace-nowrap">Kelas/Ruang</th><th class="p-3 whitespace-nowrap">Jurusan</th><th class="p-3 whitespace-nowrap">Status</th><th class="p-3 whitespace-nowrap">Sumber</th>${currentUserData.role === 'admin' ? '<th class="p-3 text-right sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)]">Aksi</th>' : ''}</tr>
+                <tr><th class="p-3 whitespace-nowrap">Pengguna</th><th class="p-3 whitespace-nowrap">NISN/Username</th><th class="p-3 whitespace-nowrap">No Ujian</th><th class="p-3 whitespace-nowrap">Peran</th><th class="p-3 whitespace-nowrap">Kelas</th><th class="p-3 whitespace-nowrap">Ruang</th><th class="p-3 whitespace-nowrap">Status</th>${currentUserData.role === 'admin' ? '<th class="p-3 text-right sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] w-[155px] min-w-[155px]">Aksi</th>' : ''}</tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
                 ${skeletons}
@@ -12799,7 +14396,7 @@ ${dokToolbarHtml()}
         <div class="overflow-x-auto rounded-xl border border-slate-200 max-h-[600px]">
           <table class="w-full text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500 sticky top-0 z-10 shadow-sm">
-              <tr><th class="p-3 whitespace-nowrap">Pengguna</th><th class="p-3 whitespace-nowrap">NISN/Username</th><th class="p-3 whitespace-nowrap">No Ujian</th><th class="p-3 whitespace-nowrap">Peran</th><th class="p-3 whitespace-nowrap">Kelas</th><th class="p-3 whitespace-nowrap">Ruang</th><th class="p-3 whitespace-nowrap">Status</th>${currentUserData.role === 'admin' ? '<th class="p-3 text-right sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)]">Aksi</th>' : ''}</tr>
+              <tr><th class="p-3 whitespace-nowrap">Pengguna</th><th class="p-3 whitespace-nowrap">NISN/Username</th><th class="p-3 whitespace-nowrap">No Ujian</th><th class="p-3 whitespace-nowrap">Peran</th><th class="p-3 whitespace-nowrap">Kelas</th><th class="p-3 whitespace-nowrap">Ruang</th><th class="p-3 whitespace-nowrap">Status</th>${currentUserData.role === 'admin' ? '<th class="p-3 text-right sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] w-[155px] min-w-[155px]">Aksi</th>' : ''}</tr>
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
               ${sortedUsers.slice(0, userVisibleLimit).map(user => {
@@ -12833,7 +14430,7 @@ ${dokToolbarHtml()}
                   <td class="p-3 text-xs text-slate-600 whitespace-nowrap">${escapeHtml(kelas || '-')}</td>
                   <td class="p-3 text-xs text-slate-600 whitespace-nowrap">${escapeHtml(ruang || '-')}</td>
                   <td class="p-3 whitespace-nowrap"><span class="inline-flex items-center gap-1.5 text-xs font-bold ${isActive ? 'text-green-700' : 'text-slate-400'}"><span class="w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-slate-300'}"></span>${isActive ? 'Aktif' : 'Nonaktif'}</span></td>
-                  ${currentUserData.role === 'admin' ? `<td class="p-3 text-right sticky right-0 bg-white group-hover:bg-slate-50/50 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] z-10"><button onclick="promptAdminChangeUserPassword(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="opacity-0 group-hover:opacity-100 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-600 transition-all"><i data-lucide="key-round" class="w-3 h-3 inline mr-1"></i>Sandi</button></td>` : ''}
+                  ${currentUserData.role === 'admin' ? `<td class="p-3 text-right sticky right-0 bg-white group-hover:bg-slate-50 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] z-10 w-[155px] min-w-[155px]"><div class="flex items-center justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity duration-200"><button onclick="promptAdminChangeUserPassword(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-600 transition-all"><i data-lucide="key-round" class="w-3 h-3"></i>Sandi</button><button onclick="showUserQrCodeModal(this.dataset.user, this.dataset.role, this.dataset.nama)" data-user="${escapeHtml(userId)}" data-role="${escapeHtml(roleKey)}" data-nama="${escapeHtml(nama)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 transition-all"><i data-lucide="qr-code" class="w-3 h-3"></i>QR</button></div></td>` : ''}
                 </tr>`;
               }).join('') || '<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="users" class="w-10 h-10 mx-auto mb-2 opacity-30"></i><p class="font-bold">Belum ada data</p><p class="text-xs mt-1">Klik "Muat Data" untuk memuat akun pengguna.</p></td></tr>'}
             </tbody>
@@ -13347,6 +14944,110 @@ ${dokToolbarHtml()}
       activityLog: { offset: 0, limit: 120, rows: [], total: 0, hasMore: false }
     };
 
+    async function loadOperationsCommandCenter(silent) {
+      const select = document.getElementById('operations-exam-select');
+      const examId = select ? select.value : (operationsCommandCenterCache?.selectedExamId || appData?.monitoring?.selectedExamId || '');
+      try {
+        const response = await serverCall('getOperationsCommandCenter', { actor: currentUserData, examId });
+        if (response.status !== 'success') throw new Error(response.message || 'Command center gagal dimuat.');
+        operationsCommandCenterCache = response.data || null;
+        syncFirebaseMonitoringBinding();
+        if (activeStaffSection === 'overview') {
+          const contentEl = document.getElementById('staff-section-content');
+          if (contentEl) {
+            contentEl.innerHTML = renderStaffSection('overview');
+            bindDashboardEvents();
+            refreshIcons();
+          }
+        }
+        if (!silent) showToast('Command center diperbarui', 'info');
+      } catch (error) {
+        if (!silent) Swal.fire('Command Center', error.message, 'error');
+      }
+    }
+
+    async function loadTeacherWorkQueue(silent) {
+      try {
+        const response = await serverCall('getTeacherWorkQueue', { actor: currentUserData });
+        if (response.status !== 'success') throw new Error(response.message || 'Ringkasan guru gagal dimuat.');
+        teacherWorkQueueCache = response.data || null;
+        if (activeStaffSection === 'nilai') {
+          const contentEl = document.getElementById('staff-section-content');
+          if (contentEl) {
+            contentEl.innerHTML = renderStaffSection('nilai');
+            bindDashboardEvents();
+            refreshIcons();
+          }
+        }
+        if (!silent) showToast('Ringkasan guru diperbarui', 'info');
+      } catch (error) {
+        if (!silent) Swal.fire('Mapel Saya', error.message, 'error');
+      }
+    }
+
+    function openOperationsRoomDetail(roomName) {
+      const data = operationsCommandCenterCache || {};
+      const room = (data.rooms || []).find(item => item.ruang === roomName);
+      if (!room) return;
+      const kendala = (data.kendalaQueue || []).filter(item => (item.ruang || 'Tanpa Ruang') === roomName);
+      Swal.fire({
+        title: room.ruang || 'Detail Ruang',
+        width: 760,
+        html: `
+          <div class="text-left space-y-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div class="rounded-xl border border-slate-200 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Peserta</span><b class="mt-1 block text-lg">${Number(room.total || 0)}</b></div>
+              <div class="rounded-xl border border-slate-200 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Submit</span><b class="mt-1 block text-lg">${Number(room.submit || 0)}</b></div>
+              <div class="rounded-xl border border-slate-200 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Presensi</span><b class="mt-1 block text-lg">${Number(room.attendanceMarked || 0)}/${Number(room.total || 0)}</b></div>
+              <div class="rounded-xl border border-slate-200 p-3"><span class="text-[10px] font-black uppercase text-slate-400">Kendala</span><b class="mt-1 block text-lg">${Number(room.kendalaOpen || 0)}</b></div>
+            </div>
+            <section class="rounded-xl border border-slate-200 p-3">
+              <h4 class="text-sm font-black text-slate-900">Sesi Pengawas</h4>
+              <p class="mt-1 text-sm font-semibold text-slate-600">${escapeHtml(room.session?.pengawasNama || 'Belum tercatat')} · ${escapeHtml(room.session?.status || 'Belum mulai')}</p>
+              <p class="text-xs font-semibold text-slate-500">Berita acara: ${room.beritaSaved ? 'sudah masuk' : 'belum masuk'} · Last active: ${escapeHtml(room.lastActive ? timeAgo(room.lastActive) : '-')}</p>
+            </section>
+            <section class="rounded-xl border border-rose-100 bg-rose-50/50 p-3">
+              <h4 class="text-sm font-black text-slate-900">Peserta Bermasalah</h4>
+              <div class="mt-2 space-y-2">
+                ${(room.problemParticipants || []).map(item => `<div class="rounded-lg bg-white p-2 text-sm"><b>${escapeHtml(item.nama || '-')}</b><span class="block text-xs text-slate-500">${escapeHtml(item.nisn || '-')} · ${escapeHtml(item.status || '-')}</span></div>`).join('') || '<p class="text-sm font-semibold text-slate-500">Tidak ada peserta bermasalah.</p>'}
+              </div>
+            </section>
+            <section class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
+              <h4 class="text-sm font-black text-slate-900">Kendala Aktif</h4>
+              <div class="mt-2 space-y-2">
+                ${kendala.map(item => `<div class="rounded-lg bg-white p-2 text-sm"><b>${escapeHtml(item.nama || '-')}</b><p class="text-xs text-slate-600">${escapeHtml(item.kendala || '-')}</p></div>`).join('') || '<p class="text-sm font-semibold text-slate-500">Tidak ada kendala aktif.</p>'}
+              </div>
+            </section>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Broadcast ke Ujian',
+        cancelButtonText: 'Tutup'
+      }).then(result => {
+        if (result.isConfirmed) sendOperationsBroadcast(room.ruang);
+      });
+    }
+
+    async function sendOperationsBroadcast(roomName) {
+      const data = operationsCommandCenterCache || {};
+      const result = await Swal.fire({
+        title: 'Broadcast Operasional',
+        input: 'textarea',
+        inputPlaceholder: `Pesan untuk ${roomName || 'ujian'}`,
+        showCancelButton: true,
+        confirmButtonText: 'Kirim'
+      });
+      if (!result.isConfirmed || !String(result.value || '').trim()) return;
+      try {
+        const prefix = roomName ? `[${roomName}] ` : '';
+        const response = await serverCall('createClassBroadcast', { actor: currentUserData, examId: data.selectedExamId, message: prefix + String(result.value || '').trim() });
+        if (response.status !== 'success') throw new Error(response.message || 'Broadcast gagal dikirim.');
+        showToast('Broadcast terkirim', 'success');
+      } catch (error) {
+        Swal.fire('Broadcast', error.message, 'error');
+      }
+    }
+
     async function loadGradebookData(append) {
       try {
         const examId = document.getElementById('grade-exam-select').value;
@@ -13368,6 +15069,53 @@ ${dokToolbarHtml()}
       }
     }
 
+    function renderGradebookMobileCards(rows) {
+      const data = rows || [];
+      if (!data.length) {
+        return `<div class="staff-mobile-only staff-mobile-card rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-500">Belum ada nilai submit.</div>`;
+      }
+      return `
+        <div class="staff-mobile-only staff-mobile-card-list">
+          ${data.map(row => `
+            <article class="staff-mobile-card">
+              <div class="staff-mobile-card-head">
+                <div class="min-w-0">
+                  <h4 class="staff-mobile-card-title">${escapeHtml(row.nama || '-')}</h4>
+                  <p class="staff-mobile-card-subtitle">${escapeHtml(row.nisn || '-')} - ${escapeHtml(row.kelas || '-')} - ${escapeHtml(row.examId || '-')}</p>
+                </div>
+                ${statusBadge(row.status || '-')}
+              </div>
+              <div class="staff-mobile-card-meta">
+                <div class="staff-mobile-meta-cell"><span>PG</span><b>${Number(row.nilaiPG || 0).toFixed(2)}</b></div>
+                <div class="staff-mobile-meta-cell"><span>Esai</span><b>${Number(row.nilaiEsai || 0).toFixed(2)}</b></div>
+                <div class="staff-mobile-meta-cell"><span>Akhir</span><b>${Number(row.nilaiAkhir || 0).toFixed(2)}</b></div>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderGradebookValidationCards(rows) {
+      const data = rows || [];
+      if (!data.length) return '';
+      const kosong = data.filter(row => Number(row.nilaiAkhir || 0) === 0).length;
+      const esaiKosong = data.filter(row => Number(row.nilaiEsai || 0) === 0).length;
+      const ekstrem = data.filter(row => Number(row.nilaiAkhir || 0) >= 95 || Number(row.nilaiAkhir || 0) <= 20).length;
+      const keamanan = data.filter(row => Number(row.tabKeluar || 0) > 0 || Number(row.fullscreenExit || 0) > 0 || Number(row.screenshotAttempt || 0) > 0).length;
+      const cards = [
+        ['Nilai kosong', kosong, 'rose'],
+        ['Esai kosong', esaiKosong, 'amber'],
+        ['Skor ekstrem', ekstrem, 'blue'],
+        ['Catatan keamanan', keamanan, 'slate']
+      ];
+      return `
+        <div class="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+          ${cards.map(([label, value, tone]) => `<div class="rounded-xl border ${adminToneClasses(value ? tone : 'success')} p-3"><span class="text-[10px] font-black uppercase">${escapeHtml(label)}</span><b class="mt-1 block text-xl text-slate-900">${Number(value || 0)}</b></div>`).join('')}
+        </div>
+      `;
+    }
+
     function renderGradebookTable(rows, state) {
       const container = document.getElementById('gradebook-table');
       if (!container) return;
@@ -13386,7 +15134,10 @@ ${dokToolbarHtml()}
             </tr>`;
         }
         container.innerHTML = `
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <div class="staff-mobile-only staff-mobile-card-list">
+            ${Array.from({ length: 4 }).map(() => `<div class="staff-mobile-card"><div class="h-4 w-40 bg-slate-200 rounded animate-pulse"></div><div class="mt-2 h-3 w-28 bg-slate-200 rounded animate-pulse"></div><div class="mt-3 grid grid-cols-3 gap-2"><div class="h-10 bg-slate-100 rounded animate-pulse"></div><div class="h-10 bg-slate-100 rounded animate-pulse"></div><div class="h-10 bg-slate-100 rounded animate-pulse"></div></div></div>`).join('')}
+          </div>
+          <div class="staff-desktop-table overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full text-sm">
               <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                 <tr><th class="p-3">Peserta</th><th>Ujian</th><th>PG</th><th>Esai</th><th>Akhir</th><th>Status</th></tr>
@@ -13397,7 +15148,9 @@ ${dokToolbarHtml()}
         return;
       }
       container.innerHTML = `
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
+        ${renderGradebookValidationCards(rows)}
+        ${renderGradebookMobileCards(rows)}
+        <div class="staff-desktop-table overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
               <tr><th class="p-3">Peserta</th><th>Ujian</th><th>PG</th><th>Esai</th><th>Akhir</th><th>Status</th></tr>
@@ -13453,11 +15206,25 @@ ${dokToolbarHtml()}
       const container = document.getElementById('essay-queue');
       if (!container) return;
       essayQueueCache = queue || [];
-      const visibleQueue = essayQueueCache.slice(0, essayVisibleLimit);
+      const classOptions = Array.from(new Set(essayQueueCache.map(item => item.kelas || '').filter(Boolean))).sort();
+      const filteredQueue = essayClassFilter ? essayQueueCache.filter(item => String(item.kelas || '') === essayClassFilter) : essayQueueCache;
+      const pendingCount = essayQueueCache.filter(item => item.skor === '' || item.skor === undefined).length;
+      const visibleQueue = filteredQueue.slice(0, essayVisibleLimit);
       container.innerHTML = `
-        <div class="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-          ${visibleQueue.map((item, index) => `
-            <article class="rounded-xl border border-slate-200 p-4">
+        <div class="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="text-xs font-bold text-slate-500">Esai pending: <b class="text-amber-700">${Number(pendingCount || 0)}</b> · Total jawaban: <b>${Number(essayQueueCache.length || 0)}</b></div>
+            <select id="essay-class-filter" class="min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold">
+              <option value="">Semua kelas</option>
+              ${classOptions.map(kelas => `<option value="${escapeHtml(kelas)}" ${kelas === essayClassFilter ? 'selected' : ''}>${escapeHtml(kelas)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="staff-essay-list space-y-3 max-h-[560px] overflow-y-auto pr-1">
+          ${visibleQueue.map((item, index) => {
+            const realIndex = essayQueueCache.indexOf(item);
+            return `
+            <article class="staff-essay-card rounded-xl border border-slate-200 p-4">
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p class="font-bold">${escapeHtml(item.nama)} - Soal ${escapeHtml(item.nomor)}</p>
@@ -13471,20 +15238,32 @@ ${dokToolbarHtml()}
                 <p class="font-bold text-slate-700 mt-3">Jawaban</p>
                 <p>${escapeHtml(item.jawaban || '-')}</p>
               </div>
-              <div class="mt-3 flex gap-2">
-                <input id="essay-score-${index}" type="number" min="0" max="${Number(item.skorMaks || 10)}" value="${escapeHtml(item.skor)}" class="w-28 rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Skor">
-                <button class="essay-grade-action inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800" data-index="${index}">
+              <div class="staff-essay-actions mt-3 flex gap-2">
+                <input id="essay-score-${realIndex}" type="number" min="0" max="${Number(item.skorMaks || 10)}" value="${escapeHtml(item.skor)}" class="essay-score-input w-28 rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Skor" data-index="${realIndex}">
+                <button class="essay-grade-action inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800" data-index="${realIndex}">
                   <i data-lucide="save" class="w-4 h-4"></i>
                   Simpan
                 </button>
               </div>
             </article>
-          `).join('') || '<div class="rounded-xl border border-slate-200 p-5 text-center text-slate-500">Belum ada jawaban esai.</div>'}
+          `}).join('') || '<div class="rounded-xl border border-slate-200 p-5 text-center text-slate-500">Belum ada jawaban esai.</div>'}
         </div>
-        ${essayQueueCache.length > visibleQueue.length ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleQueue.length}</b> dari <b>${essayQueueCache.length}</b> jawaban esai.</span><button type="button" onclick="loadMoreEssayRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
+        ${filteredQueue.length > visibleQueue.length ? `<div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500"><span>Menampilkan <b>${visibleQueue.length}</b> dari <b>${filteredQueue.length}</b> jawaban esai.</span><button type="button" onclick="loadMoreEssayRows()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Muat lebih</button></div>` : ''}
       `;
+      const classFilter = document.getElementById('essay-class-filter');
+      if (classFilter) classFilter.addEventListener('change', () => {
+        essayClassFilter = classFilter.value;
+        essayVisibleLimit = 80;
+        renderEssayQueue(essayQueueCache);
+      });
+      document.querySelectorAll('.essay-score-input').forEach(input => {
+        input.addEventListener('change', () => {
+          const item = essayQueueCache[Number(input.dataset.index)];
+          if (item) gradeEssayAnswer(item, input.value, true);
+        });
+      });
       document.querySelectorAll('.essay-grade-action').forEach(button => {
-        button.addEventListener('click', () => gradeEssayAnswer(queue[Number(button.dataset.index)], document.getElementById('essay-score-' + button.dataset.index).value));
+        button.addEventListener('click', () => gradeEssayAnswer(essayQueueCache[Number(button.dataset.index)], document.getElementById('essay-score-' + button.dataset.index).value));
       });
       refreshIcons();
     }
@@ -13494,14 +15273,15 @@ ${dokToolbarHtml()}
       renderEssayQueue(essayQueueCache);
     }
 
-    async function gradeEssayAnswer(item, skor) {
+    async function gradeEssayAnswer(item, skor, silent) {
       try {
         const response = await serverCall('gradeEssay', {
           actor: currentUserData,
           item: { ...item, skor: Number(skor || 0) }
         });
         if (response.status !== 'success') throw new Error(response.message || 'Koreksi gagal disimpan.');
-        Swal.fire('Berhasil', 'Skor esai tersimpan dan nilai akhir diperbarui.', 'success');
+        if (!silent) Swal.fire('Berhasil', 'Skor esai tersimpan dan nilai akhir diperbarui.', 'success');
+        else showToast('Skor esai tersimpan otomatis', 'success');
         await loadEssayQueue();
         await loadGradebookData();
       } catch (error) {
@@ -13520,6 +15300,50 @@ ${dokToolbarHtml()}
       }
     }
 
+    function renderRoomReportMobileCards(rows, mode) {
+      const data = rows || [];
+      if (!data.length) {
+        return `<div class="staff-mobile-only staff-mobile-card rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-500">${mode === 'praktik' ? 'Belum ada data praktik.' : 'Belum ada data ruang.'}</div>`;
+      }
+      return `
+        <div class="staff-mobile-only staff-report-card-grid">
+          ${data.map(row => {
+            const regularMetrics = [
+              ['Total', row.total || 0],
+              ['Hadir', row.hadir || 0],
+              ['Belum', row.belumDitandai || 0],
+              ['Submit', row.submit || 0],
+              ['Aktif', row.mengerjakan || 0],
+              ['Masalah', row.bermasalah || 0]
+            ];
+            const practicalMetrics = [
+              ['Total', row.total || 0],
+              ['Hadir', row.hadir || 0],
+              ['Tdk Hadir', row.tidakHadir || 0],
+              ['Izin', row.izin || 0],
+              ['Sakit', row.sakit || 0],
+              ['Belum', row.belum || 0]
+            ];
+            const metrics = mode === 'praktik' ? practicalMetrics : regularMetrics;
+            return `
+              <article class="staff-mobile-card">
+                <div class="staff-mobile-card-head">
+                  <div>
+                    <p class="staff-mobile-summary-title">Ruang</p>
+                    <h4 class="staff-mobile-card-title">${escapeHtml(row.ruang || '-')}</h4>
+                  </div>
+                  ${Number(row.bermasalah || 0) ? `<span class="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-black text-rose-700"><i data-lucide="triangle-alert" class="h-3 w-3"></i>${Number(row.bermasalah || 0)}</span>` : ''}
+                </div>
+                <div class="staff-report-metrics">
+                  ${metrics.map(([label, value]) => `<div class="staff-report-metric"><span>${escapeHtml(label)}</span><b>${Number(value || 0)}</b></div>`).join('')}
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     function renderRoomReportTable(reportOrRows) {
       const container = document.getElementById('room-report-table');
       if (!container) return;
@@ -13530,7 +15354,8 @@ ${dokToolbarHtml()}
           <div class="mb-3 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm font-semibold text-blue-800">
             Laporan ini memakai format ujian praktik: presensi, keterangan, dan berita acara tanpa status login/timer CBT.
           </div>
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
+          ${renderRoomReportMobileCards(rows, 'praktik')}
+          <div class="staff-desktop-table overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full text-sm">
               <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                 <tr><th class="p-3">Ruang</th><th>Total</th><th>Hadir</th><th>Tidak Hadir</th><th>Izin</th><th>Sakit</th><th>Dispensasi</th><th>Belum</th></tr>
@@ -13555,7 +15380,8 @@ ${dokToolbarHtml()}
         return;
       }
       container.innerHTML = `
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
+        ${renderRoomReportMobileCards(rows, 'cbt')}
+        <div class="staff-desktop-table overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
               <tr><th class="p-3">Ruang</th><th>Total</th><th>Hadir</th><th>Tidak Hadir</th><th>Belum</th><th>Mengerjakan</th><th>Submit</th><th>Masalah</th></tr>
@@ -13603,7 +15429,7 @@ ${dokToolbarHtml()}
 
     async function loadKendalaList(append) {
       try {
-        const examId = document.getElementById('kendala-exam-select').value;
+        const examId = document.getElementById('kendala-exam-select')?.value || '';
         const state = pageStates.kendala;
         if (!append) {
           state.offset = 0;
@@ -14168,7 +15994,9 @@ ${dokToolbarHtml()}
         item.ruang = currentUserData.ruang;
         const response = await serverCall('submitBeritaAcara', { actor: currentUserData, item });
         if (response.status !== 'success') throw new Error(response.message || 'Berita acara gagal dikirim.');
+        if (isSupervisorUser()) await loadSupervisorRoomContext(item.examId, true);
         if (formEl && typeof formEl.reset === 'function') formEl.reset();
+        if (isSupervisorUser()) rerenderActiveStaffSection();
         showToast('Berita acara tersimpan', 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -14187,7 +16015,9 @@ ${dokToolbarHtml()}
         item.ruang = currentUserData.ruang;
         const response = await serverCall('reportKendala', { actor: currentUserData, item });
         if (response.status !== 'success') throw new Error(response.message || 'Kendala gagal dikirim.');
+        if (isSupervisorUser()) await loadSupervisorRoomContext(item.examId, true);
         if (formEl && typeof formEl.reset === 'function') formEl.reset();
+        if (isSupervisorUser()) rerenderActiveStaffSection();
         showToast('Kendala tercatat', 'success');
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -14434,6 +16264,11 @@ ${dokToolbarHtml()}
       updateExamSecurityStatus();
       if (!enforceTabLeaveLimitLock({ syncNow: true }) && isFullscreenSupported() && !isExamFullscreenActive()) promptReturnFullscreen();
       startExamTimers();
+      if (!firebaseDb && appData && appData.firebaseUrl) initFirebase(appData.firebaseUrl);
+      if (firebaseDb && activeExam && currentUserData) {
+        bindFirebaseStudentStatus(activeExam.examId, currentUserData.user);
+        bindFirebaseBroadcast(activeExam.examId);
+      }
     }
 
     function renderExamView() {
@@ -14749,6 +16584,7 @@ ${dokToolbarHtml()}
       payload.lockReason = permanentLockSyncPending ? (window.permanentLockReason || 'Keluar batas keamanan') : '';
 
       try {
+        // Firebase writes go through Apps Script so RTDB rules can deny client writes.
         const response = await serverCall('saveAnswerBatch', payload);
         if (response.status !== 'success') throw new Error(response.message || 'Auto-save gagal.');
         if (response.timer && response.timer.endAt) examEndAt = new Date(response.timer.endAt);
@@ -15535,10 +17371,15 @@ ${dokToolbarHtml()}
         const lastRole = currentUserData && loginRoleMeta[normalizeRoleKey(currentUserData.role)] ? normalizeRoleKey(currentUserData.role) : selectedLoginRole;
         if (currentUserData) serverCall('logoutCbt', { user: currentUserData }).catch(() => {});
         stopExamTimers();
+        unbindFirebaseRealtime();
         currentUserData = null;
         appData = null;
         practicalData = null;
         activeExam = null;
+        supervisorWizardCompleted = false;
+        supervisorWizardActive = false;
+        supervisorRoomContext = null;
+        supervisorSelectedExamId = '';
         clearPersistedSession();
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
@@ -16296,6 +18137,910 @@ ${dokToolbarHtml()}
         detail: 'Mencetak berita acara ujian untuk ' + examId,
         status: 'Sukses'
       });
+    }
+
+    // ====================================================================
+    // INSTANT QR CODE LOGIN & QR CARD GENERATOR (PREMIUM FEATURE)
+    // ====================================================================
+    let html5QrcodeScanner = null;
+    let cameraDevices = [];
+    let cameraIndex = 0;
+    let currentCameraId = null;
+
+    function startQrScanner() {
+      const modal = document.getElementById("qr-scan-modal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      
+      // Clear any existing scanner instance
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(()=>{});
+      }
+      
+      html5QrcodeScanner = new Html5Qrcode("qr-scanner-viewport");
+      
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          cameraDevices = devices;
+          cameraIndex = 0;
+          currentCameraId = devices[0].id;
+          startScanningWithCamera(currentCameraId);
+        } else {
+          showToast("⚠️ Kamera tidak terdeteksi.", "error");
+          stopQrScanner();
+        }
+      }).catch(err => {
+        showToast("⚠️ Gagal mengakses izin kamera: " + err, "error");
+        stopQrScanner();
+      });
+    }
+
+    function startScanningWithCamera(cameraId) {
+      if (!html5QrcodeScanner) return;
+      html5QrcodeScanner.start(
+        cameraId,
+        {
+          fps: 10,
+          qrbox: { width: 160, height: 160 }
+        },
+        decodedText => {
+          onQrScanSuccess(decodedText);
+        },
+        errorMessage => {
+          // Quietly ignore scan frame errors
+        }
+      ).catch(err => {
+        showToast("❌ Gagal memulai kamera: " + err, "error");
+      });
+    }
+
+    function switchCamera() {
+      if (cameraDevices.length <= 1) {
+        showToast("ℹ️ Hanya ada satu kamera terdeteksi.", "info");
+        return;
+      }
+      
+      cameraIndex = (cameraIndex + 1) % cameraDevices.length;
+      currentCameraId = cameraDevices[cameraIndex].id;
+      
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+          startScanningWithCamera(currentCameraId);
+        }).catch(err => {
+          console.warn("Failed to stop scanner for switch:", err);
+        });
+      }
+    }
+
+    function stopQrScanner() {
+      const modal = document.getElementById("qr-scan-modal");
+      if (modal) modal.classList.add("hidden");
+      
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+          html5QrcodeScanner.clear().catch(()=>{});
+          html5QrcodeScanner = null;
+        }).catch(err => {
+          console.warn("Failed to stop scanner:", err);
+          html5QrcodeScanner = null;
+        });
+      }
+    }
+
+    function onQrScanSuccess(decodedText) {
+      if (decodedText.indexOf("CBT-QR:") !== 0) {
+        showToast("⚠️ Format QR Code tidak valid untuk CBT.", "error");
+        return;
+      }
+      
+      try {
+        // Format: CBT-QR:username:password:role
+        var parts = decodedText.split(":");
+        if (parts.length < 4) {
+          showToast("⚠️ Data QR Code tidak lengkap.", "error");
+          return;
+        }
+        
+        var username = parts[1];
+        var password = parts[2];
+        var role = parts[3];
+        
+        stopQrScanner();
+        
+        // Fill the inputs
+        const userEl = document.getElementById("username");
+        const passEl = document.getElementById("password");
+        if (userEl) userEl.value = username;
+        if (passEl) passEl.value = password;
+        
+        // Select the role
+        setSelectedLoginRole(role);
+        
+        // Play sweet chime
+        playBroadcastAlertChime();
+        showToast("🔓 QR Code berhasil dipindai! Mencoba login...", "success");
+        
+        // Auto-trigger submit
+        setTimeout(function() {
+          const loginForm = document.getElementById("loginForm");
+          if (loginForm) {
+            // Create a dummy event
+            const event = { preventDefault: function() {} };
+            handleLogin(event);
+          }
+        }, 800);
+        
+      } catch (e) {
+        showToast("❌ Gagal membaca QR Code: " + e.toString(), "error");
+      }
+    }
+
+    function bindLoginQrScanner() {
+      const btnScan = document.getElementById("btn-qr-scan");
+      const btnClose = document.getElementById("btn-close-qr");
+      const btnSwitch = document.getElementById("btn-switch-camera");
+      
+      if (btnScan) {
+        btnScan.addEventListener("click", () => {
+          startQrScanner();
+        });
+      }
+      if (btnClose) {
+        btnClose.addEventListener("click", () => {
+          stopQrScanner();
+        });
+      }
+      if (btnSwitch) {
+        btnSwitch.addEventListener("click", () => {
+          switchCamera();
+        });
+      }
+    }
+
+    function showUserQrCodeModal(username, role, name) {
+      const defaultPassword = username;
+      const qrData = `CBT-QR:${username}:${defaultPassword}:${role}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}`;
+      
+      Swal.fire({
+        title: '📇 KARTU LOGIN QR CODE',
+        html: `
+          <div class="text-center p-2">
+            <p class="text-sm text-slate-600 mb-4 font-semibold">Akun: <span class="text-indigo-600 font-bold">${escapeHtml(name)}</span> (${escapeHtml(role)})</p>
+            <div class="inline-block p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-md">
+              <img src="${qrUrl}" alt="QR Code" class="w-48 h-48 mx-auto" />
+            </div>
+            <p class="text-xs text-slate-400 mt-4 leading-relaxed">Kartu ini berisi kredensial login otomatis.<br>Simpan berkas ini atau cetak untuk dibagikan ke peserta.</p>
+            <div class="mt-4 p-3 bg-amber-50 border border-amber-100 text-[10px] text-amber-800 rounded-xl text-left leading-normal">
+              <b>ℹ️ Informasi Penting:</b><br>
+              Secara default, QR Code ini digenerate menggunakan password = <u>username/NISN</u>.<br>
+              Jika peserta telah mengubah passwordnya secara mandiri, mereka tidak dapat menggunakan QR Code default ini dan wajib login manual.
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '🖨️ Cetak Kartu',
+        cancelButtonText: 'Tutup',
+        customClass: {
+          confirmButton: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition text-sm',
+          cancelButton: 'bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-5 rounded-xl transition text-sm ml-2'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const roleDesigns = {
+            admin: {
+              themeColor: '#f43f5e',
+              themeBg: '#fff1f2',
+              themeBorder: '#fecdd3',
+              themeText: '#9f1239',
+              cardTitle: 'KARTU AKSES ADMINISTRATOR',
+              badgeText: 'ADMINISTRATOR'
+            },
+            proktor: {
+              themeColor: '#6366f1',
+              themeBg: '#e0e7ff',
+              themeBorder: '#c7d2fe',
+              themeText: '#3730a3',
+              cardTitle: 'KARTU AKSES PROKTOR',
+              badgeText: 'PROKTOR'
+            },
+            pengawas: {
+              themeColor: '#f59e0b',
+              themeBg: '#fef3c7',
+              themeBorder: '#fde68a',
+              themeText: '#92400e',
+              cardTitle: 'KARTU AKSES PENGAWAS',
+              badgeText: 'PENGAWAS'
+            },
+            guru: {
+              themeColor: '#10b981',
+              themeBg: '#ecfdf5',
+              themeBorder: '#a7f3d0',
+              themeText: '#065f46',
+              cardTitle: 'KARTU AKSES GURU MAPEL',
+              badgeText: 'GURU'
+            },
+            peserta: {
+              themeColor: '#0ea5e9',
+              themeBg: '#f0f9ff',
+              themeBorder: '#bae6fd',
+              themeText: '#075985',
+              cardTitle: 'KARTU LOGIN PESERTA UJIAN',
+              badgeText: 'PESERTA'
+            }
+          };
+          const design = roleDesigns[role] || roleDesigns.peserta;
+          
+          const printWin = window.open('', '_blank');
+          printWin.document.write(`
+            <html>
+            <head>
+              <title>Kartu QR - ${escapeHtml(name)}</title>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+                body { 
+                  font-family: 'Plus Jakarta Sans', sans-serif; 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  min-height: 100vh; 
+                  margin: 0; 
+                  background-color: #ffffff; 
+                  color: #1e293b;
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                }
+                .card-item {
+                  border: 2px dashed ${design.themeColor};
+                  border-radius: 16px;
+                  padding: 20px;
+                  background-color: #ffffff;
+                  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                  display: flex;
+                  flex-direction: column;
+                  width: 350px;
+                  height: 250px;
+                  box-sizing: border-box;
+                  position: relative;
+                }
+                .card-header {
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  border-bottom: 2px solid ${design.themeColor};
+                  padding-bottom: 10px;
+                  margin-bottom: 12px;
+                }
+                .school-logo {
+                  width: 48px;
+                  height: 48px;
+                  object-fit: contain;
+                }
+                .school-info {
+                  flex-grow: 1;
+                  line-height: 1.2;
+                }
+                .school-yayasan {
+                  font-size: 8px;
+                  font-weight: 800;
+                  color: #475569;
+                  letter-spacing: 0.5px;
+                }
+                .school-name {
+                  font-size: 11px;
+                  font-weight: 900;
+                  color: #1e1b4b;
+                }
+                .card-title {
+                  font-size: 9px;
+                  font-weight: 800;
+                  color: ${design.themeColor};
+                  letter-spacing: 1px;
+                  margin-top: 1px;
+                }
+                .role-badge {
+                  font-size: 8px;
+                  font-weight: 800;
+                  padding: 2.5px 6px;
+                  border-radius: 6px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  flex-shrink: 0;
+                  background-color: ${design.themeBg};
+                  color: ${design.themeText};
+                  border: 1px solid ${design.themeBorder};
+                }
+                .card-body {
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                  flex-grow: 1;
+                }
+                .student-info {
+                  flex-grow: 1;
+                  font-size: 11px;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                  color: #334155;
+                }
+                .info-row {
+                  display: flex;
+                  align-items: flex-start;
+                  line-height: 1.2;
+                }
+                .info-label {
+                  font-weight: 600;
+                  width: 60px;
+                  color: #64748b;
+                }
+                .info-val {
+                  padding-left: 4px;
+                  word-break: break-word;
+                }
+                .font-bold {
+                  font-weight: 700;
+                  color: #0f172a;
+                }
+                .font-mono {
+                  font-family: monospace;
+                }
+                .qr-container {
+                  width: 100px;
+                  height: 100px;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  padding: 4px;
+                  background-color: #ffffff;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                }
+                .qr-container img {
+                  width: 100%;
+                  height: 100%;
+                  object-fit: contain;
+                }
+                .card-footer {
+                  border-top: 1px solid #f1f5f9;
+                  padding-top: 8px;
+                  margin-top: auto;
+                  font-size: 8px;
+                  font-weight: 700;
+                  color: #64748b;
+                  text-align: center;
+                  letter-spacing: 0.2px;
+                }
+                @media print {
+                  body {
+                    background: transparent;
+                    padding: 0;
+                    margin: 0;
+                  }
+                  .card-item {
+                    box-shadow: none;
+                    border: 2px dashed ${design.themeColor};
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="card-item">
+                <div class="card-header">
+                  <img src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" class="school-logo" />
+                  <div class="school-info">
+                    <div class="school-yayasan">YAYASAN GANESA SATRIA</div>
+                    <div class="school-name">SMK GANESA SATRIA 4 KEDU</div>
+                    <div class="card-title">${escapeHtml(design.cardTitle)}</div>
+                  </div>
+                  <div class="role-badge">${escapeHtml(design.badgeText)}</div>
+                </div>
+                <div class="card-body">
+                  <div class="student-info">
+                    <div class="info-row"><span class="info-label">Nama</span>: <span class="info-val font-bold">${escapeHtml(name)}</span></div>
+                    <div class="info-row"><span class="info-label">Username</span>: <span class="info-val font-mono font-bold" style="color: ${design.themeColor};">${escapeHtml(username)}</span></div>
+                    ${role === 'peserta' ? `
+                      <div class="info-row"><span class="info-label">Kelas</span>: <span class="info-val">Peserta Ujian</span></div>
+                    ` : `
+                      <div class="info-row"><span class="info-label">Tipe Akses</span>: <span class="info-val font-bold" style="color: ${design.themeText};">${escapeHtml(role.toUpperCase())}</span></div>
+                    `}
+                    <div class="info-row"><span class="info-label">Status</span>: <span class="info-val font-bold text-green-600">Aktif</span></div>
+                  </div>
+                  <div class="qr-container">
+                    <img src="${qrUrl}" alt="QR" />
+                  </div>
+                </div>
+                <div class="card-footer">
+                  Arahkan QR Code ke kamera di layar login untuk masuk otomatis
+                </div>
+              </div>
+              <script>
+                window.onload = function() {
+                  setTimeout(function() { window.print(); window.close(); }, 500);
+                }
+              <\/script>
+            </body>
+            </html>
+          `);
+          printWin.document.close();
+        }
+      });
+    }
+
+    function showMassPrintCardsModal() {
+      if (!loadedUsersData || loadedUsersData.length === 0) {
+        Swal.fire('Info', 'Belum ada data pengguna yang dimuat. Silakan klik "Muat Data" terlebih dahulu.', 'info');
+        return;
+      }
+      
+      const kelasSet = new Set();
+      const ruangSet = new Set();
+      loadedUsersData.forEach(u => {
+        const roleKey = normalizeRoleKey(u && u.role);
+        if (roleKey === 'peserta') {
+          const kelas = textValue(u && u.kelas).trim();
+          if (kelas) kelasSet.add(kelas);
+          const ruang = textValue(u && u.ruang).trim();
+          if (ruang) ruangSet.add(ruang);
+        }
+      });
+      const kelasList = [...kelasSet].sort();
+      const ruangList = [...ruangSet].sort();
+      
+      const searchInput = document.getElementById('search-users');
+      const statusFilter = document.getElementById('filter-user-status');
+      const kelasFilter = document.getElementById('filter-user-kelas');
+      const ruangFilter = document.getElementById('filter-user-ruang');
+      
+      const query = searchInput ? lowerText(searchInput.value).trim() : '';
+      const role = acctActiveRole;
+      const status = statusFilter ? statusFilter.value : 'all';
+      const kelas = kelasFilter ? kelasFilter.value : 'all';
+      const ruang = ruangFilter ? ruangFilter.value : 'all';
+      
+      const filteredCount = loadedUsersData.filter(user => {
+        const matchesQuery = !query
+          || lowerText(user && user.nama).includes(query)
+          || lowerText(user && user.user).includes(query)
+          || lowerText(user && user.kelas).includes(query)
+          || lowerText(user && user.nomorUjian).includes(query);
+        const matchesRole = role === 'all' || normalizeRoleKey(user && user.role) === role;
+        const matchesStatus = status === 'all' || lowerText((user && user.status) || 'aktif') === status;
+        const matchesKelas = kelas === 'all' || textValue(user && user.kelas) === kelas;
+        const matchesRuang = ruang === 'all' || textValue(user && user.ruang) === ruang;
+        return matchesQuery && matchesRole && matchesStatus && matchesKelas && matchesRuang;
+      }).length;
+
+      Swal.fire({
+        title: '🖨️ CETAK KARTU MASSAL',
+        html: `
+          <div class="text-left p-2 space-y-4">
+            <p class="text-xs text-slate-500 leading-normal mb-3">Pilih kriteria cetak kartu login QR Code siswa secara massal di bawah ini.</p>
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Opsi Kriteria Cetak</label>
+              <select id="bulk-print-type" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" onchange="toggleBulkPrintOptions()">
+                <option value="filtered">Sesuai Filter Saat Ini (${filteredCount} Akun)</option>
+                <option value="kelas">Pilih Per Kelas</option>
+                <option value="ruang">Pilih Per Ruang</option>
+                <option value="all">Semua Peserta Aktif (${loadedUsersData.filter(u => normalizeRoleKey(u.role) === 'peserta' && lowerText(u.status || 'aktif') === 'aktif').length} Siswa)</option>
+              </select>
+            </div>
+            
+            <div id="bulk-print-kelas-wrapper" class="hidden mt-3">
+              <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Kelas</label>
+              <select id="bulk-print-kelas" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                ${kelasList.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div id="bulk-print-ruang-wrapper" class="hidden mt-3">
+              <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Ruang</label>
+              <select id="bulk-print-ruang" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                ${ruangList.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="mt-3">
+              <label class="block text-xs font-bold text-slate-600 mb-1">Ukuran Kertas Cetak</label>
+              <select id="bulk-print-paper" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+                <option value="a4">Kertas A4 (210mm x 297mm)</option>
+                <option value="f4">Kertas F4 / Folio (215mm x 330mm)</option>
+              </select>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '🖨️ Mulai Cetak',
+        cancelButtonText: 'Batal',
+        customClass: {
+          confirmButton: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl transition text-sm',
+          cancelButton: 'bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-5 rounded-xl transition text-sm ml-2'
+        },
+        didOpen: () => {
+          window.toggleBulkPrintOptions = function() {
+            const type = document.getElementById('bulk-print-type').value;
+            const kelasWrapper = document.getElementById('bulk-print-kelas-wrapper');
+            const ruangWrapper = document.getElementById('bulk-print-ruang-wrapper');
+            
+            if (type === 'kelas') {
+              kelasWrapper.classList.remove('hidden');
+              ruangWrapper.classList.add('hidden');
+            } else if (type === 'ruang') {
+              kelasWrapper.classList.add('hidden');
+              ruangWrapper.classList.remove('hidden');
+            } else {
+              kelasWrapper.classList.add('hidden');
+              ruangWrapper.classList.add('hidden');
+            }
+          };
+        },
+        willClose: () => {
+          delete window.toggleBulkPrintOptions;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const type = document.getElementById('bulk-print-type').value;
+          const paper = document.getElementById('bulk-print-paper').value;
+          let val = '';
+          if (type === 'kelas') {
+            val = document.getElementById('bulk-print-kelas').value;
+          } else if (type === 'ruang') {
+            val = document.getElementById('bulk-print-ruang').value;
+          }
+          generateBulkPrintCards(type, val, paper);
+        }
+      });
+    }
+
+    function generateBulkPrintCards(type, value, paper) {
+      paper = paper || 'a4';
+      const pageMargin = '12mm 10mm';
+      const paperSizeStyle = paper === 'f4' 
+        ? `
+            @page { size: 215mm 330mm; margin: ${pageMargin}; }
+            .cards-grid { max-width: 215mm; gap: 18px; }
+            .card-item { height: 275px; }
+          `
+        : `
+            @page { size: A4 portrait; margin: ${pageMargin}; }
+            .cards-grid { max-width: 210mm; gap: 15px; }
+            .card-item { height: 250px; }
+          `;
+      let printList = [];
+      
+      const searchInput = document.getElementById('search-users');
+      const statusFilter = document.getElementById('filter-user-status');
+      const kelasFilter = document.getElementById('filter-user-kelas');
+      const ruangFilter = document.getElementById('filter-user-ruang');
+      
+      const query = searchInput ? lowerText(searchInput.value).trim() : '';
+      const role = acctActiveRole;
+      const status = statusFilter ? statusFilter.value : 'all';
+      const kelas = kelasFilter ? kelasFilter.value : 'all';
+      const ruang = ruangFilter ? ruangFilter.value : 'all';
+      
+      if (type === 'filtered') {
+        printList = loadedUsersData.filter(user => {
+          const matchesQuery = !query
+            || lowerText(user && user.nama).includes(query)
+            || lowerText(user && user.user).includes(query)
+            || lowerText(user && user.kelas).includes(query)
+            || lowerText(user && user.nomorUjian).includes(query);
+          const matchesRole = role === 'all' || normalizeRoleKey(user && user.role) === role;
+          const matchesStatus = status === 'all' || lowerText((user && user.status) || 'aktif') === status;
+          const matchesKelas = kelas === 'all' || textValue(user && user.kelas) === kelas;
+          const matchesRuang = ruang === 'all' || textValue(user && user.ruang) === ruang;
+          return matchesQuery && matchesRole && matchesStatus && matchesKelas && matchesRuang;
+        });
+      } else if (type === 'kelas') {
+        printList = loadedUsersData.filter(u => normalizeRoleKey(u.role) === 'peserta' && textValue(u.kelas) === value);
+      } else if (type === 'ruang') {
+        printList = loadedUsersData.filter(u => normalizeRoleKey(u.role) === 'peserta' && textValue(u.ruang) === value);
+      } else if (type === 'all') {
+        printList = loadedUsersData.filter(u => normalizeRoleKey(u.role) === 'peserta' && lowerText(u.status || 'aktif') === 'aktif');
+      }
+      
+      if (printList.length === 0) {
+        Swal.fire('Perhatian', 'Tidak ada data pengguna yang cocok untuk dicetak.', 'warning');
+        return;
+      }
+      
+      printList.sort((a, b) => textValue(a.nama).localeCompare(textValue(b.nama)));
+
+      const printWin = window.open('', '_blank');
+      let cardsHtml = '';
+      
+      const roleDesigns = {
+        admin: {
+          themeColor: '#f43f5e',
+          themeBg: '#fff1f2',
+          themeBorder: '#fecdd3',
+          themeText: '#9f1239',
+          cardTitle: 'KARTU AKSES ADMINISTRATOR',
+          badgeText: 'ADMINISTRATOR'
+        },
+        proktor: {
+          themeColor: '#6366f1',
+          themeBg: '#e0e7ff',
+          themeBorder: '#c7d2fe',
+          themeText: '#3730a3',
+          cardTitle: 'KARTU AKSES PROKTOR',
+          badgeText: 'PROKTOR'
+        },
+        pengawas: {
+          themeColor: '#f59e0b',
+          themeBg: '#fef3c7',
+          themeBorder: '#fde68a',
+          themeText: '#92400e',
+          cardTitle: 'KARTU AKSES PENGAWAS',
+          badgeText: 'PENGAWAS'
+        },
+        guru: {
+          themeColor: '#10b981',
+          themeBg: '#ecfdf5',
+          themeBorder: '#a7f3d0',
+          themeText: '#065f46',
+          cardTitle: 'KARTU AKSES GURU MAPEL',
+          badgeText: 'GURU'
+        },
+        peserta: {
+          themeColor: '#0ea5e9',
+          themeBg: '#f0f9ff',
+          themeBorder: '#bae6fd',
+          themeText: '#075985',
+          cardTitle: 'KARTU LOGIN PESERTA UJIAN',
+          badgeText: 'PESERTA'
+        }
+      };
+
+      printList.forEach(u => {
+        const username = textValue(u.user);
+        const name = textValue(u.nama);
+        const roleKey = normalizeRoleKey(u.role);
+        const defaultPassword = username;
+        const qrData = `CBT-QR:${username}:${defaultPassword}:${roleKey}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=5&data=${encodeURIComponent(qrData)}`;
+        const kls = textValue(u.kelas) || '-';
+        const rng = textValue(u.ruang) || '-';
+        const noUjian = textValue(u.nomorUjian) || '-';
+        
+        const design = roleDesigns[roleKey] || roleDesigns.peserta;
+        
+        cardsHtml += `
+          <div class="card-item" style="border-color: ${design.themeBorder};">
+            <div class="card-header" style="border-bottom-color: ${design.themeColor};">
+              <img src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" class="school-logo" />
+              <div class="school-info">
+                <div class="school-yayasan">YAYASAN GANESA SATRIA</div>
+                <div class="school-name">SMK GANESA SATRIA 4 KEDU</div>
+                <div class="card-title" style="color: ${design.themeColor};">${escapeHtml(design.cardTitle)}</div>
+              </div>
+              <div class="role-badge" style="background-color: ${design.themeBg}; color: ${design.themeText}; border: 1px solid ${design.themeBorder};">${escapeHtml(design.badgeText)}</div>
+            </div>
+            <div class="card-body">
+              <div class="student-info">
+                <div class="info-row"><span class="info-label">Nama</span>: <span class="info-val font-bold">${escapeHtml(name)}</span></div>
+                <div class="info-row"><span class="info-label">Username</span>: <span class="info-val font-mono font-bold" style="color: ${design.themeColor};">${escapeHtml(username)}</span></div>
+                ${roleKey === 'peserta' ? `
+                  <div class="info-row"><span class="info-label">No Ujian</span>: <span class="info-val font-mono">${escapeHtml(noUjian)}</span></div>
+                  <div class="info-row"><span class="info-label">Kelas</span>: <span class="info-val">${escapeHtml(kls)}</span></div>
+                  <div class="info-row"><span class="info-label">Ruang</span>: <span class="info-val">${escapeHtml(rng)}</span></div>
+                ` : `
+                  <div class="info-row"><span class="info-label">Tipe Akses</span>: <span class="info-val font-bold" style="color: ${design.themeText};">${escapeHtml(roleKey.toUpperCase())}</span></div>
+                  <div class="info-row"><span class="info-label">Status</span>: <span class="info-val text-green-600 font-bold">Aktif</span></div>
+                  <div class="info-row"><span class="info-label">Keterangan</span>: <span class="info-val">Akses Sistem CBT</span></div>
+                `}
+              </div>
+              <div class="qr-container" style="border-color: ${design.themeBorder};">
+                <img src="${qrUrl}" alt="QR" />
+              </div>
+            </div>
+            <div class="card-footer">
+              Arahkan QR Code ke kamera di layar login untuk masuk otomatis
+            </div>
+          </div>
+        `;
+      });
+      
+      printWin.document.write(`
+        <html>
+        <head>
+          <title>Cetak Kartu Ujian Massal - ${escapeHtml(type === 'kelas' || type === 'ruang' ? value : 'Batch')}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+            
+            body { 
+              font-family: 'Plus Jakarta Sans', sans-serif; 
+              background-color: #ffffff; 
+              margin: 0; 
+              padding: 10px; 
+              color: #1e293b; 
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            
+            ${paperSizeStyle}
+            
+            .cards-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              margin: 0 auto;
+            }
+            
+            .card-item {
+              border: 1.5px solid #cbd5e1;
+              border-radius: 12px;
+              padding: 12px;
+              background-color: #ffffff;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+              page-break-inside: avoid;
+              break-inside: avoid;
+              display: flex;
+              flex-direction: column;
+              height: 250px;
+              box-sizing: border-box;
+              position: relative;
+            }
+            
+            .card-header {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              border-bottom: 2px solid #6366f1;
+              padding-bottom: 8px;
+              margin-bottom: 8px;
+            }
+            
+            .role-badge {
+              font-size: 8px;
+              font-weight: 800;
+              padding: 2.5px 6px;
+              border-radius: 6px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              flex-shrink: 0;
+            }
+            
+            .school-logo {
+              width: 44px;
+              height: 44px;
+              object-fit: contain;
+            }
+            
+            .school-info {
+              flex-grow: 1;
+              line-height: 1.15;
+            }
+            
+            .school-yayasan {
+              font-size: 8px;
+              font-weight: 800;
+              color: #475569;
+              letter-spacing: 0.5px;
+            }
+            
+            .school-name {
+              font-size: 11px;
+              font-weight: 900;
+              color: #1e1b4b;
+              margin-bottom: 1px;
+            }
+            
+            .card-title {
+              font-size: 9px;
+              font-weight: 800;
+              color: #6366f1;
+              letter-spacing: 1px;
+            }
+            
+            .card-body {
+              display: flex;
+              align-items: flex-start;
+              gap: 10px;
+              flex-grow: 1;
+            }
+            
+            .student-info {
+              flex-grow: 1;
+              font-size: 10px;
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              color: #334155;
+            }
+            
+            .info-row {
+              display: flex;
+              align-items: flex-start;
+              line-height: 1.2;
+            }
+            
+            .info-label {
+              font-weight: 600;
+              width: 50px;
+              color: #64748b;
+            }
+            
+            .info-val {
+              padding-left: 4px;
+              word-break: break-word;
+            }
+            
+            .font-bold {
+              font-weight: 700;
+              color: #0f172a;
+            }
+            
+            .font-mono {
+              font-family: monospace;
+            }
+            
+            .text-indigo-600 {
+              color: #4f46e5;
+            }
+            
+            .qr-container {
+              width: 100px;
+              height: 100px;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 4px;
+              background-color: #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            }
+            
+            .qr-container img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            
+            .card-footer {
+              border-top: 1px solid #f1f5f9;
+              padding-top: 6px;
+              margin-top: auto;
+              font-size: 7.5px;
+              font-weight: 700;
+              color: #64748b;
+              text-align: center;
+              letter-spacing: 0.2px;
+            }
+            
+            @media print {
+              body {
+                padding: 0;
+                margin: 0;
+              }
+              .cards-grid {
+                max-width: 100%;
+                padding: 10px;
+              }
+              .card-item {
+                box-shadow: none;
+                border: 1.5px dashed #64748b;
+              }
+              ${paperSizeStyle}
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cards-grid">
+            ${cardsHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); window.close(); }, 700);
+            }
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWin.document.close();
     }
 
   </script>

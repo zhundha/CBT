@@ -1,0 +1,351 @@
+KONSEP APLIKASI CBT
+CBT SMK GANESA SATRIA 4 KEDU
+
+==================================================
+IDENTITAS APLIKASI
+==================================================
+
+Nama Aplikasi : CBT SMK Ganesa Satria 4 Kedu
+Frontend      : GitHub Pages
+Backend       : Google Apps Script Web App
+Database      : Google Spreadsheet
+Storage       : Google Drive
+Login Siswa   : NISN + Password
+Format Soal   : 50 Pilihan Ganda + 5 Esai
+
+==================================================
+1. ROLE PENGGUNA
+==================================================
+
+A. SISWA
+
+Fitur:
+- Login menggunakan NISN dan password
+- Melihat ujian yang sedang aktif
+- Memulai ujian jika jadwal sudah dibuka
+- Mengerjakan:
+  - 50 soal pilihan ganda
+  - 5 soal esai
+- Jawaban tersimpan otomatis
+- Melihat timer ujian
+- Submit ujian
+- Tidak dapat mengerjakan ulang setelah submit
+
+--------------------------------------------------
+
+B. PENGAWAS RUANG
+
+Fitur:
+- Login sebagai pengawas
+- Melihat peserta sesuai ruang ujian
+- Memantau status siswa:
+  - Belum login
+  - Login
+  - Sedang mengerjakan
+  - Submit
+  - Bermasalah
+- Mengisi daftar hadir
+- Mengisi berita acara
+- Melaporkan kendala kepada proktor
+- Mengajukan reset siswa jika terjadi kendala
+
+--------------------------------------------------
+
+C. PROKTOR
+
+Fitur:
+- Login sebagai proktor
+- Membuka dan menutup sesi ujian
+- Membuat atau mengganti token ujian
+- Monitoring seluruh ruang ujian
+- Reset login siswa
+- Menambah waktu ujian siswa tertentu
+- Membuka ulang ujian siswa jika disetujui
+- Mengekspor jawaban dan nilai
+
+--------------------------------------------------
+
+D. ADMIN
+
+Fitur:
+- Mengelola data siswa
+- Mengelola akun pengawas, proktor, dan admin
+- Mengelola kelas dan ruang ujian
+- Mengelola mata pelajaran
+- Mengelola jadwal ujian
+- Upload soal
+- Mengatur bobot penilaian
+- Mengoreksi soal esai
+- Melihat rekap nilai
+- Mengekspor laporan
+
+==================================================
+2. ALUR SISTEM
+==================================================
+
+TAHAP 1 — ADMIN MENYIAPKAN DATA
+
+Admin menyiapkan:
+- Data siswa
+- Data guru/pengawas
+- Data proktor
+- Data kelas
+- Data ruang ujian
+- Jadwal ujian
+- Soal ujian
+- Token ujian
+
+--------------------------------------------------
+
+TAHAP 2 — PROKTOR MEMBUKA UJIAN
+
+Proktor melakukan:
+- Login
+- Memilih mata pelajaran ujian
+- Mengaktifkan ujian
+- Generate token
+- Membagikan token kepada pengawas ruang
+- Memantau status peserta
+
+--------------------------------------------------
+
+TAHAP 3 — SISWA LOGIN
+
+Siswa membuka website CBT dan login menggunakan:
+- NISN
+- Password
+
+Setelah berhasil login, siswa memilih ujian aktif dan memasukkan token ujian.
+
+--------------------------------------------------
+
+TAHAP 4 — SISWA MENGERJAKAN UJIAN
+
+Siswa mengerjakan:
+- Nomor 1–50  : Pilihan Ganda
+- Nomor 51–55 : Esai
+
+Fitur halaman ujian:
+- Timer ujian
+- Navigasi nomor soal
+- Auto-save jawaban
+- Tandai ragu-ragu
+- Peringatan soal belum dijawab
+- Tombol submit
+
+--------------------------------------------------
+
+TAHAP 5 — PENYIMPANAN JAWABAN
+
+Jawaban siswa disimpan ke Google Spreadsheet melalui Google Apps Script.
+
+Optimasi sistem:
+- Jawaban disimpan setiap beberapa detik
+- Penyimpanan dilakukan saat siswa berpindah soal
+- Menggunakan batch save
+- Menggunakan LockService untuk mencegah bentrok data
+- Menggunakan CacheService untuk menyimpan cache soal sementara
+
+--------------------------------------------------
+
+TAHAP 6 — KOREKSI DAN PENILAIAN
+
+Koreksi:
+- Pilihan ganda dikoreksi otomatis
+- Esai dikoreksi manual oleh admin/guru
+
+Rumus penilaian:
+
+Nilai PG
+= (Jumlah Benar / 50) × 70
+
+Nilai Esai
+= (Skor Esai / Skor Maksimal Esai) × 30
+
+Nilai Akhir
+= Nilai PG + Nilai Esai
+
+Bobot penilaian:
+- Pilihan Ganda : 70%
+- Esai          : 30%
+- Total         : 100%
+
+==================================================
+3. ALUR UJIAN SISWA
+==================================================
+
+1. Siswa login
+2. Sistem menampilkan ujian aktif
+3. Siswa memasukkan token ujian
+4. Sistem memvalidasi token
+5. Jika token valid, siswa masuk ke halaman ujian
+6. Timer ujian berjalan
+7. Siswa mengerjakan 50 soal PG dan 5 soal esai
+8. Jawaban tersimpan otomatis
+9. Siswa menekan tombol submit
+10. Sistem mengunci jawaban
+11. Nilai PG dihitung otomatis
+12. Nilai esai menunggu koreksi manual
+
+==================================================
+4. MONITORING SISTEM
+==================================================
+
+MONITORING PENGAWAS
+
+Pengawas dapat:
+- Menandai hadir/tidak hadir
+- Melihat siswa yang belum login
+- Melaporkan kendala
+- Mengisi berita acara
+
+--------------------------------------------------
+
+MONITORING PROKTOR
+
+Proktor dapat:
+- Generate token
+- Refresh token
+- Reset siswa
+- Menambah waktu ujian
+- Menutup ujian
+- Mengekspor data hasil ujian
+
+==================================================
+5. FITUR ADMIN
+==================================================
+
+Admin mengelola:
+- Data siswa
+- Akun pengguna
+- Mata pelajaran
+- Kelas
+- Ruang ujian
+- Jadwal ujian
+- Soal
+- Kunci jawaban
+- Koreksi esai
+- Nilai akhir
+- Laporan
+
+==================================================
+6. KEAMANAN SISTEM
+==================================================
+
+Wajib diterapkan:
+- Password tidak disimpan dalam bentuk plaintext
+- Gunakan password_hash
+- Validasi role dilakukan di backend
+- Kunci jawaban tidak disimpan di frontend
+- Token ujian dibuat oleh proktor
+- Token dapat diganti sewaktu-waktu
+- Jawaban terkunci setelah submit
+- Semua aktivitas penting dicatat pada Log_Aktivitas
+- Siswa hanya dapat melihat ujian sesuai kelasnya
+- Pengawas hanya dapat melihat ruangnya
+- Proktor hanya memiliki akses monitoring dan reset
+- Admin memiliki akses penuh
+
+==================================================
+7. FITUR ANTI-CURANG
+==================================================
+
+Fitur yang dapat ditambahkan:
+- Deteksi perpindahan tab browser
+- Menghitung jumlah keluar halaman
+- Menampilkan peringatan
+- Mencatat log perpindahan tab
+- Mengacak urutan soal
+- Mengacak pilihan jawaban
+- Token ujian berubah secara berkala
+- Siswa hanya dapat login pada satu perangkat
+- Submit otomatis saat waktu habis
+
+==================================================
+8. OPTIMASI GOOGLE APPS SCRIPT
+==================================================
+
+Agar Google Apps Script tetap ringan dan stabil:
+- Hindari request terlalu sering
+- Simpan jawaban secara batch
+- Gunakan cache data soal
+- Hindari membaca seluruh spreadsheet berulang-ulang
+- Gunakan sheet khusus untuk jawaban
+- Pisahkan data master dan data transaksi
+- Gunakan trigger hanya jika diperlukan
+- Backup spreadsheet setiap hari ujian
+
+==================================================
+9. PELAKSANAAN UJIAN
+==================================================
+
+Saat ujian berlangsung:
+1. Admin menyiapkan jadwal
+2. Proktor mengaktifkan token
+3. Pengawas memantau ruang ujian
+4. Siswa login
+5. Siswa mengerjakan ujian
+6. Sistem menyimpan jawaban otomatis
+7. Proktor mengekspor hasil ujian
+8. Admin/guru mengoreksi esai
+9. Nilai akhir diproses
+
+==================================================
+10. SINGLE PAGE APPLICATION (SPA)
+==================================================
+
+Konsep aplikasi:
+- Frontend hanya menggunakan index.html
+- Backend hanya menggunakan Code.gs
+
+Teknologi:
+- Frontend : GitHub Pages
+- Backend  : Google Apps Script Web App
+- Database : Google Spreadsheet
+- API      : Google Apps Script Web App
+
+Role pengguna:
+- Siswa
+- Pengawas Ruang
+- Proktor
+- Admin
+
+Sistem login:
+- Siswa menggunakan NISN + Password
+
+Format soal:
+- 50 Pilihan Ganda
+- 5 Esai
+
+==================================================
+11. RINGKASAN SISTEM
+==================================================
+
+SISWA
+→ Login menggunakan NISN + Password
+→ Mengerjakan 50 PG + 5 Esai
+→ Submit jawaban
+
+--------------------------------------------------
+
+PENGAWAS RUANG
+→ Monitoring ruang ujian
+→ Mengisi daftar hadir
+→ Mengisi berita acara
+
+--------------------------------------------------
+
+PROKTOR
+→ Mengelola token
+→ Monitoring seluruh ruang
+→ Reset peserta
+→ Mengekspor data
+
+--------------------------------------------------
+
+ADMIN
+→ Mengelola data master
+→ Mengelola soal
+→ Mengelola jadwal
+→ Koreksi esai
+→ Rekap nilai
