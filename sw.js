@@ -11,7 +11,7 @@
  * Bump CACHE_VERSION to force update on all clients.
  */
 
-const CACHE_VERSION = 'cbt-v1.5.0';
+const CACHE_VERSION = 'cbt-v1.6.0';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -55,7 +55,14 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Apps Script API — network-only.
-  if (url.host.endsWith('script.google.com') || url.host.endsWith('googleusercontent.com')) {
+  // Drive download (paket soal offline) — network-only juga; aplikasi sudah cache hasil
+  // dekripsi paket di IndexedDB cbt_exam_package_v1, jadi SW tidak perlu menyimpan blob mentah.
+  if (
+    url.host.endsWith('script.google.com') ||
+    url.host.endsWith('googleusercontent.com') ||
+    url.host === 'drive.google.com' ||
+    url.host === 'www.googleapis.com'
+  ) {
     return;
   }
 

@@ -4409,6 +4409,150 @@ ${dokToolbarHtml()}
     }
 
     /* ============================================
+       Mode Semi-Online (paket Drive + upload Drive)
+       HMAC-SHA256 stream cipher kompatibel dengan server (Code.gs).
+       Format blob (base64): [IV 16 bytes][ciphertext][HMAC tag 32 bytes]
+    ============================================ */
+    const CBT_PACKAGE_IDB = 'cbt_exam_package_v1';
+    const CBT_PACKAGE_STORE = 'packages';
+
+    function cbtHexToBytes(hex) {
+      const clean = String(hex || '').replace(/[^0-9a-fA-F]/g, '');
+      const out = new Uint8Array(clean.length / 2);
+      for (let i = 0; i + 1 < clean.length; i += 2) out[i / 2] = parseInt(clean.substr(i, 2), 16);
+      return out;
+    }
+    function cbtBytesToBase64(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+    function cbtBase64ToBytes(b64) {
+      const bin = atob(String(b64 || ''));
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+    async function cbtHmacSha256(keyBytes, msgBytes) {
+      const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const sig = await crypto.subtle.sign('HMAC', key, msgBytes);
+      return new Uint8Array(sig);
+    }
+    async function cbtClientStreamXor(dataBytes, keyBytes, iv) {
+      const out = new Uint8Array(dataBytes.length);
+      const blockLen = 32;
+      let counter = 0;
+      let keystream = null;
+      for (let i = 0; i < dataBytes.length; i++) {
+        if ((i % blockLen) === 0) {
+          const ctr = new Uint8Array(4);
+          ctr[0] = counter & 0xff;
+          ctr[1] = (counter >>> 8) & 0xff;
+          ctr[2] = (counter >>> 16) & 0xff;
+          ctr[3] = (counter >>> 24) & 0xff;
+          const input = new Uint8Array(iv.length + 4);
+          input.set(iv, 0); input.set(ctr, iv.length);
+          keystream = await cbtHmacSha256(keyBytes, input);
+          counter++;
+        }
+        out[i] = dataBytes[i] ^ keystream[i % blockLen];
+      }
+      return out;
+    }
+    async function cbtClientDecrypt(base64Blob, keyHex) {
+      const keyBytes = cbtHexToBytes(keyHex);
+      const blob = cbtBase64ToBytes(base64Blob);
+      if (blob.length < 16 + 32) throw new Error('Blob terlalu pendek');
+      const iv = blob.slice(0, 16);
+      const ct = blob.slice(16, blob.length - 32);
+      const tag = blob.slice(blob.length - 32);
+      const macKey = await cbtHmacSha256(keyBytes, new TextEncoder().encode('MAC'));
+      const macInput = new Uint8Array(iv.length + ct.length);
+      macInput.set(iv, 0); macInput.set(ct, iv.length);
+      const expected = await cbtHmacSha256(macKey, macInput);
+      let diff = 0;
+      for (let i = 0; i < tag.length; i++) diff |= tag[i] ^ expected[i];
+      if (diff !== 0) throw new Error('Integritas paket gagal (HMAC mismatch).');
+      const pt = await cbtClientStreamXor(ct, keyBytes, iv);
+      return new TextDecoder('utf-8').decode(pt);
+    }
+    async function cbtClientEncrypt(plainText, keyHex) {
+      const keyBytes = cbtHexToBytes(keyHex);
+      const iv = new Uint8Array(16);
+      crypto.getRandomValues(iv);
+      const pt = new TextEncoder().encode(plainText);
+      const ct = await cbtClientStreamXor(pt, keyBytes, iv);
+      const macKey = await cbtHmacSha256(keyBytes, new TextEncoder().encode('MAC'));
+      const macInput = new Uint8Array(iv.length + ct.length);
+      macInput.set(iv, 0); macInput.set(ct, iv.length);
+      const tag = await cbtHmacSha256(macKey, macInput);
+      const out = new Uint8Array(iv.length + ct.length + tag.length);
+      out.set(iv, 0); out.set(ct, iv.length); out.set(tag, iv.length + ct.length);
+      return cbtBytesToBase64(out);
+    }
+
+    function cbtPackageDbOpen() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) return reject(new Error('IndexedDB tidak tersedia'));
+        const req = indexedDB.open(CBT_PACKAGE_IDB, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(CBT_PACKAGE_STORE)) {
+            db.createObjectStore(CBT_PACKAGE_STORE, { keyPath: 'examId' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function cbtPackageGet(examId) {
+      try {
+        const db = await cbtPackageDbOpen();
+        return await new Promise((res) => {
+          const r = db.transaction(CBT_PACKAGE_STORE, 'readonly').objectStore(CBT_PACKAGE_STORE).get(String(examId));
+          r.onsuccess = () => res(r.result || null);
+          r.onerror = () => res(null);
+        });
+      } catch (e) { return null; }
+    }
+    async function cbtPackagePut(examId, manifest, meta) {
+      try {
+        const db = await cbtPackageDbOpen();
+        return await new Promise((res) => {
+          const r = db.transaction(CBT_PACKAGE_STORE, 'readwrite').objectStore(CBT_PACKAGE_STORE).put({
+            examId: String(examId), manifest, meta: meta || {}, cachedAt: Date.now()
+          });
+          r.onsuccess = () => res(true);
+          r.onerror = () => res(false);
+        });
+      } catch (e) { return false; }
+    }
+
+    async function cbtPrefetchOfflinePackage(bootstrap) {
+      if (!bootstrap || !bootstrap.offlineModeEnabled || !bootstrap.offlinePackage) return;
+      const pkg = bootstrap.offlinePackage;
+      if (!pkg.downloadUrl || !pkg.packageKeyHex || !pkg.examId) return;
+      try {
+        const cached = await cbtPackageGet(pkg.examId);
+        if (cached && cached.meta && cached.meta.generatedAt === pkg.generatedAt) return; // up-to-date
+        const resp = await fetch(pkg.downloadUrl, { cache: 'no-store' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const blob = await resp.text();
+        const plain = await cbtClientDecrypt(blob, pkg.packageKeyHex);
+        const manifest = JSON.parse(plain);
+        await cbtPackagePut(pkg.examId, manifest, {
+          generatedAt: pkg.generatedAt,
+          uploadKeyHex: pkg.uploadKeyHex,
+          driveFileId: pkg.driveFileId
+        });
+        console.log('[Offline] Paket soal ter-cache:', pkg.examId, manifest.jumlahSoal || (manifest.soal || []).length, 'soal');
+        try { showToast('Paket soal offline tersedia.', 'success'); } catch (e) {}
+      } catch (err) {
+        console.warn('[Offline] Gagal cache paket:', err);
+      }
+    }
+
+    /* ============================================
        MathJax + Media — render LaTeX and media URLs in question text
     ============================================ */
     function renderMathInElement(selector) {
@@ -6037,6 +6181,17 @@ ${dokToolbarHtml()}
       try {
         setLoginFormBusy(true);
         setButtonBusy(button, 'Memeriksa akun...');
+        // Staggered login: jitter 0-10 detik untuk pemerataan beban saat 300 user serentak.
+        // Hanya untuk role peserta — staff login segera.
+        if (normalizeRoleKey(role) === 'peserta') {
+          const jitterMs = Math.floor(Math.random() * 10000);
+          if (jitterMs > 300) {
+            const detik = Math.ceil(jitterMs / 1000);
+            setLoginServerStatus('checking', `Antrean acak ${detik} detik...`);
+            showLoginFeedback('info', 'Menyambungkan', `Mengantre acak ${detik} detik supaya server tidak overload. Mohon tunggu, sistem akan login otomatis.`, null);
+            await new Promise(r => setTimeout(r, jitterMs));
+          }
+        }
         setLoginServerStatus('checking', 'Memeriksa akun...');
         showLoginFeedback('info', 'Menghubungi server', 'Sedang memeriksa username, password, dan role login.', null);
         const started = performance.now();
@@ -6066,6 +6221,11 @@ ${dokToolbarHtml()}
         } else {
           // Fallback if bootstrap is not bundled
           await loadBootstrap();
+        }
+
+        // Prefetch paket soal offline (non-blocking) saat mode semi-online aktif
+        if (appData && appData.offlineModeEnabled && appData.offlinePackage) {
+          cbtPrefetchOfflinePackage(appData);
         }
 
         showDashboardScreen();
@@ -8437,6 +8597,7 @@ ${dokToolbarHtml()}
             </div>
             <div class="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100">
               ${practical ? '' : `<button class="exam-action inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition-colors" data-action="token" data-exam-id="${escapeHtml(exam.examId)}"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Token Baru</button>`}
+              ${practical ? '' : `<button class="exam-action inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors" data-action="generatePackage" data-exam-id="${escapeHtml(exam.examId)}"><i data-lucide="package" class="w-3 h-3"></i>Generate Paket Offline</button>`}
               ${isDraft || isClosed ? `<button class="exam-action inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors" data-action="aktif" data-exam-id="${escapeHtml(exam.examId)}"><i data-lucide="play" class="w-3 h-3"></i>Aktifkan</button>` : ''}
               ${isActive ? `<button class="exam-action inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors" data-action="ditutup" data-exam-id="${escapeHtml(exam.examId)}"><i data-lucide="lock" class="w-3 h-3"></i>Tutup Ujian</button>` : ''}
               ${isDraft ? `<button class="exam-action inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors" data-action="edit" data-exam-id="${escapeHtml(exam.examId)}"><i data-lucide="pencil" class="w-3 h-3"></i>Edit</button>` : ''}
@@ -16141,6 +16302,32 @@ ${dokToolbarHtml()}
           Swal.fire('Token Baru', response.token || 'Token diperbarui.', 'success');
           return;
         }
+        if (action === 'generatePackage') {
+          const examId = button.dataset.examId;
+          const confirm = await Swal.fire({
+            title: 'Generate paket soal offline?',
+            html: `Paket terenkripsi akan disimpan di folder Drive <code>cbt-packages/</code> untuk diunduh siswa saat login.<br><br><b>Exam ID:</b> ${escapeHtml(examId)}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Generate',
+            cancelButtonText: 'Batal'
+          });
+          if (!confirm.isConfirmed) return;
+          const response = await serverCall('generateExamPackage', { actor: currentUserData, examId });
+          if (response.status !== 'success') throw new Error(response.message || 'Paket gagal dibuat.');
+          const data = response.data || {};
+          await Swal.fire({
+            title: 'Paket berhasil dibuat',
+            html: `<div class="text-left text-sm">
+              <p><b>${data.soalCount || 0}</b> soal ter-enkripsi.</p>
+              <p class="mt-2 break-all"><b>Link unduh:</b><br><a href="${data.downloadUrl}" target="_blank" class="text-indigo-600 underline">${data.downloadUrl}</a></p>
+              <p class="mt-2 break-all"><b>File ID:</b> <code>${data.driveFileId}</code></p>
+            </div>`,
+            icon: 'success',
+            confirmButtonText: 'Selesai'
+          });
+          return;
+        }
         if (action === 'aktif' || action === 'ditutup') {
           const result = await Swal.fire({
             title: action === 'aktif' ? 'Aktifkan ujian?' : 'Tutup ujian?',
@@ -16904,6 +17091,31 @@ ${dokToolbarHtml()}
         ...getExamSecurityPayload()
       };
 
+      // Mode semi-online: encrypt jawaban + upload ke Drive (Apps Script tetap tulis Sheet sinkron).
+      const useDriveUpload = !!(appData && appData.offlineModeEnabled && appData.offlinePackage && appData.offlinePackage.uploadKeyHex);
+      let driveEncryptedBlob = null;
+      if (useDriveUpload) {
+        try {
+          const pkgCached = await cbtPackageGet(activeExam.examId);
+          const uploadKey = (pkgCached && pkgCached.meta && pkgCached.meta.uploadKeyHex) || appData.offlinePackage.uploadKeyHex;
+          const plainPayload = JSON.stringify({
+            examId: activeExam.examId,
+            nisn: currentUserData.user,
+            answers: payload.answers,
+            tabKeluar: payload.tabKeluar || 0,
+            fullscreenExit: payload.fullscreenExit || 0,
+            screenshotAttempt: payload.screenshotAttempt || 0,
+            answeredCount: (payload.answers || []).filter(a => String(a.jawaban || '').trim()).length,
+            totalCount: (activeQuestions || []).length,
+            lockedReason: payload.lockedReason || '',
+            submittedAt: new Date().toISOString()
+          });
+          driveEncryptedBlob = await cbtClientEncrypt(plainPayload, uploadKey);
+        } catch (encErr) {
+          console.warn('[Offline] Encrypt jawaban gagal, fallback ke submitExam langsung:', encErr);
+        }
+      }
+
       for (let attempt = 1; attempt <= MAX_SUBMIT_RETRIES; attempt++) {
         try {
           if (attempt > 1) {
@@ -16918,7 +17130,17 @@ ${dokToolbarHtml()}
             });
           }
 
-          const response = await serverCall('submitExam', payload);
+          const response = driveEncryptedBlob
+            ? await serverCall('uploadAnswerToDrive', {
+                user: currentUserData,
+                examId: activeExam.examId,
+                encryptedBlob: driveEncryptedBlob,
+                tabKeluar: payload.tabKeluar || 0,
+                fullscreenExit: payload.fullscreenExit || 0,
+                screenshotAttempt: payload.screenshotAttempt || 0,
+                final: true
+              })
+            : await serverCall('submitExam', payload);
           
           if (response.status !== 'success') {
             const errorMsg = response.message || '';
