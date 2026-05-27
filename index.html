@@ -15,8 +15,11 @@
 
   <link rel="stylesheet" href="tailwind.generated.css?v=20260527-02">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Versi di-pin (bukan @latest) agar CDN tidak diam-diam mengubah build saat hari-H ujian.
+       defer: tidak memblok render/parse; eksekusi sebelum DOMContentLoaded (urutan terjaga),
+       sehingga Swal & lucide.createIcons tetap tersedia di handler init. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
+  <script defer src="https://unpkg.com/lucide@1.16.0"></script>
   <meta name="theme-color" content="#3b82f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -2730,7 +2733,7 @@
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260527-01';
+    const APP_VERSION = '20260527-02';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -2804,6 +2807,7 @@
     let fbOperationsDenied = false;
     let fbOperationsDeniedToastShown = false;
     let fbMonitoringRenderTimer = null;
+    let lastMonitorRenderSignature = ''; // skip rebuild monitor bila state tampil tak berubah (anti DOM-churn)
     let iconRefreshQueued = false;
     let monitoringRefreshInFlight = null;
     let monitoringRefreshKey = '';
@@ -2813,6 +2817,7 @@
     let currentQuestionIndex = 0;
     let visitedQuestions = new Set();
     let autosaveInterval = null;
+    let autoSubmitScheduled = false; // guard: auto-submit hanya dijadwalkan sekali per sesi (anti thundering-herd)
     let autosaveDebounce = null;
     let countdownInterval = null;
     let heartbeatInterval = null;
@@ -6213,6 +6218,26 @@ ${dokToolbarHtml()}
       return changed;
     }
 
+    // Ringkas state yang benar-benar memengaruhi DOM monitor jadi satu string murah.
+    // Dipakai untuk melewati rebuild innerHTML penuh saat event Firebase tidak mengubah tampilan
+    // (mis. heartbeat / status tak berubah) — menghemat reparse + rebind + ulang ikon di perangkat pengawas.
+    function computeMonitorRenderSignature_() {
+      const m = (appData && appData.monitoring) || {};
+      const parts = (m.participants || []).map(p => [
+        p.nisn, String(p.status || ''),
+        Number(p.tabKeluar || 0), Number(p.fullscreenExit || 0), Number(p.screenshotAttempt || 0),
+        String(p.lockedReason || ''), String(p.hadir != null ? p.hadir : (p.kehadiran != null ? p.kehadiran : ''))
+      ].join('|'));
+      const s = m.summary || {};
+      const sel = (document.getElementById('monitor-exam-select') || {}).value || m.selectedExamId || '';
+      return [
+        activeStaffSection, String(sel),
+        participantFilter, participantRoomFilter, String(participantSearch || ''), participantVisibleLimit,
+        s.total, s.belumLogin, s.login, s.mengerjakan, s.submit, s.bermasalah,
+        parts.length, parts.join(';')
+      ].join('~');
+    }
+
     function scheduleFirebaseMonitoringRender() {
       recalculateMonitoringSummary();
       if (activeStaffSection !== 'monitor') return;
@@ -6220,10 +6245,14 @@ ${dokToolbarHtml()}
       fbMonitoringRenderTimer = window.setTimeout(() => {
         const contentEl = document.getElementById('staff-section-content');
         if (!contentEl || activeStaffSection !== 'monitor') return;
+        // Skip rebuild bila tampilan identik dengan render terakhir.
+        const sig = computeMonitorRenderSignature_();
+        if (sig === lastMonitorRenderSignature) return;
+        lastMonitorRenderSignature = sig;
         contentEl.innerHTML = renderStaffSection('monitor');
         bindDashboardEvents();
         refreshIcons();
-      }, 250);
+      }, 400);
     }
 
     function bindFirebaseMonitoring(examId) {
@@ -11484,6 +11513,7 @@ ${dokToolbarHtml()}
             contentEl.innerHTML = renderStaffSection('monitor');
             bindDashboardEvents();
             refreshIcons();
+            lastMonitorRenderSignature = computeMonitorRenderSignature_();
           }
         } else {
           renderDashboard();
@@ -16605,7 +16635,7 @@ ${dokToolbarHtml()}
     function scheduleAutosave() {
       window.clearTimeout(autosaveDebounce);
       // 2000 ms — cukup untuk batching saat peserta mengetik esai/klik beruntun,
-      // tetap aman karena interval 10s berjalan sebagai safety net dan submit selalu flush.
+      // tetap aman karena interval 15s berjalan sebagai safety net dan submit selalu flush.
       autosaveDebounce = window.setTimeout(() => saveDraft(true), 2000);
     }
 
@@ -16682,12 +16712,23 @@ ${dokToolbarHtml()}
 
     function startExamTimers() {
       stopExamTimers();
-      autosaveInterval = window.setInterval(() => saveDraft(true), 10000);
+      autoSubmitScheduled = false; // reset tiap mulai sesi ujian
+      // Safety-net 15s (naik dari 10s): debounce 2s sudah menyimpan saat ada interaksi,
+      // jadi interval ini hanya jaring pengaman. 15s memangkas ~33% volume tulis baseline
+      // saat puluhan peserta serentak tanpa risiko kehilangan data (submit selalu flush).
+      autosaveInterval = window.setInterval(() => saveDraft(true), 15000);
       heartbeatInterval = window.setInterval(() => sendExamHeartbeat(), 30000);
       countdownInterval = window.setInterval(() => {
         updateTimerDisplay();
-        if (examEndAt && Date.now() >= examEndAt.getTime()) {
-          autoSubmitExam();
+        if (examEndAt && Date.now() >= examEndAt.getTime() && !autoSubmitScheduled) {
+          autoSubmitScheduled = true;
+          // Hentikan countdown segera (UI langsung "habis"), tapi sebar pengiriman jaringan
+          // dengan jitter 0–8 dtk agar puluhan peserta tidak submit di detik yang sama.
+          // Aman: server auto-submit jika submit lewat waktu, dan cron autoSubmitExpiredStudents
+          // adalah backstop terakhir. Draft terakhir sudah tersimpan via autosave.
+          window.clearInterval(countdownInterval);
+          const jitterMs = Math.floor(Math.random() * 8000);
+          window.setTimeout(() => { autoSubmitExam(); }, jitterMs);
         }
       }, 1000);
       updateTimerDisplay();
@@ -18201,7 +18242,7 @@ ${dokToolbarHtml()}
       if (qrScannerLibPromise) return qrScannerLibPromise;
       qrScannerLibPromise = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'https://unpkg.com/html5-qrcode';
+        script.src = 'https://unpkg.com/html5-qrcode@2.3.8';
         script.async = true;
         script.onload = () => window.Html5Qrcode ? resolve() : reject(new Error('Library QR tidak siap.'));
         script.onerror = () => reject(new Error('Gagal memuat library QR scanner.'));
