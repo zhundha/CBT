@@ -67,54 +67,7 @@ body {
 h1, h2, h3, h4 { font-weight: 600 !important; letter-spacing: -0.005em; }
 .font-black, .font-extrabold { font-weight: 700 !important; }
 
-/* ===== 2. SPLASH SCREEN — minimalist ====================== */
-#splash-screen.boot-bg {
-  background: var(--bg-page) !important;
-}
-#boot-canvas { display: none !important; } /* hilangkan canvas animasi */
-
-.splash-card {
-  background: var(--bg-surface) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--r-surface-minimal) !important;
-  box-shadow: var(--shadow-elev-soft) !important;
-  padding: 2rem 1.5rem 1.75rem !important;
-  animation: none !important;
-}
-.splash-logo-frame {
-  width: 80px !important; height: 80px !important;
-  border-radius: 18px !important;
-  background: var(--bg-surface) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow-flat) !important;
-  padding: 12px !important;
-  animation: none !important;
-}
-.splash-logo-frame::after { display: none !important; }
-
-/* Single circular indicator only */
-.splash-arc-bg { stroke: var(--bg-muted) !important; }
-.splash-arc-fill { stroke: var(--accent) !important; filter: none !important; }
-.splash-arc svg { filter: none !important; }
-
-/* Linear progress track ALREADY hidden by existing CSS — pertahankan */
-.splash-card .boot-progress-track { display: none !important; }
-
-/* Splash text simplifications */
-#splash-screen h1 { font-size: 1.125rem !important; font-weight: 600 !important; color: var(--text) !important; }
-#splash-screen p { color: var(--text-soft) !important; }
-#boot-step-label { display: none !important; } /* redundan dengan persentase */
-#boot-progress-text {
-  color: var(--accent) !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
-  margin-top: 0.5rem !important;
-}
-
-/* Reveal animations off */
-.boot-scanline { display: none !important; }
+/* ===== 2. SPLASH SCREEN dihapus — section #2 kosong ======= */
 
 /* ===== 3. TOP NAV — clean ================================= */
 .vibrancy-nav {
@@ -708,7 +661,6 @@ textarea:focus-visible {
 .login-light-bg {
   background: var(--bg-page) !important;
 }
-#login-canvas { display: none !important; }
 .login-glass-card {
   background: var(--bg-surface) !important;
   backdrop-filter: none !important;
@@ -749,6 +701,64 @@ textarea:focus-visible {
 }
 
 /* ============================================================
+   MOBILE OPTIMIZATION — perf & ergonomi untuk HP murah peserta
+   ============================================================ */
+
+/* 1. Tap highlight transparent — ring focus-visible kita yang ganti.
+   touch-action: manipulation utk button/input/select/textarea sudah
+   di-set di in-page <style> (line ~927); di sini cukup tambah a/label/summary. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+a, label, summary {
+  touch-action: manipulation;
+}
+
+/* 2. Pakai dynamic viewport (dvh) supaya address-bar mobile tidak loncat. */
+@supports (height: 100dvh) {
+  body,
+  #login-section,
+  #app-section {
+    min-height: 100dvh;
+  }
+}
+
+/* 3. Touch device tidak punya hover real — matikan motion-based hover
+   effect supaya tap tidak terasa "loncat". Warna/background hover tetap
+   boleh muncul singkat (browser auto-hilangkan saat tap selesai). */
+@media (hover: none) {
+  *:hover {
+    transform: none !important;
+  }
+}
+
+/* 4. Mobile-only: tighter spacing + drop sisa backdrop-filter (GPU). */
+@media (max-width: 640px) {
+  /* Drop ALL backdrop-filter di mobile — sangat berat di low-end Android */
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Padding cards lebih ringkas */
+  .surface-card { padding: 0.875rem !important; }
+  .welcome-card { padding: 1rem 1.125rem !important; }
+  .exam-card    { padding: 0.875rem !important; }
+  /* Avatar dropdown lebih thumb-friendly */
+  .user-menu-item { padding: 0.7rem 0.8rem; min-height: 44px; }
+  .user-avatar-btn { padding: 0.3rem 0.5rem 0.3rem 0.3rem; min-height: 40px; }
+  /* Sembunyikan deko: Ctrl-K trigger sudah hidden via existing rule.
+     Skeleton block lebih pendek supaya tidak buang viewport. */
+  .skeleton-block { height: 72px; }
+}
+
+/* 5. content-visibility utility — paint hanya saat near viewport.
+   Aplikasikan secara opt-in via class .cv-auto pada section panjang. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 320px;
+}
+
+/* ============================================================
    PRINT — global stylesheet (laporan, dashboard, berita acara)
    Tujuan: bersih saat dicetak / Save-as-PDF dari browser
    ============================================================ */
@@ -763,7 +773,6 @@ textarea:focus-visible {
   body { padding: 0 !important; }
 
   /* Sembunyikan chrome aplikasi */
-  #splash-screen,
   #login-section,
   #app-section > nav,
   .staff-sidebar,
@@ -911,69 +920,10 @@ textarea:focus-visible {
       border-color: #1d4ed8;
     }
 
-    /* ============================================
-       BOOT SEQUENCE macOS LIGHT
-    ============================================ */
-    .boot-bg {
-      background: linear-gradient(160deg, #f0f4fa 0%, #e2e8f4 40%, #f5f0ff 100%);
-      position: relative;
-      overflow: hidden;
-    }
-    /* #boot-canvas, #login-canvas, .boot-scanline removed in revamp.
-       Markup canvas/scanline tidak lagi ada di DOM. */
-    .boot-terminal {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      line-height: 1.7;
-      color: #334155;
-      max-height: 280px;
-      overflow-y: auto;
-      scrollbar-width: none;
-    }
-    .boot-terminal::-webkit-scrollbar { display: none; }
-    .boot-line {
-      opacity: 0;
-      animation: bootLineIn 0.25s ease forwards;
-    }
-    @keyframes bootLineIn {
-      from { opacity: 0; transform: translateX(-6px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    .boot-tag { color: #7c3aed; font-weight: 700; }
-    .boot-ok { color: #16a34a; font-weight: 700; }
-    .boot-fail { color: #dc2626; font-weight: 700; }
-    .boot-warn { color: #d97706; font-weight: 600; }
-    .boot-dim { color: #94a3b8; }
-    .boot-cyan { color: #2563eb; }
-    .boot-progress-track {
-      height: 4px;
-      background: rgba(0,0,0,0.06);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .boot-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      border-radius: 2px;
-      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
-    }
-    .boot-logo-reveal {
-      animation: logoReveal 0.6s ease forwards;
-    }
-    @keyframes logoReveal {
-      from { opacity: 0; transform: scale(0.85); filter: blur(6px); }
-      to { opacity: 1; transform: scale(1); filter: blur(0); }
-    }
+    /* Splash boot CSS removed.
+       .boot-glow kept (used by login logo container at the top). */
     .boot-glow {
       box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12), 0 1px 4px rgba(0,0,0,0.06);
-    }
-    .splash-exit {
-      animation: splashExit 0.5s ease forwards;
-      pointer-events: none;
-    }
-    @keyframes splashExit {
-      to { opacity: 0; transform: scale(1.02); }
     }
 
     /* ============================================
@@ -1378,11 +1328,6 @@ textarea:focus-visible {
       .overflow-x-auto > table {
         min-width: 640px;
       }
-      #splash-screen {
-        padding: 1rem;
-        padding-top: max(1rem, env(safe-area-inset-top));
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
-      }
       #login-section {
         align-items: flex-start;
         padding: 0.75rem;
@@ -1533,99 +1478,14 @@ textarea:focus-visible {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
       }
-      #boot-canvas, #login-canvas { display: none !important; }
     }
 
-    /* App layers sit above blobs */
-    #app-section, #splash-screen { position: relative; z-index: 1; }
+    /* App layers */
+    #app-section { position: relative; z-index: 1; }
     #login-section { z-index: 40; }
-    #app-section.hidden, #login-section.hidden, #splash-screen.hidden { display: none !important; }
+    #app-section.hidden, #login-section.hidden { display: none !important; }
 
-    /* ============================================
-       SPLASH — PREMIUM macOS
-    ============================================ */
-    .boot-bg {
-      background:
-        radial-gradient(ellipse 60% 50% at 30% 20%, rgba(99,102,241,0.14) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(168,85,247,0.12) 0%, transparent 60%),
-        linear-gradient(180deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%);
-    }
-    .splash-card {
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: var(--glass-blur-strong);
-      -webkit-backdrop-filter: var(--glass-blur-strong);
-      border: var(--glass-border);
-      border-radius: var(--r-surface);
-      box-shadow: var(--shadow-floating), var(--glass-highlight);
-      padding: 2.75rem 2rem 2.25rem;
-      animation: splashCardIn 0.7s var(--spring) forwards;
-    }
-    @keyframes splashCardIn {
-      from { opacity: 0; transform: translateY(20px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .splash-logo-frame {
-      position: relative;
-      width: 96px; height: 96px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
-        0 1px 3px rgba(15,23,42,0.08),
-        0 8px 24px rgba(59,130,246,0.18),
-        0 24px 56px -12px rgba(99,102,241,0.30);
-      padding: 14px;
-      animation: logoFloat 4.5s ease-in-out infinite alternate;
-    }
-    .splash-logo-frame::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 55%);
-      pointer-events: none;
-    }
-    .splash-logo-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    @keyframes logoFloat {
-      0%   { transform: translateY(0); }
-      100% { transform: translateY(-6px); }
-    }
-    .boot-logo-reveal { animation: logoFloat 4.5s ease-in-out infinite alternate, logoPulse 0.5s var(--spring) forwards; }
-    @keyframes logoPulse {
-      0%   { transform: scale(1); }
-      50%  { transform: scale(1.06); }
-      100% { transform: scale(1); }
-    }
-
-    .splash-arc {
-      position: relative;
-      width: 64px; height: 64px;
-      display: inline-flex; align-items: center; justify-content: center;
-    }
-    .splash-arc svg {
-      width: 100%; height: 100%;
-      transform: rotate(-90deg);
-      filter: drop-shadow(0 2px 6px rgba(99,102,241,0.30));
-    }
-    .splash-arc-bg   { stroke: rgba(99,102,241,0.14); fill: none; stroke-width: 4; }
-    .splash-arc-fill {
-      fill: none;
-      stroke-width: 4;
-      stroke-linecap: round;
-      stroke-dasharray: 138;
-      transition: stroke-dashoffset 0.55s var(--ease-out-quart);
-    }
-
-    /* old boot-progress-track still in DOM but hidden under arc */
-    .splash-card .boot-progress-track { display: none; }
-
-    .splash-exit {
-      animation: splashExit 0.55s var(--spring-soft) forwards;
-      pointer-events: none;
-    }
-    @keyframes splashExit {
-      to { opacity: 0; transform: scale(1.03); filter: blur(4px); }
-    }
+    /* Splash CSS dihapus seluruhnya. */
 
     /* ============================================
        LOGIN — refined glass
@@ -1949,15 +1809,6 @@ textarea:focus-visible {
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(15,23,42,0.24);
       background-clip: padding-box;
-    }
-
-    /* ============================================
-       MOBILE TWEAKS — premium splash
-    ============================================ */
-    @media (max-width: 640px) {
-      .splash-card { padding: 2rem 1.25rem 1.75rem; }
-      .splash-logo-frame { width: 80px; height: 80px; }
-      .ambient-blob { opacity: 0.30; }
     }
 
     /* ============================================
@@ -2588,10 +2439,6 @@ textarea:focus-visible {
       body {
         background: #f8fafc;
         overscroll-behavior-y: auto;
-      }
-      .ambient-blob,
-      #login-canvas {
-        display: none;
       }
 
       button,
@@ -3258,33 +3105,7 @@ textarea:focus-visible {
 <body class="min-h-screen text-slate-800">
   <div id="toast-container"></div>
 
-  <section id="splash-screen" class="fixed inset-0 z-50 boot-bg">
-    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-8">
-      <div class="splash-card w-full max-w-xs flex flex-col items-center text-center">
-        <div id="boot-logo" class="splash-logo-frame">
-          <img src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" alt="Logo">
-        </div>
-
-        <h1 class="mt-5 text-lg font-semibold text-slate-900 leading-tight">CBT SMK Ganesa Satria 4</h1>
-        <p class="mt-1 text-xs text-slate-500">Portal Ujian Digital</p>
-
-        <div class="mt-6 splash-arc" aria-hidden="true">
-          <svg viewBox="0 0 56 56">
-            <circle class="splash-arc-bg" cx="28" cy="28" r="22"/>
-            <circle id="boot-arc-fill" class="splash-arc-fill" cx="28" cy="28" r="22" style="stroke-dashoffset:138;"/>
-          </svg>
-        </div>
-
-        <p id="boot-step-label" class="sr-only" aria-live="polite">Memuat&hellip;</p>
-        <p id="boot-progress-text" class="mt-3" style="font-family:'JetBrains Mono',monospace;">0%</p>
-
-        <div class="boot-progress-track" aria-hidden="true">
-          <div id="boot-progress-fill" class="boot-progress-fill" style="width:0%"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+  <!-- Splash screen dihapus. bootApp() langsung memutuskan login vs dashboard. -->
   <section id="login-section" class="hidden fixed inset-0 z-40 login-light-bg">
     <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
       <div class="w-full max-w-lg login-glass-card overflow-hidden fade-in">
@@ -3430,7 +3251,7 @@ textarea:focus-visible {
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260528-07</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260528-08</span></div>
           </div>
         </form>
       </div>
@@ -3555,7 +3376,7 @@ textarea:focus-visible {
     const BACKEND_URL = 'https://cbt-backend-worker.zhundha1997.workers.dev'; 
     // const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260528-07';
+    const APP_VERSION = '20260528-08';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -3658,9 +3479,7 @@ textarea:focus-visible {
     let examEndAt = null;
     let lastDraftSavedAt = null;
     let selectedLoginRole = 'peserta';
-    let bootParticles = null;
-    let loginParticles = null;
-    const BOOT_TOTAL_STEPS = 7;
+    // bootParticles / loginParticles / BOOT_TOTAL_STEPS removed with splash.
     let activeStaffSection = 'overview';
     let supervisorWizardCompleted = false;
     let supervisorWizardActive = false;
@@ -6152,9 +5971,7 @@ ${dokToolbarHtml()}
       } catch (error) {}
     }
 
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    // delay() removed — only used by splash boot which is gone. Use _delay() if you need.
 
     function setScreenVisibility(id, visible) {
       const el = document.getElementById(id);
@@ -6166,7 +5983,6 @@ ${dokToolbarHtml()}
     }
 
     function showDashboardScreen() {
-      if (loginParticles) { loginParticles.stop(); loginParticles = null; }
       setScreenVisibility('login-section', false);
       setScreenVisibility('app-section', true);
       document.body.classList.add('dashboard-active');
@@ -6186,7 +6002,6 @@ ${dokToolbarHtml()}
       updateAppVersionLabels();
       checkLoginServerStatus();
       setTimeout(() => focusLoginField('username', false), 120);
-      setTimeout(() => { loginParticles = initParticles('login-canvas'); }, 50);
     }
 
 
@@ -6622,216 +6437,74 @@ ${dokToolbarHtml()}
       });
     }
 
-    async function hideSplashScreen() {
-      const splash = document.getElementById('splash-screen');
-      if (!splash) return;
-      splash.classList.add('splash-exit');
-      if (bootParticles) { bootParticles.stop(); bootParticles = null; }
-      await delay(500);
-      splash.classList.add('hidden');
-    }
-
-    /* ============================================
-       PARTICLE SYSTEM
-    ============================================ */
-    function initParticles(canvasId) {
-      if (lowPowerMode || document.hidden) return null;
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return null;
-      const ctx = canvas.getContext('2d');
-      let w, h;
-      function resize() { w = canvas.width = canvas.parentElement.offsetWidth; h = canvas.height = canvas.parentElement.offsetHeight; }
-      resize();
-      const onResize = () => resize();
-      window.addEventListener('resize', onResize);
-      const pts = Array.from({ length: navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 6 ? 24 : 50 }, () => ({
-        x: Math.random() * (w || 800), y: Math.random() * (h || 600),
-        vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
-        r: Math.random() * 1.6 + 0.4, o: Math.random() * 0.15 + 0.04
-      }));
-      let animId = null;
-      function draw() {
-        ctx.clearRect(0, 0, w, h);
-        ctx.strokeStyle = 'rgba(99,102,241,0.04)';
-        ctx.lineWidth = 0.5;
-        const g = 48;
-        for (let x = 0; x < w; x += g) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-        for (let y = 0; y < h; y += g) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-        pts.forEach(p => {
-          p.x += p.vx; p.y += p.vy;
-          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(99,102,241,${p.o})`; ctx.fill();
-        });
-        ctx.lineWidth = 0.4;
-        for (let i = 0; i < pts.length; i++) {
-          for (let j = i + 1; j < pts.length; j++) {
-            const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-            const d = Math.sqrt(dx * dx + dy * dy);
-            if (d < 110) {
-              ctx.strokeStyle = `rgba(99,102,241,${0.05 * (1 - d / 110)})`;
-              ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
-            }
-          }
-        }
-        animId = requestAnimationFrame(draw);
-      }
-      draw();
-      return { stop() { if (animId) cancelAnimationFrame(animId); window.removeEventListener('resize', onResize); } };
-    }
-
-    /* ============================================
-       BOOT LOG HELPERS
-    ============================================ */
-    function addBootLog(tag, msg, status) {
-      const t = document.getElementById('boot-terminal');
-      if (!t) return;
-      const line = document.createElement('div');
-      line.className = 'boot-line';
-      const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      let sf = '';
-      if (status === 'ok') sf = ' <span class="boot-ok">OK</span>';
-      else if (status === 'fail') sf = ' <span class="boot-fail">FAIL</span>';
-      else if (status === 'warn') sf = ' <span class="boot-warn">WARN</span>';
-      line.innerHTML = `<span class="boot-dim">${ts}</span> <span class="boot-tag">[${tag}]</span> ${msg}${sf}`;
-      t.appendChild(line);
-      t.scrollTop = t.scrollHeight;
-    }
-
-    function updateBootProgress(step, label) {
-      const pct = Math.round((step / BOOT_TOTAL_STEPS) * 100);
-      const fill = document.getElementById('boot-progress-fill');
-      const text = document.getElementById('boot-progress-text');
-      const sl = document.getElementById('boot-step-label');
-      const arc = document.getElementById('boot-arc-fill');
-      if (fill) fill.style.width = pct + '%';
-      if (text) text.textContent = pct + '%';
-      if (sl) sl.textContent = label || '';
-      if (arc) arc.style.strokeDashoffset = (138 * (1 - pct / 100)).toFixed(2);
-    }
-
     /* ============================================
        BOOT SEQUENCE
+       Splash dihapus → langsung route ke login / dashboard.
+       Tidak ada artificial delay, tidak ada terminal log.
     ============================================ */
     async function bootApp() {
-      bootParticles = initParticles('boot-canvas');
-
-      // Step 1 — System init
-      updateBootProgress(1, 'Initializing system...');
-      addBootLog('SYSTEM', 'CBT Ganesa Satria 4 — Boot Sequence v2.0');
-      addBootLog('CORE', 'System kernel initialized', 'ok');
-      await delay(250);
-
-      // Step 2 — UI components
-      updateBootProgress(2, 'Loading UI...');
-      addBootLog('UI', 'Binding interface components...');
+      // UI prep — sinkron
       bindLoginRoleTabs();
       bindLoginQrScanner();
       bindPasswordToggle();
       bindLoginInputUx();
       updateAppVersionLabels();
-      addBootLog('UI', 'Role selector tabs bound', 'ok');
-      await delay(180);
-
-      // Step 3 — Icons
-      updateBootProgress(3, 'Rendering icons...');
-      addBootLog('UI', 'Loading Lucide icon library...');
       refreshIcons();
-      addBootLog('UI', 'Icons rendered', 'ok');
-      await delay(180);
+      getDeviceId(); // pemanasan fingerprint cache
 
-      // Step 4 — Device
-      updateBootProgress(4, 'Registering device...');
-      const devId = getDeviceId();
-      addBootLog('DEVICE', 'Fingerprint: <span class="boot-cyan">' + devId.substring(0, 22) + '…</span>', 'ok');
-      await delay(150);
-
-      // Step 5 — Session
-      updateBootProgress(5, 'Checking session...');
-      addBootLog('AUTH', 'Scanning local session storage...');
-      let restored = false;
+      // Coba restore session dari localStorage
       try {
         const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-        if (!raw) {
-          addBootLog('AUTH', 'No active session found', 'warn');
-        } else {
-          const stored = JSON.parse(raw);
-          if (!stored || !stored.user || !stored.user.sessionToken) {
-            addBootLog('AUTH', 'Token invalid or expired', 'warn');
-          } else {
-            addBootLog('AUTH', 'Token found → <span class="boot-cyan">' + escapeHtml(stored.user.nama || stored.user.user || '?') + '</span>');
-            // Step 6 — Backend
-            updateBootProgress(6, 'Connecting to server...');
-            addBootLog('NET', 'Establishing backend handshake...');
-            currentUserData = stored.user;
-            resetSupervisorWizardForLogin();
-            const cachedBootstrap = readBootstrapCache();
-            if (cachedBootstrap) {
-              appData = cachedBootstrap;
-              if (appData.user) currentUserData = appData.user;
-              addBootLog('CACHE', 'Dashboard cache restored', 'ok');
-              updateBootProgress(7, 'Building dashboard...');
-              showDashboardScreen();
-              renderShell();
-              restored = true;
-              serverCall('getCbtBootstrap', currentUserData).then(resp => {
-                if (resp.status !== 'success') throw new Error(resp.message);
-                appData = resp.data;
-                if (appData.user) currentUserData = appData.user;
-                persistSession();
-                writeBootstrapCache(appData);
-                renderShell();
-                addBootLog('NET', 'Bootstrap refreshed in background', 'ok');
-              }).catch(err => {
-                addBootLog('NET', 'Background refresh failed: ' + escapeHtml(err.message || 'Error'), 'warn');
-              });
-            } else {
-              try {
-              const resp = await serverCall('getCbtBootstrap', currentUserData);
+        const stored = raw ? JSON.parse(raw) : null;
+        if (stored && stored.user && stored.user.sessionToken) {
+          currentUserData = stored.user;
+          resetSupervisorWizardForLogin();
+
+          const cachedBootstrap = readBootstrapCache();
+          if (cachedBootstrap) {
+            // Cache ada → render dashboard instan, refresh di background
+            appData = cachedBootstrap;
+            if (appData.user) currentUserData = appData.user;
+            showDashboardScreen();
+            renderShell();
+            serverCall('getCbtBootstrap', currentUserData).then(resp => {
               if (resp.status !== 'success') throw new Error(resp.message);
               appData = resp.data;
               if (appData.user) currentUserData = appData.user;
               persistSession();
               writeBootstrapCache(appData);
-              addBootLog('NET', 'Bootstrap data received — <span class="boot-ok">200 OK</span>');
-              // Step 7 — Render
-              updateBootProgress(7, 'Building dashboard...');
-              addBootLog('RENDER', 'Building dashboard interface...');
-              showDashboardScreen();
               renderShell();
-              addBootLog('RENDER', 'Dashboard ready', 'ok');
-              restored = true;
-              } catch (err) {
-                addBootLog('NET', 'Handshake failed: ' + escapeHtml(err.message || 'Error'), 'fail');
-                addBootLog('AUTH', 'Session invalidated', 'warn');
-                currentUserData = null; appData = null; clearPersistedSession();
-              }
-            }
+            }).catch(() => { /* offline / network glitch — biarkan cache */ });
+            refreshIcons();
+            return;
+          }
+
+          // Tidak ada cache → tampilkan app shell dengan skeleton selama fetch.
+          // renderDashboardSkeleton dari revamp helpers (inline di bawah).
+          showDashboardScreen();
+          if (typeof window.renderDashboardSkeleton === 'function') {
+            window.renderDashboardSkeleton();
+          }
+          try {
+            const resp = await serverCall('getCbtBootstrap', currentUserData);
+            if (resp.status !== 'success') throw new Error(resp.message);
+            appData = resp.data;
+            if (appData.user) currentUserData = appData.user;
+            persistSession();
+            writeBootstrapCache(appData);
+            renderShell();
+            refreshIcons();
+            return;
+          } catch (err) {
+            currentUserData = null; appData = null; clearPersistedSession();
+            // fall through ke login
           }
         }
       } catch (e) {
-        addBootLog('AUTH', 'Session parse error', 'fail');
         currentUserData = null; appData = null; clearPersistedSession();
       }
 
-      if (!restored) {
-        updateBootProgress(6, 'Preparing login portal...');
-        addBootLog('AUTH', 'Redirecting to authentication portal');
-        showLoginScreen();
-      }
-
-      // Logo reveal
-      const logo = document.getElementById('boot-logo');
-      if (logo) { logo.classList.remove('hidden'); logo.classList.add('boot-logo-reveal'); }
-
-      // Final
-      updateBootProgress(BOOT_TOTAL_STEPS, 'All systems operational');
-      addBootLog('SYSTEM', '────────────────────────────────────────');
-      addBootLog('SYSTEM', 'All systems operational. Welcome.', 'ok');
-      await delay(700);
-
-      await hideSplashScreen();
+      showLoginScreen();
       refreshIcons();
     }
 
