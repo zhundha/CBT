@@ -14,7 +14,828 @@
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 
   <link rel="stylesheet" href="tailwind.generated.css?v=20260527-02">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ==========================================================
+       REVAMP MINIMALIS — sebelumnya di revamp.css, sekarang inline
+       untuk monolith. Layer terakhir di head: override Tailwind +
+       in-page <style>. Pertahankan urutan: tailwind → revamp → style.
+       ========================================================== -->
+  <style id="revamp-styles">
+/* ============================================================
+   CBT SMK GS4 — REVAMP MINIMALIS (Phase: Clean & Calm)
+   Diterapkan sebagai LAYER TERAKHIR setelah tailwind.generated.css
+   dan <style> in-page. Tujuan: rapikan visual, kurangi glass/glow,
+   satu warna aksen (blue), pertahankan semua ID/JS lama.
+   ============================================================ */
+
+:root {
+  /* Single accent: blue */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --accent-border: #bfdbfe;
+
+  /* Neutral palette */
+  --bg-page: #f7f8fa;
+  --bg-surface: #ffffff;
+  --bg-muted: #f1f5f9;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #0f172a;
+  --text-soft: #475569;
+  --text-mute: #94a3b8;
+
+  /* Subtle shadow tokens */
+  --r-card-minimal: 12px;
+  --r-surface-minimal: 14px;
+  --shadow-flat: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-elev-soft: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-elev-modal: 0 8px 28px rgba(15, 23, 42, 0.10);
+}
+
+/* ===== 1. CALM CANVAS ===================================== */
+/* Hilangkan ambient blobs + gradient body multi-stop. */
+.ambient-blob { display: none !important; }
+
+body {
+  background: var(--bg-page) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Poppins', system-ui, sans-serif !important;
+  color: var(--text);
+}
+
+/* Trim font-weight excess (semibold-only headings) */
+h1, h2, h3, h4 { font-weight: 600 !important; letter-spacing: -0.005em; }
+.font-black, .font-extrabold { font-weight: 700 !important; }
+
+/* ===== 2. SPLASH SCREEN — minimalist ====================== */
+#splash-screen.boot-bg {
+  background: var(--bg-page) !important;
+}
+#boot-canvas { display: none !important; } /* hilangkan canvas animasi */
+
+.splash-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-surface-minimal) !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+  padding: 2rem 1.5rem 1.75rem !important;
+  animation: none !important;
+}
+.splash-logo-frame {
+  width: 80px !important; height: 80px !important;
+  border-radius: 18px !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-flat) !important;
+  padding: 12px !important;
+  animation: none !important;
+}
+.splash-logo-frame::after { display: none !important; }
+
+/* Single circular indicator only */
+.splash-arc-bg { stroke: var(--bg-muted) !important; }
+.splash-arc-fill { stroke: var(--accent) !important; filter: none !important; }
+.splash-arc svg { filter: none !important; }
+
+/* Linear progress track ALREADY hidden by existing CSS — pertahankan */
+.splash-card .boot-progress-track { display: none !important; }
+
+/* Splash text simplifications */
+#splash-screen h1 { font-size: 1.125rem !important; font-weight: 600 !important; color: var(--text) !important; }
+#splash-screen p { color: var(--text-soft) !important; }
+#boot-step-label { display: none !important; } /* redundan dengan persentase */
+#boot-progress-text {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  margin-top: 0.5rem !important;
+}
+
+/* Reveal animations off */
+.boot-scanline { display: none !important; }
+
+/* ===== 3. TOP NAV — clean ================================= */
+.vibrancy-nav {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+#nav-title { color: var(--text) !important; font-weight: 600 !important; }
+#app-section nav p.text-indigo-500 { color: var(--text-mute) !important; }
+
+/* Old chips: hide; we replace with avatar dropdown */
+#app-section nav .nav-chip,
+#app-section nav .online-pill {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important;
+  overflow: hidden !important; clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+
+/* Command-K trigger button */
+.kbd-trigger {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+.kbd-trigger:hover { background: #e2e8f0; color: var(--text); }
+.kbd-trigger i { width: 14px; height: 14px; }
+.kbd-trigger .kbd-hint {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  color: var(--text-mute) !important;
+  padding: 0.05rem 0.3rem !important;
+  font-size: 0.62rem !important;
+}
+
+/* Avatar dropdown trigger */
+.user-avatar-btn {
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  padding: 0.35rem 0.6rem 0.35rem 0.4rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.user-avatar-btn:hover { border-color: var(--border-strong); background: var(--bg-muted); }
+.user-avatar-btn[aria-expanded="true"] { border-color: var(--accent-border); background: var(--accent-soft); }
+.user-avatar-initials {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.02em;
+  position: relative;
+}
+.user-status-dot {
+  position: absolute; right: -1px; bottom: -1px;
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 2px solid var(--bg-surface);
+}
+.user-status-on { background: #10b981; }
+.user-status-off { background: #ef4444; }
+.user-menu-name-inline { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.user-menu { position: relative; }
+.user-menu-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  min-width: 240px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card-minimal);
+  box-shadow: var(--shadow-elev-modal);
+  padding: 0.4rem;
+  z-index: 50;
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.user-menu-dropdown.open {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+.user-menu-header {
+  padding: 0.6rem 0.7rem 0.55rem;
+}
+.user-menu-name {
+  font-weight: 600; color: var(--text); font-size: 0.85rem;
+  margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-align: left !important; /* override legacy mobile rule */
+  max-width: 100% !important;
+  flex: 0 0 auto !important;
+}
+.user-menu-role { display: inline-block !important; } /* override legacy <390px hide */
+.user-menu-role {
+  display: inline-block; margin-top: 0.25rem;
+  background: var(--accent-soft); color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.user-menu-divider { height: 1px; background: var(--border); margin: 0.25rem 0; }
+.user-menu-item {
+  display: flex; align-items: center; gap: 0.65rem;
+  width: 100%; text-align: left;
+  padding: 0.55rem 0.7rem;
+  background: transparent; border: 0;
+  border-radius: 8px;
+  font-size: 0.82rem; font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.user-menu-item:hover { background: var(--bg-muted); }
+.user-menu-item i { width: 16px; height: 16px; color: var(--text-soft); }
+.user-menu-item-danger { color: #b91c1c; }
+.user-menu-item-danger:hover { background: #fee2e2; }
+.user-menu-item-danger i { color: #ef4444; }
+
+/* Mobile nav: collapse subtitle line + Ctrl-K trigger */
+@media (max-width: 640px) {
+  #app-section nav > div > div:first-child p { display: none; }
+  .kbd-trigger { display: none !important; }
+  .user-avatar-btn .user-menu-name-inline { display: none !important; }
+  .user-menu-dropdown { right: 0.5rem; left: auto; min-width: 220px; }
+
+  /* Override legacy mobile rule to keep nav single-row */
+  #app-section nav > div { flex-wrap: nowrap !important; align-items: center !important; }
+  #app-section nav > div > div:first-child { flex: 1 1 auto !important; }
+  #app-section nav > div > div:last-child { width: auto !important; justify-content: flex-end !important; }
+}
+
+/* ===== 4. ADMIN DASHBOARD SECTION GROUPS ================== */
+.dash-group {
+  margin-top: 0.25rem;
+}
+.dash-group + .dash-group {
+  margin-top: 1.25rem;
+}
+.dash-group-header {
+  display: flex; align-items: baseline; gap: 0.65rem;
+  margin-bottom: 0.6rem;
+  padding: 0 0.15rem;
+}
+.dash-group-header h3 {
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+.dash-group-header .dash-group-rule {
+  flex: 1; height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+}
+.dash-group-body {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+
+/* ===== 5. SURFACES — flat & friendly ====================== */
+.surface-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: var(--shadow-flat) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.surface-card:hover {
+  box-shadow: var(--shadow-elev-soft) !important;
+  border-color: var(--border-strong) !important;
+}
+
+.welcome-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-surface-minimal) !important;
+  box-shadow: var(--shadow-flat) !important;
+  padding: 1.25rem 1.5rem !important;
+}
+.welcome-card .text-indigo-600 { color: var(--accent) !important; }
+.welcome-card .text-indigo-500 { color: var(--accent) !important; }
+
+.exam-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: var(--shadow-flat) !important;
+}
+.exam-card:hover {
+  transform: none !important;
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+}
+.exam-card::before { width: 3px !important; border-radius: 3px 0 0 3px; }
+.exam-card:hover::before { width: 3px !important; }
+.exam-card.card-ready::before { background: #10b981 !important; }
+.exam-card.card-progress::before { background: var(--accent) !important; }
+.exam-card.card-done::before { background: #cbd5e1 !important; }
+
+.stat-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: var(--shadow-flat) !important;
+}
+.stat-card::before { display: none !important; }
+.stat-card:hover {
+  transform: none !important;
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+}
+
+/* ===== 6. BUTTONS — flat primary ========================== */
+.btn-premium {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.05s ease !important;
+}
+.btn-premium:hover {
+  background: var(--bg-muted) !important;
+  border-color: var(--border-strong) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn-premium:active { transform: scale(0.98) !important; }
+
+.btn-premium-primary {
+  background: var(--accent) !important;
+  background-image: none !important;
+  border: 1px solid var(--accent-strong) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-flat) !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+.btn-premium-primary:hover:not(:disabled) {
+  background: var(--accent-strong) !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+  transform: none !important;
+}
+
+.btn-premium-danger {
+  background: #ef4444 !important;
+  background-image: none !important;
+  border: 1px solid #dc2626 !important;
+  box-shadow: var(--shadow-flat) !important;
+}
+.btn-premium-danger:hover {
+  background: #dc2626 !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+}
+
+.btn-premium-amber {
+  background: #f59e0b !important;
+  background-image: none !important;
+  border: 1px solid #d97706 !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-flat) !important;
+}
+.btn-premium-amber:hover {
+  background: #d97706 !important;
+}
+
+/* ===== 7. EXAM CHOICE CARDS — minimal ===================== */
+.choice-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.choice-card:hover {
+  background: var(--bg-muted) !important;
+  border-color: var(--border-strong) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.choice-card:has(input:checked) {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
+}
+.choice-card input[type="radio"]:checked {
+  background: var(--accent) !important;
+  background-image: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+/* ===== 8. TOAST, DRAWER, PALETTE, SWAL — flatten =========== */
+.toast {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-elev-modal) !important;
+}
+
+#slide-drawer-panel {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-left: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-elev-modal) !important;
+}
+#slide-drawer-backdrop {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#palette-panel {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: var(--shadow-elev-modal) !important;
+}
+#palette-backdrop {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.swal2-popup {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: var(--shadow-elev-modal) !important;
+}
+.swal2-backdrop-show {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.swal2-styled.swal2-confirm {
+  background: var(--accent) !important;
+  background-image: none !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+/* ===== 9. EXAM TOOLBAR =================================== */
+.exam-toolbar {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+.timer-pill {
+  background: var(--bg-muted) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+/* ===== 10. SIDEBAR active — single accent ================= */
+.sidebar-item.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent-strong) !important;
+  box-shadow: none !important;
+}
+.sidebar-item.active i { color: var(--accent) !important; }
+
+/* ===== 11. SKELETON LOADER (UX quick win) ================= */
+.skeleton {
+  background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 50%, #eef2f7 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-line { height: 12px; margin-bottom: 8px; }
+.skeleton-line.lg { height: 18px; }
+.skeleton-block { height: 96px; border-radius: 12px; }
+.dashboard-skeleton {
+  display: grid; gap: 12px;
+  padding: 4px;
+}
+.dashboard-skeleton-row {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* Legacy .surface-card-empty — restyle to match minimal empty-state */
+.surface-card-empty {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px dashed var(--border-strong) !important;
+  border-radius: var(--r-card-minimal) !important;
+  box-shadow: none !important;
+  color: var(--text-soft);
+}
+
+/* ===== 12. EMPTY STATE (UX quick win) ===================== */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-card-minimal);
+  color: var(--text-soft);
+}
+.empty-state-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 0.75rem;
+  color: var(--text-mute);
+}
+.empty-state-title {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.empty-state-desc {
+  font-size: 0.8rem;
+  max-width: 320px;
+  margin-bottom: 0.85rem;
+}
+
+/* ===== 13. TABLE refine ==================================== */
+#app-section table thead th,
+#app-section table thead td {
+  background: var(--bg-muted) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text-soft) !important;
+}
+#app-section table tbody tr:hover {
+  background: var(--accent-soft) !important;
+}
+
+/* ===== 14. SCROLLBAR ===================================== */
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.32);
+}
+
+/* ===== 15. Reduce motion globally a touch =================
+   Keep entry animations subtle. Remove "bounce" springs. */
+.fade-slide-in { animation-duration: 0.25s !important; }
+.fade-in { animation-duration: 0.2s !important; }
+.card-lift:hover { transform: none !important; }
+
+/* ===== Offline banner ====================================== */
+#offline-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 60;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-bottom: 1px solid #fde68a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+  padding-top: max(0.45rem, env(safe-area-inset-top));
+}
+#offline-banner.show { transform: translateY(0); }
+#offline-banner i { width: 14px; height: 14px; }
+#offline-banner.severe {
+  background: #fee2e2;
+  color: #991b1b;
+  border-bottom-color: #fecaca;
+}
+body.offline-banner-active {
+  padding-top: 2rem;
+  transition: padding-top 0.25s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  #offline-banner { transition: none !important; }
+  body.offline-banner-active { transition: none !important; }
+}
+
+/* ===== Scroll-to-top FAB =================================== */
+#scroll-top-fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-elev-modal);
+  cursor: pointer;
+  z-index: 30;
+  opacity: 0; transform: translateY(8px) scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, background 0.12s;
+}
+#scroll-top-fab.show {
+  opacity: 1; transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+#scroll-top-fab:hover { background: var(--accent-soft); }
+#scroll-top-fab:active { transform: translateY(0) scale(0.95); }
+#scroll-top-fab i { width: 18px; height: 18px; }
+@media (max-width: 640px) {
+  #scroll-top-fab { bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + 4.5rem); }
+}
+
+/* ===== A11y: focus-visible ring =========================== */
+/* Subtle ring for keyboard nav only (not mouse clicks).
+   Layered di sini agar menang dari override Tailwind. */
+:where(
+  button, [role="button"], a, input, select, textarea,
+  .user-menu-item, .sidebar-item, .choice-card, .exam-card,
+  .login-role-tab-dark, .kbd-trigger, .user-avatar-btn
+):focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  border-radius: inherit;
+}
+/* Avoid double ring on inputs that have their own focus border */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0 !important;
+  outline-style: solid !important;
+}
+
+/* ===== A11y: prefers-reduced-motion ======================= */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none !important; background: var(--bg-muted) !important; }
+  #scroll-top-fab { transition: opacity 0.05s linear !important; transform: none !important; }
+  #scroll-top-fab.show { transform: none !important; }
+  .user-menu-dropdown { transition: opacity 0.05s linear !important; transform: none !important; }
+  .user-menu-dropdown.open { transform: none !important; }
+  .toast { animation-duration: 0.05s !important; }
+  .fade-slide-in, .fade-in { animation: none !important; }
+}
+
+/* ===== 16. LOGIN keep refined but flatter ================= */
+.login-light-bg {
+  background: var(--bg-page) !important;
+}
+#login-canvas { display: none !important; }
+.login-glass-card {
+  background: var(--bg-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-surface-minimal) !important;
+  box-shadow: var(--shadow-elev-modal) !important;
+}
+.login-input-dark {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.login-input-dark:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+.login-btn-glow {
+  background: var(--accent) !important;
+  background-image: none !important;
+  background-size: auto !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-flat) !important;
+}
+.login-btn-glow:hover:not(:disabled) {
+  background: var(--accent-strong) !important;
+  background-position: 0 0 !important;
+  transform: none !important;
+  box-shadow: var(--shadow-elev-soft) !important;
+}
+.login-btn-glow::before { display: none !important; }
+.login-role-tab-dark[aria-selected="true"] {
+  background: var(--accent-soft) !important;
+  color: var(--accent-strong) !important;
+  border-color: var(--accent-border) !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================
+   PRINT — global stylesheet (laporan, dashboard, berita acara)
+   Tujuan: bersih saat dicetak / Save-as-PDF dari browser
+   ============================================================ */
+@media print {
+  /* Halaman & warna */
+  @page { margin: 14mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+  body { padding: 0 !important; }
+
+  /* Sembunyikan chrome aplikasi */
+  #splash-screen,
+  #login-section,
+  #app-section > nav,
+  .staff-sidebar,
+  .staff-mobile-only,
+  #toast-container,
+  #scroll-top-fab,
+  #slide-drawer,
+  #command-palette,
+  #user-menu-dropdown,
+  .user-avatar-btn,
+  .kbd-trigger,
+  .swal2-container,
+  button#btn-refresh-monitor,
+  button[onclick*="logout"],
+  .exam-toolbar {
+    display: none !important;
+  }
+
+  /* Layout penuh, tanpa max-width clamp */
+  #app-section, .staff-layout, .staff-content,
+  main, .max-w-7xl {
+    display: block !important;
+    max-width: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Surface jadi flat, tanpa shadow/border manja */
+  .surface-card,
+  .welcome-card,
+  .exam-card,
+  .stat-card,
+  .empty-state {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid;
+  }
+
+  /* Group header tetap kelihatan di cetakan */
+  .dash-group-header h3 {
+    color: #000 !important;
+    font-size: 10pt !important;
+    border-bottom: 1px solid #000;
+    padding-bottom: 2pt;
+  }
+  .dash-group-rule { display: none !important; }
+
+  /* Table */
+  table { border-collapse: collapse !important; width: 100% !important; }
+  table thead th,
+  table thead td {
+    background: #f3f4f6 !important;
+    color: #000 !important;
+    border: 1px solid #999 !important;
+  }
+  table tbody td { border: 1px solid #bbb !important; }
+  thead { display: table-header-group; }
+  tr, td, th { page-break-inside: avoid; }
+
+  /* Link tetap terbaca tanpa underline color */
+  a { color: #000 !important; text-decoration: underline; }
+
+  /* Hilangkan animasi & transition */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+  </style>
   <!-- Versi di-pin (bukan @latest) agar CDN tidak diam-diam mengubah build saat hari-H ujian.
        defer: tidak memblok render/parse; eksekusi sebelum DOMContentLoaded (urutan terjaga),
        sehingga Swal & lucide.createIcons tetap tersedia di handler init. -->
@@ -35,7 +856,7 @@
       overflow-y: auto;
     }
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
       min-height: 100svh;
       overflow-x: clip;
       padding-left: env(safe-area-inset-left);
@@ -98,24 +919,8 @@
       position: relative;
       overflow: hidden;
     }
-    #boot-canvas, #login-canvas {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .boot-scanline {
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(99, 102, 241, 0.012) 3px,
-        rgba(99, 102, 241, 0.012) 6px
-      );
-      pointer-events: none;
-      z-index: 1;
-    }
+    /* #boot-canvas, #login-canvas, .boot-scanline removed in revamp.
+       Markup canvas/scanline tidak lagi ada di DOM. */
     .boot-terminal {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.72rem;
@@ -331,10 +1136,14 @@
        WELCOME PANEL
     ============================================ */
     .welcome-card {
-      background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
-      border: 1px solid #dbeafe;
-      border-radius: 1rem;
-      padding: 1.25rem 1.5rem;
+      background: linear-gradient(135deg, rgba(239, 246, 255, 0.45) 0%, rgba(245, 243, 255, 0.25) 100%);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(219, 234, 254, 0.5);
+      border-radius: var(--r-surface);
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.9);
+      transition: all 0.3s var(--spring-soft);
     }
     .status-chip {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -348,24 +1157,32 @@
     ============================================ */
     .exam-card {
       position: relative;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 1rem;
-      padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--r-card);
+      padding: 1.5rem;
       overflow: hidden;
-      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.8);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .exam-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-elevated);
+      border-color: rgba(99, 102, 241, 0.25);
     }
     .exam-card::before {
       content: '';
-      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+      transition: width 0.25s ease;
     }
-    .exam-card.card-ready::before { background: linear-gradient(180deg, #22c55e, #16a34a); }
-    .exam-card.card-progress::before { background: linear-gradient(180deg, #3b82f6, #6366f1); }
-    .exam-card.card-done::before { background: linear-gradient(180deg, #94a3b8, #64748b); }
+    .exam-card:hover::before {
+      width: 7px;
+    }
+    .exam-card.card-ready::before { background: linear-gradient(180deg, #10b981, #059669); }
+    .exam-card.card-progress::before { background: linear-gradient(180deg, #6366f1, #4f46e5); }
+    .exam-card.card-done::before { background: linear-gradient(180deg, #cbd5e1, #94a3b8); }
     .progress-ring { transform: rotate(-90deg); }
     .progress-ring-bg { fill: none; stroke: #e2e8f0; stroke-width: 3; }
     .progress-ring-fill {
@@ -682,16 +1499,12 @@
       --r-surface: 24px;
     }
 
-    /* SF Pro fallback + better font rendering */
+    /* System fonts + Inter; Poppins/SF Pro removed (not loaded after revamp) */
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Poppins', 'Inter', system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      background:
-        radial-gradient(ellipse 80% 60% at 18% 8%,  rgba(59,130,246,0.07) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 50% at 88% 18%, rgba(139,92,246,0.06) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(244,114,182,0.05) 0%, transparent 55%),
-        linear-gradient(180deg, #f8fafc 0%, #eef2f8 100%);
+      background: #f7f8fa;
     }
 
     /* Ambient drifting color blobs */
@@ -905,13 +1718,7 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
-    .nav-chip-role {
-      background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(139,92,246,0.14));
-      color: #4338ca;
-      border-color: rgba(99,102,241,0.22);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
+    /* .nav-chip-role removed in revamp — nav chips replaced by avatar dropdown. */
     .btn-premium {
       padding: 0.50rem 0.9rem;
       border-radius: 12px;
@@ -2449,40 +3256,29 @@
   </style>
 </head>
 <body class="min-h-screen text-slate-800">
-  <div class="ambient-blob b1"></div>
-  <div class="ambient-blob b2"></div>
-  <div class="ambient-blob b3"></div>
   <div id="toast-container"></div>
 
   <section id="splash-screen" class="fixed inset-0 z-50 boot-bg">
-    <canvas id="boot-canvas"></canvas>
     <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-8">
-      <div class="splash-card w-full max-w-sm flex flex-col items-center text-center">
+      <div class="splash-card w-full max-w-xs flex flex-col items-center text-center">
         <div id="boot-logo" class="splash-logo-frame">
           <img src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" alt="Logo">
         </div>
 
-        <h1 class="mt-6 text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-tight">CBT SMK Ganesa Satria 4 Kedu</h1>
-        <p class="mt-1.5 text-[0.65rem] uppercase tracking-[0.32em] text-indigo-500 font-semibold">Portal Ujian Digital</p>
+        <h1 class="mt-5 text-lg font-semibold text-slate-900 leading-tight">CBT SMK Ganesa Satria 4</h1>
+        <p class="mt-1 text-xs text-slate-500">Portal Ujian Digital</p>
 
-        <div class="mt-8 splash-arc">
+        <div class="mt-6 splash-arc" aria-hidden="true">
           <svg viewBox="0 0 56 56">
-            <defs>
-              <linearGradient id="splash-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="50%" stop-color="#6366f1"/>
-                <stop offset="100%" stop-color="#8b5cf6"/>
-              </linearGradient>
-            </defs>
             <circle class="splash-arc-bg" cx="28" cy="28" r="22"/>
-            <circle id="boot-arc-fill" class="splash-arc-fill" cx="28" cy="28" r="22" style="stroke:url(#splash-grad);stroke-dashoffset:138;"/>
+            <circle id="boot-arc-fill" class="splash-arc-fill" cx="28" cy="28" r="22" style="stroke-dashoffset:138;"/>
           </svg>
         </div>
 
-        <p id="boot-step-label" class="mt-5 text-sm font-medium text-slate-500">Memuat&hellip;</p>
-        <p id="boot-progress-text" class="mt-1 text-[0.7rem] tracking-[0.2em] font-semibold text-indigo-400" style="font-family:'JetBrains Mono',monospace;">0%</p>
+        <p id="boot-step-label" class="sr-only" aria-live="polite">Memuat&hellip;</p>
+        <p id="boot-progress-text" class="mt-3" style="font-family:'JetBrains Mono',monospace;">0%</p>
 
-        <div class="boot-progress-track">
+        <div class="boot-progress-track" aria-hidden="true">
           <div id="boot-progress-fill" class="boot-progress-fill" style="width:0%"></div>
         </div>
       </div>
@@ -2490,8 +3286,6 @@
   </section>
 
   <section id="login-section" class="hidden fixed inset-0 z-40 login-light-bg">
-    <canvas id="login-canvas"></canvas>
-    <div class="boot-scanline"></div>
     <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
       <div class="w-full max-w-lg login-glass-card overflow-hidden fade-in">
         <div class="px-6 py-5 border-b border-black/[0.06]">
@@ -2636,7 +3430,7 @@
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260527-01</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260528-07</span></div>
           </div>
         </form>
       </div>
@@ -2645,33 +3439,59 @@
 
   <section id="app-section" class="hidden min-h-screen">
     <nav class="sticky top-0 z-40 vibrancy-nav">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-white/80 border border-white/60 p-1 flex items-center justify-center" style="box-shadow:inset 0 1px 0 rgba(255,255,255,0.9),0 1px 3px rgba(15,23,42,0.06);">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-white border border-slate-200 p-1 flex items-center justify-center flex-shrink-0">
             <img src="https://smkganesasatria4tmg.sch.id/wp-content/uploads/2023/11/logo-update.png" alt="Logo" class="w-full h-auto">
           </div>
-          <div>
-            <p class="text-[0.62rem] text-indigo-500 font-semibold uppercase tracking-[0.22em]">CBT SMK Ganesa Satria 4</p>
-            <h2 class="text-base sm:text-lg font-semibold text-slate-900 leading-tight tracking-tight" id="nav-title">Dashboard</h2>
+          <div class="min-w-0">
+            <p class="text-[0.6rem] text-slate-400 font-medium uppercase tracking-[0.18em]">CBT SMK Ganesa Satria 4</p>
+            <h2 class="text-base font-semibold text-slate-900 leading-tight truncate" id="nav-title">Dashboard</h2>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <span id="display-role" class="nav-chip nav-chip-role inline-flex items-center"></span>
-          <span id="display-nama" class="nav-chip max-w-[140px] sm:max-w-xs truncate inline-flex items-center"></span>
-          <button id="btn-change-password" onclick="promptChangePassword()" class="hidden inline-flex items-center gap-2 btn-premium">
-            <i data-lucide="key" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Ganti Password</span>
+        <div class="flex items-center gap-2">
+          <button type="button" id="nav-cmdk-trigger" class="kbd-trigger hidden sm:inline-flex" onclick="openCommandPalette()" aria-label="Buka pencarian cepat">
+            <i data-lucide="search"></i>
+            <span>Cari&hellip;</span>
+            <kbd class="kbd-hint">Ctrl K</kbd>
           </button>
-          <span id="online-status" class="online-pill online-pill-on">Online</span>
-          <button id="btn-pwa-install" onclick="triggerPwaInstall()" class="hidden inline-flex items-center gap-2 btn-premium" title="Install sebagai aplikasi">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Install</span>
-          </button>
-          <button onclick="logout()" class="inline-flex items-center gap-2 btn-premium btn-premium-danger">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Logout</span>
-          </button>
+
+          <div class="user-menu" id="nav-user-menu">
+            <button type="button" id="user-menu-toggle" class="user-avatar-btn" aria-haspopup="menu" aria-expanded="false" onclick="toggleUserMenu(event)">
+              <span class="user-avatar-initials">
+                <span id="user-avatar-initials-text">··</span>
+                <span id="user-menu-status-dot" class="user-status-dot user-status-on" title="Online"></span>
+              </span>
+              <span id="user-menu-name-inline" class="user-menu-name-inline hidden sm:inline"></span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
+            <div id="user-menu-dropdown" class="user-menu-dropdown" role="menu">
+              <div class="user-menu-header">
+                <p id="display-nama" class="user-menu-name"></p>
+                <span id="display-role" class="user-menu-role"></span>
+              </div>
+              <div class="user-menu-divider"></div>
+              <button id="btn-change-password" type="button" class="user-menu-item hidden" role="menuitem" onclick="promptChangePassword(); closeUserMenu();">
+                <i data-lucide="key"></i>
+                <span>Ganti Password</span>
+              </button>
+              <button id="btn-pwa-install" type="button" class="user-menu-item hidden" role="menuitem" onclick="triggerPwaInstall(); closeUserMenu();" title="Install sebagai aplikasi">
+                <i data-lucide="download"></i>
+                <span>Install Aplikasi</span>
+              </button>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item user-menu-item-danger" role="menuitem" onclick="logout()">
+                <i data-lucide="log-out"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Legacy online-status node retained for backward compatibility.
+               Visually hidden via revamp.css; observed below to mirror state into user-menu-status-dot. -->
+          <span id="online-status" class="online-pill online-pill-on" aria-hidden="true">Online</span>
         </div>
       </div>
     </nav>
@@ -2735,7 +3555,7 @@
     const BACKEND_URL = 'https://cbt-backend-worker.zhundha1997.workers.dev'; 
     // const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260527-02';
+    const APP_VERSION = '20260528-07';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -6668,26 +7488,18 @@ ${dokToolbarHtml()}
           <section class="welcome-card fade-slide-in">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Dashboard Peserta</p>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">Dashboard Peserta</p>
                 <h2 class="mt-1 text-xl font-bold text-slate-900">${getGreeting()}, ${escapeHtml(currentUserData.nama)}</h2>
                 <p class="mt-0.5 text-sm text-slate-500">${escapeHtml(currentUserData.kelas || 'Tanpa kelas')} &middot; ${formatDate()}</p>
               </div>
-              <button onclick="loadBootstrap()" class="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
-                <i data-lucide="refresh-cw" class="h-4 w-4"></i> Refresh
+              <button onclick="loadBootstrap()" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-600 shadow-sm hover:shadow hover:text-indigo-600 transition-premium active:scale-95" title="Refresh">
+                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
               </button>
             </div>
           </section>
 
-          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            ${renderStudentMiniMetric('Siap dikerjakan', readyCount, 'play-circle', 'emerald')}
-            ${renderStudentMiniMetric('Sedang berjalan', progressCount, 'rotate-ccw', 'blue')}
-            ${renderStudentMiniMetric('Selesai submit', submittedCount, 'check-circle-2', 'slate')}
-            ${renderStudentMiniMetric('Perlu perhatian', issueCount, 'alert-triangle', 'amber')}
-          </div>
-
-          <div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div class="grid gap-4">
             ${renderParticipantIdentityCard()}
-            ${renderParticipantSystemCard()}
           </div>
 
           <section class="space-y-3">
@@ -6860,13 +7672,13 @@ ${dokToolbarHtml()}
       return `
         <section class="surface-card p-5 fade-slide-in">
           <div class="flex items-center gap-2">
-            <i data-lucide="id-card" class="h-5 w-5 text-blue-700"></i>
+            <i data-lucide="id-card" class="h-5 w-5 text-indigo-600"></i>
             <h3 class="font-bold text-slate-900">Identitas Peserta</h3>
           </div>
           <div class="mt-4 grid gap-2 sm:grid-cols-2">
             ${rows.map(([label, value]) => `
-              <div class="rounded-xl border border-slate-200 bg-white/70 p-3">
-                <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">${escapeHtml(label)}</p>
+              <div class="rounded-xl bg-slate-50/60 p-3 hover:bg-slate-50/90 transition-premium">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(label)}</p>
                 <p class="mt-0.5 truncate text-sm font-bold text-slate-800">${escapeHtml(value)}</p>
               </div>
             `).join('')}
@@ -6875,44 +7687,17 @@ ${dokToolbarHtml()}
       `;
     }
 
-    function renderParticipantSystemCard() {
-      const online = navigator.onLine;
-      const connectionClass = online
-        ? 'inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700'
-        : 'inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700';
-      const connectionDot = online ? 'bg-emerald-500' : 'bg-rose-500';
-      return `
-        <section class="surface-card p-5 fade-slide-in">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <i data-lucide="activity" class="h-5 w-5 text-emerald-600"></i>
-              <h3 class="font-bold text-slate-900">Status Sistem</h3>
-            </div>
-            <span id="participant-connection-status" class="${connectionClass}">
-              <span class="h-2 w-2 rounded-full ${connectionDot}"></span> ${online ? 'Online' : 'Offline'}
-            </span>
-          </div>
-          <div class="mt-4 grid gap-2 sm:grid-cols-2">
-            <div class="rounded-xl border border-slate-200 bg-white/70 p-3">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Auto-save</p>
-              <p class="mt-0.5 text-sm font-bold text-slate-800">Aktif saat mengerjakan ujian</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white/70 p-3">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Versi</p>
-              <p class="mt-0.5 text-sm font-bold text-slate-800">${escapeHtml(APP_VERSION)}</p>
-            </div>
-          </div>
-        </section>
-      `;
-    }
+    // renderParticipantSystemCard removed: status info redundant dengan
+    // online dot di avatar (nav), offline banner (revamp.js), versi di
+    // footer login, dan auto-save pill di exam toolbar.
 
     function renderStudentExamTabButton(key, label, count) {
       const active = studentExamTab === key;
       const countBadge = (count !== null && count !== undefined) ? `
-        <span class="rounded-full ${active ? 'bg-blue-50 text-blue-700' : 'bg-white text-slate-500'} px-2 py-0.5 text-[11px]">${Number(count || 0)}</span>
+        <span class="rounded-full ${active ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-500'} px-2 py-0.5 text-[10px] font-bold">${Number(count || 0)}</span>
       ` : '';
       return `
-        <button type="button" data-tab="${escapeHtml(key)}" class="student-exam-tab inline-flex min-h-[38px] items-center justify-center gap-2 rounded-lg px-3 py-1.5 ${active ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}">
+        <button type="button" data-tab="${escapeHtml(key)}" class="student-exam-tab inline-flex min-h-[36px] items-center justify-center gap-2 rounded-lg px-3 py-1.5 transition-premium ${active ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-500 hover:text-slate-800'}" style="font-size: 11px;">
           <span>${escapeHtml(label)}</span>
           ${countBadge}
         </button>
@@ -6926,10 +7711,10 @@ ${dokToolbarHtml()}
         selesai: ['archive', 'Belum ada ujian selesai', 'Riwayat submit akan tampil setelah jawaban dikunci.']
       }[tab] || ['calendar-x', 'Belum ada data', 'Coba refresh halaman.'];
       return `
-        <div class="surface-card-empty p-8 text-center fade-slide-in xl:col-span-2">
-          <i data-lucide="${config[0]}" class="mx-auto mb-3 h-12 w-12 text-slate-300"></i>
-          <p class="text-sm font-bold text-slate-600">${escapeHtml(config[1])}</p>
-          <p class="mt-1 text-xs font-semibold text-slate-400">${escapeHtml(config[2])}</p>
+        <div class="empty-state fade-slide-in xl:col-span-2">
+          <span class="empty-state-icon"><i data-lucide="${config[0]}" class="w-6 h-6"></i></span>
+          <p class="empty-state-title">${escapeHtml(config[1])}</p>
+          <p class="empty-state-desc">${escapeHtml(config[2])}</p>
         </div>
       `;
     }
@@ -6938,76 +7723,76 @@ ${dokToolbarHtml()}
       const exam = item.exam;
       const id = safeId(exam.examId);
       const statusClasses = {
-        ready: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        progress: 'border-blue-200 bg-blue-50 text-blue-700',
-        done: 'border-slate-200 bg-slate-100 text-slate-700',
-        warning: 'border-amber-200 bg-amber-50 text-amber-700',
+        ready: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+        progress: 'border-indigo-100 bg-indigo-50 text-indigo-700',
+        done: 'border-slate-200 bg-slate-50 text-slate-500',
+        warning: 'border-amber-100 bg-amber-50 text-amber-700',
         muted: 'border-slate-200 bg-white text-slate-500'
       };
       const cardClass = item.tone === 'ready' ? 'card-ready' : item.tone === 'progress' ? 'card-progress' : 'card-done';
-      const ringColor = item.tone === 'ready' ? '#16a34a' : item.tone === 'progress' ? '#2563eb' : item.tone === 'warning' ? '#d97706' : '#94a3b8';
+      const ringColor = item.tone === 'ready' ? '#10b981' : item.tone === 'progress' ? '#6366f1' : item.tone === 'warning' ? '#f59e0b' : '#cbd5e1';
       const scheduleText = `${formatStudentSchedule(exam.mulai)} - ${formatStudentSchedule(exam.selesai)}`;
       const meta = [exam.jenis, exam.kelas, exam.ruang].filter(Boolean);
       return `
-        <article class="exam-card ${cardClass} fade-slide-in">
+        <article class="exam-card ${cardClass} fade-slide-in hover:shadow-md transition-premium">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ${statusClasses[item.tone] || statusClasses.muted}">
-                  <i data-lucide="${escapeHtml(item.icon)}" class="h-3.5 w-3.5"></i> ${escapeHtml(item.label)}
+                <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold ${statusClasses[item.tone] || statusClasses.muted}">
+                  <i data-lucide="${escapeHtml(item.icon)}" class="h-3 w-3"></i> ${escapeHtml(item.label)}
                 </span>
-                <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-500">
-                  <i data-lucide="${item.tokenRequired ? 'key-round' : 'shield-check'}" class="h-3.5 w-3.5"></i> ${item.tokenRequired ? 'Token' : 'Tanpa token'}
+                <span class="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-400">
+                  <i data-lucide="${item.tokenRequired ? 'key-round' : 'shield-check'}" class="h-3 w-3"></i> ${item.tokenRequired ? 'Token' : 'Bebas'}
                 </span>
               </div>
-              <p class="mt-3 text-xs font-bold uppercase tracking-wide text-slate-400">${escapeHtml(exam.examId)}</p>
-              <h3 class="mt-0.5 truncate text-lg font-black text-slate-900">${escapeHtml(exam.mapel || 'Ujian')}</h3>
+              <p class="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(exam.examId)}</p>
+              <h3 class="mt-0.5 truncate text-base font-bold text-slate-900">${escapeHtml(exam.mapel || 'Ujian')}</h3>
               <p class="mt-1 text-xs font-semibold text-slate-500">
                 ${meta.map(value => escapeHtml(value)).join(' <span class="text-slate-300">&middot;</span> ')}
                 ${exam.guru ? ' <span class="text-slate-300">&middot;</span> ' + escapeHtml(exam.guru) : ''}
               </p>
             </div>
             <div class="flex shrink-0 flex-col items-center gap-0.5">
-              ${progressRingSvg(item.pct, ringColor, 54)}
-              <span class="text-[11px] font-black text-slate-500">${item.pct}%</span>
+              ${progressRingSvg(item.pct, ringColor, 50)}
+              <span class="text-[10px] font-black text-slate-500">${item.pct}%</span>
             </div>
           </div>
 
-          <div class="mt-4 grid gap-2 text-xs font-bold text-slate-500 sm:grid-cols-2">
-            <span class="inline-flex items-center gap-1.5"><i data-lucide="clock" class="h-3.5 w-3.5"></i>${Number(exam.durasiMenit || 0)} menit</span>
-            <span class="inline-flex items-center gap-1.5"><i data-lucide="list-checks" class="h-3.5 w-3.5"></i>${Number(exam.totalPG || 0)} PG + ${Number(exam.totalEsai || 0)} esai</span>
-            <span class="inline-flex items-center gap-1.5 sm:col-span-2"><i data-lucide="calendar-days" class="h-3.5 w-3.5"></i>${escapeHtml(scheduleText)}</span>
+          <div class="mt-4 grid gap-2 text-xs font-bold text-slate-400 sm:grid-cols-2">
+            <span class="inline-flex items-center gap-1.5"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-300"></i>${Number(exam.durasiMenit || 0)} menit</span>
+            <span class="inline-flex items-center gap-1.5"><i data-lucide="list-checks" class="h-3.5 w-3.5 text-slate-300"></i>${Number(exam.totalPG || 0)} PG + ${Number(exam.totalEsai || 0)} esai</span>
+            <span class="inline-flex items-center gap-1.5 sm:col-span-2"><i data-lucide="calendar-days" class="h-3.5 w-3.5 text-slate-300"></i>${escapeHtml(scheduleText)}</span>
           </div>
 
           <div class="mt-4 grid grid-cols-3 gap-2">
-            <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-2 text-center">
-              <p class="text-lg font-black text-emerald-700">${item.answered}</p>
-              <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700/70">Terjawab</p>
+            <div class="rounded-xl bg-emerald-50/60 p-2 text-center">
+              <p class="text-base font-black text-emerald-700">${item.answered}</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider text-emerald-600/70">Terjawab</p>
             </div>
-            <div class="rounded-xl border border-amber-100 bg-amber-50 p-2 text-center">
-              <p class="text-lg font-black text-amber-700">${item.ragu}</p>
-              <p class="text-[10px] font-bold uppercase tracking-wide text-amber-700/70">Ragu</p>
+            <div class="rounded-xl bg-amber-50/60 p-2 text-center">
+              <p class="text-base font-black text-amber-700">${item.ragu}</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider text-amber-600/70">Ragu</p>
             </div>
-            <div class="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center">
-              <p class="text-lg font-black text-slate-700">${item.unanswered}</p>
-              <p class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Belum</p>
+            <div class="rounded-xl bg-slate-100/60 p-2 text-center">
+              <p class="text-base font-black text-slate-700">${item.unanswered}</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Belum</p>
             </div>
           </div>
 
           ${Number(item.progress.sisaDetik || 0) || Number(item.progress.tabKeluar || 0) || Number(item.progress.fullscreenExit || 0) || Number(item.progress.screenshotAttempt || 0) ? `
             <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
               ${Number(item.progress.sisaDetik || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700"><i data-lucide="timer" class="h-3.5 w-3.5"></i>Sisa ${formatTimer(item.progress.sisaDetik)}</span>` : ''}
-              ${Number(item.progress.tabKeluar || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700"><i data-lucide="monitor-x" class="h-3.5 w-3.5"></i>${Number(item.progress.tabKeluar || 0)} tab keluar</span>` : ''}
+              ${Number(item.progress.tabKeluar || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700"><i data-lucide="monitor-x" class="h-3.5 w-3.5"></i>${Number(item.progress.tabKeluar || 0)} tab</span>` : ''}
               ${Number(item.progress.fullscreenExit || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-1 text-orange-700"><i data-lucide="minimize-2" class="h-3.5 w-3.5"></i>${Number(item.progress.fullscreenExit || 0)} fullscreen</span>` : ''}
-              ${Number(item.progress.screenshotAttempt || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700"><i data-lucide="camera" class="h-3.5 w-3.5"></i>${Number(item.progress.screenshotAttempt || 0)} screenshot</span>` : ''}
+              ${Number(item.progress.screenshotAttempt || 0) ? `<span class="inline-flex items-center gap-1 rounded-full bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700"><i data-lucide="camera" class="h-3.5 w-3.5"></i>${Number(item.progress.screenshotAttempt || 0)} ss</span>` : ''}
             </div>
           ` : ''}
 
           <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-            ${item.canStart && item.tokenRequired ? `<input id="token-${id}" class="min-h-[42px] flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="TOKEN" autocomplete="off">` : ''}
-            ${item.canStart ? `<button data-exam-id="${escapeHtml(exam.examId)}" class="btn-start-exam inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800"><i data-lucide="play" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
-            ${item.canResume ? `<button data-exam-id="${escapeHtml(exam.examId)}" class="btn-resume-exam inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"><i data-lucide="rotate-ccw" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
-            ${!item.canStart && !item.canResume ? `<button disabled class="inline-flex min-h-[42px] flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-200 px-4 py-2 text-sm font-bold text-slate-500"><i data-lucide="lock" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
+            ${item.canStart && item.tokenRequired ? `<input id="token-${id}" class="min-h-[40px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="TOKEN" autocomplete="off">` : ''}
+            ${item.canStart ? `<button data-exam-id="${escapeHtml(exam.examId)}" class="btn-start-exam inline-flex min-h-[40px] flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-bold text-white hover:from-indigo-500 hover:to-blue-500 transition-premium shadow-md shadow-indigo-100/50 hover:scale-[1.02] active:scale-[0.98]"><i data-lucide="play" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
+            ${item.canResume ? `<button data-exam-id="${escapeHtml(exam.examId)}" class="btn-resume-exam inline-flex min-h-[40px] flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white hover:from-emerald-500 hover:to-teal-500 transition-premium shadow-md shadow-emerald-100/50 hover:scale-[1.02] active:scale-[0.98]"><i data-lucide="rotate-ccw" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
+            ${!item.canStart && !item.canResume ? `<button disabled class="inline-flex min-h-[40px] flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-400"><i data-lucide="lock" class="h-4 w-4"></i>${escapeHtml(item.actionLabel)}</button>` : ''}
           </div>
         </article>
       `;
@@ -7088,12 +7873,16 @@ ${dokToolbarHtml()}
             ${menuItems.map(m => `<button class="sidebar-item ${activeStaffSection === m.key ? 'active' : ''}" data-section="${m.key}"><i data-lucide="${m.icon}" class="w-4 h-4"></i><span>${m.label}</span></button>`).join('')}
           </div>
         </nav>`;
+      // Nama & role sudah tampil di avatar dropdown nav. Welcome card hanya
+      // memberi konteks waktu + ruang (jika ada) + kontrol auto-refresh.
+      const ruangText = currentUserData.ruang ? `${escapeHtml(currentUserData.ruang)} &middot; ` : '';
       const welcomeHtml = `
         <div class="welcome-card staff-welcome-card fade-slide-in mb-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 class="text-xl font-bold text-slate-800">${getGreeting()} ${escapeHtml(currentUserData.nama)}</h2>
-              <p class="staff-welcome-meta text-sm text-slate-500 mt-0.5">${escapeHtml(roleLabel(currentUserData.role))} ${escapeHtml(currentUserData.ruang || '')} &middot; ${formatDate()}</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">${getGreeting()}</p>
+              <h2 class="mt-1 text-lg font-semibold text-slate-900">${escapeHtml(currentUserData.nama)}</h2>
+              <p class="staff-welcome-meta mt-0.5 text-xs font-medium text-slate-500">${ruangText}${formatDate()}</p>
             </div>
             <div class="staff-refresh-row flex items-center gap-2">
               <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 cursor-pointer">
@@ -7685,45 +8474,69 @@ ${dokToolbarHtml()}
           <section class="welcome-card fade-slide-in">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Pusat Kendali Admin</p>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">Pusat Kendali Admin</p>
                 <h2 class="mt-1 text-xl font-black text-slate-900">Ringkasan operasional ujian</h2>
                 <p class="mt-1 text-sm font-semibold text-slate-500">Pantau kesiapan, peserta, token, audit, dan tindakan penting dari satu layar.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" id="btn-refresh-monitor" class="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
-                  <i data-lucide="refresh-cw" class="h-4 w-4"></i> Refresh
+                <button type="button" id="btn-refresh-monitor" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-600 shadow-sm hover:shadow hover:text-indigo-600 transition-premium active:scale-95" title="Refresh">
+                  <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                 </button>
               </div>
             </div>
           </section>
 
-          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-            ${renderAdminOverviewMetric('Ujian Aktif', model.activeExams, 'radio-tower', 'emerald')}
-            ${renderAdminOverviewMetric('Peserta Online', model.onlineParticipants, 'wifi', 'blue')}
-            ${renderAdminOverviewMetric('Belum Login', model.summary.belumLogin || 0, 'user-x', 'amber')}
-            ${renderAdminOverviewMetric('Mengerjakan', model.summary.mengerjakan || 0, 'timer', 'emerald')}
-            ${renderAdminOverviewMetric('Submit', model.summary.submit || 0, 'check-circle-2', 'indigo')}
-            ${renderAdminOverviewMetric('Bermasalah', model.summary.bermasalah || 0, 'triangle-alert', 'rose')}
-          </div>
+          <!-- GROUP 1: HARI INI — apa yang sedang terjadi sekarang -->
+          <section class="dash-group" aria-labelledby="dash-group-today">
+            <header class="dash-group-header">
+              <h3 id="dash-group-today">Hari ini</h3>
+              <span class="dash-group-rule"></span>
+            </header>
+            <div class="dash-group-body">
+              <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+                ${renderAdminOverviewMetric('Ujian Aktif', model.activeExams, 'radio-tower', 'emerald')}
+                ${renderAdminOverviewMetric('Peserta Online', model.onlineParticipants, 'wifi', 'blue')}
+                ${renderAdminOverviewMetric('Belum Login', model.summary.belumLogin || 0, 'user-x', 'amber')}
+                ${renderAdminOverviewMetric('Mengerjakan', model.summary.mengerjakan || 0, 'timer', 'emerald')}
+                ${renderAdminOverviewMetric('Submit', model.summary.submit || 0, 'check-circle-2', 'indigo')}
+                ${renderAdminOverviewMetric('Bermasalah', model.summary.bermasalah || 0, 'triangle-alert', 'rose')}
+              </div>
+              ${renderOperationsCommandCenterPanel(model)}
+              ${renderAdminQuickActions(model)}
+              <div class="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+                ${renderAdminActionCenter(model)}
+                ${renderAdminWorkflowWizard(model)}
+              </div>
+            </div>
+          </section>
 
-          ${renderOperationsCommandCenterPanel(model)}
+          <!-- GROUP 2: PEKAN INI — kesiapan & jadwal mendatang -->
+          <section class="dash-group" aria-labelledby="dash-group-week">
+            <header class="dash-group-header">
+              <h3 id="dash-group-week">Pekan ini</h3>
+              <span class="dash-group-rule"></span>
+            </header>
+            <div class="dash-group-body">
+              <div class="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+                ${renderAdminReadinessBoard(model)}
+                ${renderAdminExamHealthBoard(model)}
+              </div>
+            </div>
+          </section>
 
-          ${renderAdminQuickActions(model)}
-
-          <div class="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-            ${renderAdminActionCenter(model)}
-            ${renderAdminWorkflowWizard(model)}
-          </div>
-
-          <div class="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-            ${renderAdminReadinessBoard(model)}
-            ${renderAdminSystemHealth(model)}
-          </div>
-
-          <div class="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-            ${renderAdminExamHealthBoard(model)}
-            ${renderAdminAuditPreview(model)}
-          </div>
+          <!-- GROUP 3: SISTEM — health & audit -->
+          <section class="dash-group" aria-labelledby="dash-group-system">
+            <header class="dash-group-header">
+              <h3 id="dash-group-system">Sistem</h3>
+              <span class="dash-group-rule"></span>
+            </header>
+            <div class="dash-group-body">
+              <div class="grid gap-4 xl:grid-cols-[1fr_1fr]">
+                ${renderAdminSystemHealth(model)}
+                ${renderAdminAuditPreview(model)}
+              </div>
+            </div>
+          </section>
         </div>
       `;
     }
@@ -7905,11 +8718,11 @@ ${dokToolbarHtml()}
 
     function renderAdminOverviewMetric(label, value, icon, tone) {
       return `
-        <section class="surface-card p-4 fade-slide-in">
+        <section class="surface-card p-4 fade-slide-in hover:shadow-md transition-premium active:scale-98">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">${escapeHtml(label)}</p>
-              <p class="mt-1 text-3xl font-black text-slate-900">${Number(value || 0)}</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(label)}</p>
+              <p class="mt-1 text-2xl font-black text-slate-900 tracking-tight">${Number(value || 0)}</p>
             </div>
             <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl border ${adminToneClasses(tone)}">
               <i data-lucide="${escapeHtml(icon)}" class="h-5 w-5"></i>
@@ -8333,23 +9146,23 @@ ${dokToolbarHtml()}
       if (delta > 0) deltaHtml = `<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">+${delta}</span>`;
       else if (delta < 0) deltaHtml = `<span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded">${delta}</span>`;
       const colorMap = {
-        blue: { bg: 'bg-blue-50', border: 'border-blue-100', icon: 'bg-blue-100 text-blue-700', value: 'text-blue-700', label: 'text-blue-600/70' },
-        amber: { bg: 'bg-amber-50', border: 'border-amber-100', icon: 'bg-amber-100 text-amber-700', value: 'text-amber-700', label: 'text-amber-600/70' },
-        sky: { bg: 'bg-sky-50', border: 'border-sky-100', icon: 'bg-sky-100 text-sky-700', value: 'text-sky-700', label: 'text-sky-600/70' },
-        emerald: { bg: 'bg-emerald-50', border: 'border-emerald-100', icon: 'bg-emerald-100 text-emerald-700', value: 'text-emerald-700', label: 'text-emerald-600/70' },
-        indigo: { bg: 'bg-indigo-50', border: 'border-indigo-100', icon: 'bg-indigo-100 text-indigo-700', value: 'text-indigo-700', label: 'text-indigo-600/70' },
-        rose: { bg: 'bg-rose-50', border: 'border-rose-100', icon: 'bg-rose-100 text-rose-700', value: 'text-rose-700', label: 'text-rose-600/70' }
+        blue: { bg: 'bg-blue-50/50', border: 'border-blue-100/60', icon: 'bg-blue-100 text-blue-700', value: 'text-blue-700', label: 'text-blue-600/70' },
+        amber: { bg: 'bg-amber-50/50', border: 'border-amber-100/60', icon: 'bg-amber-100 text-amber-700', value: 'text-amber-700', label: 'text-amber-600/70' },
+        sky: { bg: 'bg-sky-50/50', border: 'border-sky-100/60', icon: 'bg-sky-100 text-sky-700', value: 'text-sky-700', label: 'text-sky-600/70' },
+        emerald: { bg: 'bg-emerald-50/50', border: 'border-emerald-100/60', icon: 'bg-emerald-100 text-emerald-700', value: 'text-emerald-700', label: 'text-emerald-600/70' },
+        indigo: { bg: 'bg-indigo-50/50', border: 'border-indigo-100/60', icon: 'bg-indigo-100 text-indigo-700', value: 'text-indigo-700', label: 'text-indigo-600/70' },
+        rose: { bg: 'bg-rose-50/50', border: 'border-rose-100/60', icon: 'bg-rose-100 text-rose-700', value: 'text-rose-700', label: 'text-rose-600/70' }
       };
       const c = colorMap[color] || colorMap.blue;
       const pulse = color === 'rose' && v > 0 ? 'ring-2 ring-rose-300 ring-offset-1 animate-pulse' : '';
       return `
-        <div class="stat-card rounded-xl ${c.bg} border ${c.border} p-3 card-lift ${pulse}">
+        <div class="stat-card rounded-2xl ${c.bg} border ${c.border} p-3.5 hover:shadow-md transition-premium active:scale-98 ${pulse}">
           <div class="flex items-center justify-between gap-2 mb-2">
-            <div class="p-1.5 rounded-lg ${c.icon}"><i data-lucide="${icon}" class="w-3.5 h-3.5"></i></div>
+            <div class="p-1.5 rounded-xl ${c.icon}"><i data-lucide="${icon}" class="w-4 h-4"></i></div>
             ${deltaHtml}
           </div>
-          <p class="text-2xl font-bold ${c.value}">${v}</p>
-          <p class="text-[10px] font-semibold uppercase tracking-wide ${c.label}">${label}</p>
+          <p class="text-2xl font-black ${c.value} tracking-tight">${v}</p>
+          <p class="text-[9px] font-bold uppercase tracking-wider ${c.label} mt-0.5">${label}</p>
         </div>`;
     }
 
@@ -19162,6 +19975,223 @@ ${dokToolbarHtml()}
       printWin.document.close();
     }
 
+  </script>
+
+  <!-- Revamp helpers (avatar dropdown, status mirror, skeleton,
+       FAB, offline banner). Sebelumnya di revamp.js, sekarang inline
+       untuk monolith. -->
+  <script>
+/* ============================================================
+   CBT SMK GS4 — Revamp helpers
+   - Avatar dropdown user-menu
+   - Mirror #display-nama (name) → initials + inline label
+   - Mirror #online-status className → status dot
+   - Dashboard skeleton loader (UX win #7)
+   Tidak mengubah API/JS lama; semua ID legacy dipertahankan.
+   ============================================================ */
+(function () {
+  function getInitials(name) {
+    if (!name) return '··';
+    var parts = String(name).trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '··';
+    var first = parts[0][0] || '';
+    var last  = parts.length > 1 ? parts[parts.length - 1][0] : '';
+    return (first + last).toUpperCase().slice(0, 2);
+  }
+
+  window.toggleUserMenu = function (event) {
+    if (event) event.stopPropagation();
+    var dd  = document.getElementById('user-menu-dropdown');
+    var btn = document.getElementById('user-menu-toggle');
+    if (!dd || !btn) return;
+    var open = dd.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  window.closeUserMenu = function () {
+    var dd  = document.getElementById('user-menu-dropdown');
+    var btn = document.getElementById('user-menu-toggle');
+    if (dd)  dd.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  };
+
+  document.addEventListener('click', function (e) {
+    var menu = document.getElementById('nav-user-menu');
+    if (!menu) return;
+    if (!menu.contains(e.target)) window.closeUserMenu();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') window.closeUserMenu();
+  });
+
+  function syncNameMirrors() {
+    var nameEl = document.getElementById('display-nama');
+    if (!nameEl) return;
+    var name = (nameEl.textContent || '').trim();
+    var initEl   = document.getElementById('user-avatar-initials-text');
+    var inlineEl = document.getElementById('user-menu-name-inline');
+    if (initEl)   initEl.textContent = getInitials(name);
+    if (inlineEl) inlineEl.textContent = name;
+  }
+
+  function syncStatusDot() {
+    var src = document.getElementById('online-status');
+    var dot = document.getElementById('user-menu-status-dot');
+    if (!src || !dot) return;
+    var on = src.classList.contains('online-pill-on');
+    dot.classList.toggle('user-status-on',  on);
+    dot.classList.toggle('user-status-off', !on);
+    dot.title = on ? 'Online' : 'Offline';
+  }
+
+  function bindObservers() {
+    var nameEl   = document.getElementById('display-nama');
+    var statusEl = document.getElementById('online-status');
+    if (nameEl && 'MutationObserver' in window) {
+      new MutationObserver(syncNameMirrors).observe(nameEl, {
+        childList: true, characterData: true, subtree: true
+      });
+    }
+    if (statusEl && 'MutationObserver' in window) {
+      new MutationObserver(syncStatusDot).observe(statusEl, {
+        attributes: true, attributeFilter: ['class']
+      });
+    }
+    syncNameMirrors();
+    syncStatusDot();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindObservers);
+  } else {
+    bindObservers();
+  }
+
+  /* ----- Skeleton loader untuk dashboard view (UX win #7) ----- */
+  window.renderDashboardSkeleton = function () {
+    var host = document.getElementById('dashboard-view');
+    if (!host) return;
+    host.innerHTML =
+      '<div class="dashboard-skeleton">' +
+        '<div class="skeleton skeleton-block" style="height:84px"></div>' +
+        '<div class="dashboard-skeleton-row">' +
+          '<div class="skeleton skeleton-block"></div>' +
+          '<div class="skeleton skeleton-block"></div>' +
+          '<div class="skeleton skeleton-block"></div>' +
+          '<div class="skeleton skeleton-block"></div>' +
+        '</div>' +
+        '<div class="skeleton skeleton-block" style="height:200px"></div>' +
+        '<div class="skeleton skeleton-block" style="height:160px"></div>' +
+      '</div>';
+  };
+
+  // Tampilkan skeleton sebelum renderShell (yang memanggil renderDashboard)
+  // menulis ulang innerHTML dashboard-view.
+  if (typeof window.renderShell === 'function' && !window.__revampShellPatched) {
+    var _origShell = window.renderShell;
+    window.renderShell = function () {
+      try { window.renderDashboardSkeleton(); } catch (_) {}
+      return _origShell.apply(this, arguments);
+    };
+    window.__revampShellPatched = true;
+  }
+
+  /* ----- Scroll-to-top FAB (UX win) -------------------------- */
+  function mountScrollTopFab() {
+    if (document.getElementById('scroll-top-fab')) return;
+    var fab = document.createElement('button');
+    fab.id = 'scroll-top-fab';
+    fab.type = 'button';
+    fab.setAttribute('aria-label', 'Kembali ke atas');
+    fab.title = 'Kembali ke atas';
+    fab.innerHTML = '<i data-lucide="arrow-up"></i>';
+    fab.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.body.appendChild(fab);
+    // Re-render lucide icon if available
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
+  }
+
+  var scrollFabRaf = null;
+  function onScroll() {
+    if (scrollFabRaf) return;
+    scrollFabRaf = requestAnimationFrame(function () {
+      scrollFabRaf = null;
+      var fab = document.getElementById('scroll-top-fab');
+      if (!fab) return;
+      // Hide while exam is in progress (immersive mode)
+      var examEl = document.getElementById('exam-view');
+      var examOpen = !!(examEl && !examEl.classList.contains('hidden'));
+      // Only show when dashboard scrollable and scrolled past threshold
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var show = !examOpen && y > 600;
+      fab.classList.toggle('show', show);
+    });
+  }
+
+  function initScrollFab() {
+    mountScrollTopFab();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initScrollFab);
+  } else {
+    initScrollFab();
+  }
+
+  /* ----- Offline banner -------------------------------------- */
+  function mountOfflineBanner() {
+    if (document.getElementById('offline-banner')) return;
+    var bar = document.createElement('div');
+    bar.id = 'offline-banner';
+    bar.setAttribute('role', 'status');
+    bar.setAttribute('aria-live', 'polite');
+    bar.innerHTML =
+      '<i data-lucide="wifi-off"></i>' +
+      '<span id="offline-banner-text">Koneksi internet terputus. Jawaban akan disimpan lokal.</span>';
+    document.body.appendChild(bar);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
+  }
+
+  var offlineRetryCount = 0;
+  function syncOfflineState() {
+    var bar = document.getElementById('offline-banner');
+    if (!bar) return;
+    var online = navigator.onLine !== false;
+    if (!online) {
+      offlineRetryCount++;
+      bar.classList.add('show');
+      document.body.classList.add('offline-banner-active');
+      // After 3+ disconnects in this session, escalate visual severity
+      if (offlineRetryCount >= 3) bar.classList.add('severe');
+    } else {
+      bar.classList.remove('show');
+      bar.classList.remove('severe');
+      document.body.classList.remove('offline-banner-active');
+    }
+  }
+
+  function initOfflineBanner() {
+    mountOfflineBanner();
+    window.addEventListener('online', syncOfflineState);
+    window.addEventListener('offline', syncOfflineState);
+    // Re-sync when tab becomes visible (browser sometimes missed events while hidden)
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) syncOfflineState();
+    });
+    syncOfflineState();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOfflineBanner);
+  } else {
+    initOfflineBanner();
+  }
+})();
   </script>
 </body>
 </html>

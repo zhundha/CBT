@@ -11,10 +11,11 @@
  * Bump CACHE_VERSION to force update on all clients.
  */
 
-const CACHE_VERSION = 'cbt-v1.5.0';
+const CACHE_VERSION = 'cbt-v1.7.0';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
+// revamp.css + revamp.js sekarang inline di index.html (monolith).
 const SHELL_URLS = [
   './tailwind.generated.css',
   './manifest.json',
