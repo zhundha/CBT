@@ -80,15 +80,24 @@ h1, h2, h3, h4 { font-weight: 600 !important; letter-spacing: -0.005em; }
 #nav-title { color: var(--text) !important; font-weight: 600 !important; }
 #app-section nav p.text-indigo-500 { color: var(--text-mute) !important; }
 
-/* Old chips: hide; we replace with avatar dropdown */
+/* Old chips: hide; we replace with avatar dropdown.
+   PENTING: pointer-events: none + push off-screen — kalau cuma clip:rect,
+   element 1×1 absolut tetap "ada" di static position (overlap avatar) dan
+   menelan tap mobile. */
 #app-section nav .nav-chip,
 #app-section nav .online-pill {
   position: absolute !important;
+  left: -9999px !important; top: -9999px !important;
   width: 1px !important; height: 1px !important;
-  padding: 0 !important; margin: -1px !important;
-  overflow: hidden !important; clip: rect(0,0,0,0) !important;
+  padding: 0 !important; margin: 0 !important;
+  overflow: hidden !important;
   white-space: nowrap !important; border: 0 !important;
+  pointer-events: none !important;
 }
+
+/* Pastikan user-menu di atas layer stacking apa pun di nav */
+.user-menu { position: relative; z-index: 1; }
+.user-avatar-btn { position: relative; z-index: 2; }
 
 /* Command-K trigger button */
 .kbd-trigger {
@@ -3251,7 +3260,7 @@ a, label, summary {
 
           <div class="rounded-xl border border-black/[0.04] bg-slate-50/60 px-4 py-3 text-xs font-medium text-slate-400 text-center">
             <div>&copy; 2026 Tim Kurikulum SMK Ganesa Satria 4 Kedu</div>
-            <div class="login-version mt-1">v<span data-app-version>20260528-08</span></div>
+            <div class="login-version mt-1">v<span data-app-version>20260528-09</span></div>
           </div>
         </form>
       </div>
@@ -3279,7 +3288,7 @@ a, label, summary {
           </button>
 
           <div class="user-menu" id="nav-user-menu">
-            <button type="button" id="user-menu-toggle" class="user-avatar-btn" aria-haspopup="menu" aria-expanded="false" onclick="toggleUserMenu(event)">
+            <button type="button" id="user-menu-toggle" class="user-avatar-btn" aria-haspopup="menu" aria-expanded="false">
               <span class="user-avatar-initials">
                 <span id="user-avatar-initials-text">··</span>
                 <span id="user-menu-status-dot" class="user-status-dot user-status-on" title="Online"></span>
@@ -3376,7 +3385,7 @@ a, label, summary {
     const BACKEND_URL = 'https://cbt-backend-worker.zhundha1997.workers.dev'; 
     // const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw3HzU64qJ-YOF5e1z1jroFwjGL877OKwxoRZXPxGoXVynzrBIaMElBLwzP7_ZKdPJUWw/exec';
     // Wajib bump setiap deploy/update agar service worker, manifest, dan cache lokal mengambil versi baru.
-    const APP_VERSION = '20260528-08';
+    const APP_VERSION = '20260528-09';
     const SESSION_STORAGE_KEY = 'cbt_gs4_session_v1';
     const DEVICE_STORAGE_KEY = 'cbt_gs4_device_v1';
     const LOGIN_ROLE_STORAGE_KEY = 'cbt_gs4_login_role_v1';
@@ -19687,6 +19696,22 @@ ${dokToolbarHtml()}
     if (dd)  dd.classList.remove('open');
     if (btn) btn.setAttribute('aria-expanded', 'false');
   };
+
+  // Bind toggle langsung ke button (lebih reliable di mobile dibanding inline onclick)
+  function bindUserMenuToggle() {
+    var btn = document.getElementById('user-menu-toggle');
+    if (!btn || btn.__revampBound) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      window.toggleUserMenu(e);
+    });
+    btn.__revampBound = true;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindUserMenuToggle);
+  } else {
+    bindUserMenuToggle();
+  }
 
   document.addEventListener('click', function (e) {
     var menu = document.getElementById('nav-user-menu');
